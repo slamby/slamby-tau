@@ -29,7 +29,7 @@ Status Bar   |   Orange colored status bar at the bottom. Contains additional in
 
 Quick dataset selector. Check your available datasets in drop-down menu and select one to work with.
 
-> Using TAU you can select one active dataset to work with. Basically you can set a dataset to work with in Dataset menu, or select a new one in thin quick selector.
+> Using TAU you can select one active dataset to work with. Basically you can set a dataset to work with in Dataset menu, or select a new one in this quick selector.
 
 #### Settings
 
@@ -108,8 +108,11 @@ To select a dataset to work, click on `select to work`, or double-click on it. Y
 ## Import Document into Dataset
 
 To import document into your dataset, select your target dataset, right-click and select Import Document from ... menu item. You can select Import Document from JSON or from CSV.
-After selecting the right import format, you can select the source file using your file browser. After selecting the source file - a setting window pops-up. Here you can set the delimiter that will apply during CSV parsing. There is also a force import checkbox.
-Using force mode, all the errors will be detected and reported, but the import will be continued anytime. Not using Force mode, import process will stop when the first error detected.
+After selecting the right import format, you can select the source file using your file browser.
+
+After selecting the source file - a setting window pops-up. Here you can set the delimiter that will apply during CSV parsing. There is also a force import checkbox.
+
+`Using force mode`, all the errors will be detected and reported, but the import will be continued anytime. Not using Force mode, import process will stop when the first error detected.
 
 **CSV Import**
 
@@ -157,7 +160,7 @@ Id  |   Name    |   ParentId
 
 ## Remove Dataset
 
-To remove a dataset select your target dataset, right-click and select Remove. A security window pops-up, to make sure you are going to remove the right dataset. After pressing Ok, the dataset is going to be removed.
+To remove a dataset select your target dataset, right-click and select *Remove*. A security window pops-up, to make sure you are going to remove the right dataset. After pressing Ok, the dataset is going to be removed.
 
 **Important**
 
@@ -205,7 +208,7 @@ To save the document click Ok.
 Copy the selected documents to another dataset. Pops up a target dataset selector, showing your available datasets. Select your target dataset and click on Select.
 Copying process starts in the background.
 
-To copy all of your documents from your entire dataset use Copy All To option. Using this option it's not necessary to select any document, it will automatically affect each of it.
+To copy all of your documents from your entire dataset use `Copy All To` option. Using this option it's not necessary to select any document, it will automatically affect each of it.
 
 **Important**
 
@@ -218,7 +221,7 @@ The target dataset should have the same template then your current dataset to co
 Move the selected documents to another dataset. Pops up a target dataset selector, showing your available datasets. Select your target dataset and click on Select.
 Moving process starts in the background.
 
-To move all of your documents from your entire dataset use Copy All To option. Using this option it's not necessary to select any documents, it will automatically affect each of it.
+To move all of your documents from your entire dataset use `Move All To` option. Using this option it's not necessary to select any documents, it will automatically affect each of it.
 
 **Important**
 
@@ -265,7 +268,7 @@ Available options:
 
 *Filter by tags*
 
-You can select from which tags you would like to create your samples. For a general e-commerce sampling a typical usage is to select all the leaf level tags and use them for sampling.
+You can select from which tags you would like to create your samples. For a general e-commerce sampling a typical usage: select all the leaf level tags and use them for sampling.
 
 *Sampling procedure*
 
@@ -361,7 +364,7 @@ To modify a tag, change the tag json document.
 
 ### Remove Tag
 
-Removing a tag, accept your validation form. Tag won't be removed from the documents.
+Removing a tag, accept your validation form. Tag won't be removed from documents.
 
 **Important** All the children tags will be removed.
 
@@ -380,8 +383,8 @@ Service creation steps:
 
 No. |   Stage   |   Description
 --- |   ---     |   ---
-1.  |   Create Empty Service    |   To create a service, the first step is to create an empty service. During this process you can select the type of the service, provide the name and description of it. When the service is ready, the service unique ID already exists. After creation is done the service status is `New`
-2.  |   Preparation |   The next step is to prepare the service. During this process you can set your custom settings generally about the training process. When preparation starts, service status will be changed to `Busy`. When the preparation finishes, the status will be changed to `Prepared`
+1.  |   Create Empty Service    |   To create a service, first step is to create an empty one. During this process you can select the type of the service, provide the name and description of it. When the service is ready, the service unique ID already exists. After creation process is done the service status is `New`
+2.  |   Preparation |   Next step is to prepare the service. During this process you can set your custom settings about the training process. When preparation starts, service status will be changed to `Busy`. When the preparation finishes, the status will be changed to `Prepared`.
 3.  |   Activation  |   Prepared services can be activated. When a service is prepared it means the training and setting process is ready, the service is ready to use, all the required files are ready to use. Without activation you cannot use the service. Before activation you can set your custom settings about the API endpoint to customize your data processing. During activation Slamby server reads the service and related files, opening an available API endpoint, loading the service into memory and become ready to serve your requests. When the service is activated, the status will be changed to `Activated`. 
 4.  |   Test a Service  |   You can test your activated service by clicking on the recommend button. A test window pops-up with the available service details as a JSON document. You can fill it out and send your request to the service API endpoint. After sending your request you can see the response.
 
@@ -389,23 +392,24 @@ No. |   Stage   |   Description
 
 Name    |   Description
 ---     |   ---
-Classifier  |   Text Classification service, using Slamby's Twister classification technology. High accuracy level, managing high number of categories, managing training database mistakes. Completely managing 
+Classifier  |   Text Classification service, using Slamby's Twister classification technology. High accuracy level, managing high number of categories, managing training database mistakes.
 PRC |   Similar Text Recommendation & Keyword extraction service. Analyzes a given text, automatically highlights the keywords and looking for the most similar documents from a given tag array. Use it for similar product recommendation, or product duplication checking.
 
 ## Classifier Service
 
-Text classification service using Slamby Twister classification technology. Using Classifier service you can create easily highly accurate classification.
+Text classification service using Slamby Twister classification technology. Easily create classification service with high capacity and accuracy.
 
-Benefits of using Slamby Twister Classifier Service:
+Benefits of using Classifier Service:
 
 Name    |   Description
 ---     |   ---
+Algorithm   |   Slamby Twister.
 High Accuracy Level   |   95-99% accuracy level. Generally 30% higher than industrial average and 30%+ higher than Naive Bayes classifiers.
 Managing High Volume of Categories  | Managing thousands of categories with the same accuracy level.
-Fast Decision Making    |   Ultra-fast classification. Depends on your resources, starts 5/sec classification performance - using 1000 categories and 30 words input text size. Up-to thousands / sec capacity.
-Managing Training Dataset Mistakes  |   Effectively managing mistakes in the training datasets. Specialized for real-life needs, providing the same accuracy level, managing mistakes up to 30%.
+Fast Decision Making    |   Ultra-fast classification. Depends on your available resources, starts 5/sec classification performance - using 1000 categories and 30 words input text size. Up-to thousands / sec capacity.
+Managing Training Dataset Mistakes  |   Effectively managing mistakes in the training dataset. Specialized for real-life needs, providing the same accuracy level, managing mistakes up to 30%.
 Automated Decision Making Support   |   Use score to predict the quality of the recommendation. Using score, define your threshold for automated decision-making.
-Language Independent    |   Slamby Twister is completely language independent, providing the same accuracy level in Asian languages (such as Malaysian, Thai, Vietnamese) then in others.
+Language Independent    |   Slamby Twister is completely language independent, providing the same accuracy level in Asian and Arabic languages (such as Malaysian, Thai, Vietnamese) then in others.
 
 *Empty Service Window example:*
 
