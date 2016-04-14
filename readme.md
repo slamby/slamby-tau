@@ -142,11 +142,11 @@ After selecting the right import process select the source file using file brows
 
 **Important**
 
-Format and field names are given. `Id, Name, Parent`.
+Format and field names are given. `Id, Name, ParentId`.
 
 *Sample Category CSV*
 
-Id  |   Name    |   Parent
+Id  |   Name    |   ParentId
 --- |   ---     |    ---
 7   |   Animal  |   Null
 9   |   Dog     |   7
