@@ -17,7 +17,7 @@ Part Name   |   Description
 --- |   ---
 Header  |   Top navigation area, displaying the active window name, dataset-selector menu and drop-down settings.
 Left Menu   |   Main menu selector is on the left sidebar, displaying the main menu items. Currently Dataset, Data end Services are available.
-Statusbar   |   Orange colored status bar at the bottom. Contains additional information and status window button.
+Status Bar   |   Orange colored status bar at the bottom. Contains additional information and status window button.
 
 *Example TAU print screen*:
 
@@ -46,7 +46,7 @@ About   |   Slamby TAU Version number.
 
 > Tip: use Refresh by pressing F5
 
-*TAU dropdown settings menu*:
+*TAU drop-down settings menu*:
 
 ![Demo Image2](img/header_dropdown.png)
 
@@ -57,7 +57,7 @@ Main navigation. Available Menu Items:
 - Data
 - Services
 
-### Statusbar
+### Status Bar
 
 Orange colored status bar in the bottom. Quick access to descriptive data. Contains Status Window.
 
@@ -75,7 +75,7 @@ Displays full server-client communication. You can check each request & response
 
 First main section. Managing datasets.
 
-> In Slamby you can create your databases as datasets. A dataset is a schema-free json storage, with robust indexing, clustering and analyze capability. 
+> In Slamby you can create your databases as datasets. A dataset is a schema-free JSON storage, with robust indexing, clustering and analytics. 
 
 Available functions:
 - Create Dataset,
@@ -89,7 +89,7 @@ To create a dataset you need to fill a form with the following parameters:
 
 `Name`: name of the dataset. Use A-Z,a-z,0-9_ characters.
 
-`NgramCount`: Maximum ngram value of your database. `Default value is 3`.
+`NgramCount`: Maximum n-gram value of your database. `Default value is 3`.
 
 `TagField`: the tagfield name from your sample JSON document.
 
@@ -429,7 +429,7 @@ Name    |   Description
 ---     |   ---
 DataSetName |   Source Dataset name that you are going to use to create Classifier Service. During the preparation process the given dataset will be used to train the service.
 TagIdList   |   Tag IDS that you are going to use for classification. When you keep it empty, all the Leaf Tag Ids will be used for classification.
-NGramList   |   Set the ngram list you would like to use during your classification. When your ngram setting is 1,2,3, Classifier service will create the classification model for the given 1,2,3 grams.
+NGramList   |   Set the n-gram list you would like to use during your classification. When your n-gram setting is 1,2,3, Classifier service will create the classification model for the given 1,2,3 grams.
 
 > Tip: to select your custom Tag Ids and paste it into the JSON setting, select your required Tags in Data>Tags, and press ctrl+c, then ctrl+v in the json document. The selected Tag IDs array will be pasted as a JSON array.
 
@@ -463,7 +463,7 @@ Name    |   Description
 ---     |   ---
 EmphasizedTagList   |   Tag IDs to use for emphasized classification. In this case the selected Tag Names will be modified the classification.
 TagIdList   |   Selected Tag IDs from the prepared list to use for classification. In the case of Null value, all the prepared Tag IDs will be used.
-NGramList   |   Which ngram model would you like to use during the classification. You can select from the prepared model.
+NGramList   |   Which n-gram model would you like to use during the classification. You can select from the prepared model.
 
 > Tip: try Classifier Service with different activation settings to get the maximum result.
 
