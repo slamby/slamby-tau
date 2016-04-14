@@ -7,7 +7,7 @@ Slamby TAU is an open-source software, using Slamby SDK, communicating real-time
 
 `Github` Project Page: [https://github.com/slamby/tau/](https://github.com/slamby)
 
-License: [Apache License 2.0](...)
+License: [Apache License 2.0](..)
 
 # Quick Overview
 
