@@ -531,4 +531,4 @@ Tag.Properties  |   Related properties by the recommended Tag.
 
 ----------------------------------
 
-*Made with love by Slamby.*
+*Made with :heart: by Slamby.*
