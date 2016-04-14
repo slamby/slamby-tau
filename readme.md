@@ -5,7 +5,7 @@ Quick real-time data access, data-analysis and data-processing.*
 
 Slamby TAU is an open-source software, using Slamby SDK, communicating real-time with Slamby Server.
 
-`Github` Project Page: [https://github.com/slamby/slamby-tau/](https://github.com/slamby/slamby-tau)
+`Github` Project Page: [https://github.com/slamby/tau/](https://github.com/slamby)
 
 License: [Apache License 2.0](...)
 
@@ -382,7 +382,7 @@ No. |   Stage   |   Description
 --- |   ---     |   ---
 1.  |   Create Empty Service    |   To create a service, the first step is to create an empty service. During this process you can select the type of the service, provide the name and description of it. When the service is ready, the service unique ID already exists. After creation is done the service status is `New`
 2.  |   Preparation |   The next step is to prepare the service. During this process you can set your custom settings generally about the training process. When preparation starts, service status will be changed to `Busy`. When the preparation finishes, the status will be changed to `Prepared`
-3.  |   Activation  |   Prepared services can be activated. When a service is prepared it means the training and setting process is ready, the service is ready to use, all the required files are ready to use. Without activation you cannot use the service. Before activation you can set your custom settings about the API endpoint to customize your data processing. During activation Slamby server reads the service and related files, opening an available API endpoint, loading the service into memory and become ready to serve your requests. When the service is activated, the status changes to `Activated`. 
+3.  |   Activation  |   Prepared services can be activated. When a service is prepared it means the training and setting process is ready, the service is ready to use, all the required files are ready to use. Without activation you cannot use the service. Before activation you can set your custom settings about the API endpoint to customize your data processing. During activation Slamby server reads the service and related files, opening an available API endpoint, loading the service into memory and become ready to serve your requests. When the service is activated, the status will be changed to `Activated`. 
 4.  |   Test a Service  |   You can test your activated service by clicking on the recommend button. A test window pops-up with the available service details as a JSON document. You can fill it out and send your request to the service API endpoint. After sending your request you can see the response.
 
 *Currently Available Services:*
@@ -390,7 +390,7 @@ No. |   Stage   |   Description
 Name    |   Description
 ---     |   ---
 Classifier  |   Text Classification service, using Slamby's Twister classification technology. High accuracy level, managing high number of categories, managing training database mistakes. Completely managing 
-PRC |   Similar Text Recommendation & Keyword extraction service. Analyses a given text, automatically highlights the keywords and looking for the most similar documents from a given tag array. Use it for similar product recommendation, or product duplication checking.
+PRC |   Similar Text Recommendation & Keyword extraction service. Analyzes a given text, automatically highlights the keywords and looking for the most similar documents from a given tag array. Use it for similar product recommendation, or product duplication checking.
 
 ## Classifier Service
 
@@ -428,7 +428,7 @@ Available settings:
 Name    |   Description
 ---     |   ---
 DataSetName |   Source Dataset name that you are going to use to create Classifier Service. During the preparation process the given dataset will be used to train the service.
-TagIdList   |   Tag IDS that you are going to use for classification. When you leave it empty, all the Leaf Tag Ids will be used for classification.
+TagIdList   |   Tag IDS that you are going to use for classification. When you keep it empty, all the Leaf Tag Ids will be used for classification.
 NGramList   |   Set the ngram list you would like to use during your classification. When your ngram setting is 1,2,3, Classifier service will create the classification model for the given 1,2,3 grams.
 
 > Tip: to select your custom Tag Ids and paste it into the JSON setting, select your required Tags in Data>Tags, and press ctrl+c, then ctrl+v in the json document. The selected Tag IDs array will be pasted as a JSON array.
@@ -511,7 +511,7 @@ Tag.Properties  |   Related properties by the recommended Tag.
 
 ---------------------------------
 
-## Used Libraries
+## Third-party libraries
 
 [CsvHelper](https://github.com/JoshClose/CsvHelper)
 
@@ -527,7 +527,7 @@ Tag.Properties  |   Related properties by the recommended Tag.
 
 [MvvmLight](http://www.galasoft.ch/mvvmÖ)
 
-[Newtonsoft.Json](...)
+[Newtonsoft.Json](http://www.newtonsoft.com/json)
 
 ----------------------------------
 
