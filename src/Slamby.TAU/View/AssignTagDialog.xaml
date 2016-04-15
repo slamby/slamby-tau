@@ -1,0 +1,62 @@
+﻿<UserControl x:Class="Slamby.TAU.View.AssignTagDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:model="clr-namespace:Slamby.TAU.Model"
+             xmlns:control="clr-namespace:Slamby.TAU.Control"
+             xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+             xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:dataGridExtensions="urn:tom-englert.de/DataGridExtensions"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <converter:IListToObservableConverter x:Key="IListToObservableConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <control:CustomDataGrid x:Name="TagDataGrid" HorizontalAlignment="Center" VerticalAlignment="Center" Height="400" MaxWidth="700" ItemsSource="{Binding Tags}"
+                                CanUserAddRows="False" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}"
+                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="True" IsIndexed="True" HeadersVisibility="All"
+                              CanUserDeleteRows="False" IsReadOnly="True" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Path" Binding="{Binding Properties.Path}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Level" Binding="{Binding Properties.Level}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="IsLeaf" Binding="{Binding Properties.IsLeaf}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="DocumentCount" Binding="{Binding Properties.DocumentCount}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="WordCount" Binding="{Binding Properties.WordCount}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentTagId}" IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </control:CustomDataGrid>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>
+                        True
+                    </system:Boolean>
+                </Button.CommandParameter>
+                ASSIGN
+            </Button>
+            <Button IsCancel="True" Margin="8 0 0 0" Style="{DynamicResource MaterialDesignFlatButton}"
+                    Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>
+                        False
+                    </system:Boolean>
+                </Button.CommandParameter>
+                CANCEL
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>
+
+
+

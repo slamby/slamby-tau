@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Slamby.TAU.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="EndpointUri" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://api.slamby.com/demo-api/</Value>
+    </Setting>
+    <Setting Name="EndpointSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">s3cr3t</Value>
+    </Setting>
+    <Setting Name="UpdateSettings" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="BulkSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

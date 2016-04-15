@@ -1,0 +1,161 @@
+﻿<UserControl x:Class="Slamby.TAU.View.ManageService"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Slamby.TAU"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:control="clr-namespace:Slamby.TAU.Control"
+             xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+             xmlns:command="http://www.galasoft.ch/mvvmlight"
+             xmlns:dataGridExtensions="urn:tom-englert.de/DataGridExtensions"
+             xmlns:sdk="clr-namespace:Slamby.SDK.Net.Models.Enums;assembly=Slamby.SDK.Net"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="900">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PopupBox.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converter:IListToObservableConverter x:Key="IListToObservableConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <DockPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="60"/>
+            </Grid.RowDefinitions>
+            <Grid Background="White">
+                <control:CustomDataGrid x:Name="ServicesDataGrid" ItemsSource="{Binding Services}" SelectedItemsList="{Binding SelectedServices, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}"
+                                        dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}"
+                                        CanUserDeleteRows="False" CanUserAddRows="False" IsReadOnly="True" AutoGenerateColumns="False">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDoubleClick">
+                            <command:EventToCommand Command="{Binding ShowDetailsCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+                        <DataGridTemplateColumn Header="Action">
+                            <DataGridTemplateColumn.CellStyle>
+                                <Style TargetType="{x:Type DataGridCell}">
+                                    <Style.Triggers>
+                                        <DataTrigger  Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.New}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <Button Margin="2,0" HorizontalAlignment="Center" Content="Prepare" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.PrepareCommand}"/>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                        <DataTrigger  Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Busy}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <Button Margin="2,0" Content="Cancel" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.CancelCommand}"/>
+                                                            <!--<ProgressBar Margin="2,0" Orientation="Horizontal" IsIndeterminate="False" Value="{Binding}"/>-->
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                        <DataTrigger  Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Prepared}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <Button Margin="2,0" HorizontalAlignment="Center" Content="Activate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ActivateCommand}"/>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Active}"/>
+                                                <Condition Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceTypeEnum.Classifier}"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
+                                                            <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Active}"/>
+                                                <Condition Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceTypeEnum.Prc}"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
+                                                            <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                        </StackPanel>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTemplateColumn.CellStyle>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </control:CustomDataGrid>
+                <!--<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0 12 0 0">
+                    <ItemsControl ItemsSource="{Binding Services}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </ScrollViewer>-->
+            </Grid>
+            <Grid Grid.Row="1" Background="{DynamicResource PrimaryHueLightBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <materialDesign:PopupBox Style="{StaticResource MaterialDesignMultiFloatingActionPopupBox}"
+                                         PlacementMode="TopAndAlignCentres"
+                                         VerticalAlignment="Center"
+                                         Height="40" Width="40"
+                                         Margin="20,0"
+                                         ToolTipService.Placement="Right"
+                                         ToolTip="Add new service">
+                    <ItemsControl ItemsSource="{Binding Source={StaticResource ServiceTypes}}" HorizontalAlignment="Center">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button ToolTip="{Binding}" Content="{Binding}" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type materialDesign:PopupBox}}, Path=DataContext.CreateCommand}" CommandParameter="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </materialDesign:PopupBox>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Modify" Command="{Binding ModifyCommand}" Margin="2.5,0,5,0"/>
+                    <Button Content="ShowDetails" Command="{Binding ShowDetailsCommand}" Margin="2.5,0,5,0"/>
+                    <Button Content="Delete" Command="{Binding DeleteCommand}" Margin="2.5,0,5,0"/>
+                </StackPanel>
+            </Grid>
+
+        </Grid>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="Slamby.TAU.View.ErrorDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:Slamby.TAU"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="500">
+    <StackPanel>
+        <TextBlock Margin="10" FontSize="16" Foreground="Red" Text="The following errors occurred during the process:"/>
+        <StackPanel HorizontalAlignment="Center" Margin="0,20,0,0">
+            <TextBlock FontSize="12" Text="{Binding StatusCode}"/>
+            <TextBlock FontSize="12" Text="{Binding Message}"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontSize="12" Text="Source: "/>
+                <TextBlock FontSize="12" Text="{Binding Source}"/>
+            </StackPanel>
+        </StackPanel>
+        <ListView Margin="10" MaxHeight="200" ItemsSource="{Binding Errors}" HorizontalAlignment="Center">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock FontSize="12" Text="{Binding}" TextWrapping="Wrap" MaxWidth="800"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button Margin="10" IsDefault="True" IsCancel="True" Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static wpf:DialogHost.CloseDialogCommand}" HorizontalAlignment="Center">
+            <Button.CommandParameter>
+                <system:Boolean>False</system:Boolean>
+            </Button.CommandParameter>
+            CLOSE
+        </Button>
+    </StackPanel>
+</UserControl>

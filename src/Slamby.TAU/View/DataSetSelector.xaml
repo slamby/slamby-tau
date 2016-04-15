@@ -1,0 +1,48 @@
+﻿<UserControl x:Class="Slamby.TAU.View.DataSetSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Slamby.TAU"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Select Target Data Set" HorizontalAlignment="Left"/>
+        <Separator Grid.Row="1" Background="{DynamicResource PrimaryHueLightBrush}" HorizontalAlignment="Stretch"/>
+        <ListBox Grid.Row="2" ItemsSource="{Binding DataSets}" SelectedItem="{Binding SelectedDataSet}" Margin="0,15" HorizontalAlignment="Center"  DisplayMemberPath="Name" MaxHeight="300">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction Command="{Binding DoubleClickCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </ListBox>
+        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>
+                        True
+                    </system:Boolean>
+                </Button.CommandParameter>
+                SELECT
+            </Button>
+            <Button IsCancel="True" Margin="8 0 0 0" Style="{DynamicResource MaterialDesignFlatButton}"
+                    Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>
+                        False
+                    </system:Boolean>
+                </Button.CommandParameter>
+                CANCEL
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

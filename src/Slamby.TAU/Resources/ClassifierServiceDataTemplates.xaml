@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel x:Key="NewClassifierActionStackPanel">
+        <TextBox x:Name="PrepareSettingsTextBox">
+            {
+            "DataSetName": "",
+            "TagIdList": [""],
+            "NGramList": [1]
+            }
+        </TextBox>
+        <Button Content="Prepare" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}, Path=DataContext.PrepareCommand}" CommandParameter="{Binding Path=Children[0].Text, RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}"/>
+    </StackPanel>
+    <StackPanel x:Key="BusyClassifierActionStackPanel">
+        <TextBox Text="Busy"/>
+    </StackPanel>
+    <StackPanel x:Key="PreparedClassifierActionStackPanel">
+        <TextBox Text="Prepared"/>
+    </StackPanel>
+    <StackPanel x:Key="ActiveClassifierActionStackPanel">
+        <TextBox Text="Active"/>
+    </StackPanel>
+
+</ResourceDictionary>
