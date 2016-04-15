@@ -1,0 +1,201 @@
+﻿<UserControl x:Class="Slamby.TAU.View.ManageData"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dragablz="clr-namespace:Dragablz;assembly=Dragablz"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:command="http://www.galasoft.ch/mvvmlight"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:dataGridExtensions="urn:tom-englert.de/DataGridExtensions"
+             xmlns:tau="clr-namespace:Slamby.TAU"
+             xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+             xmlns:control="clr-namespace:Slamby.TAU.Control"
+             xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:view="clr-namespace:Slamby.TAU.View"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1000">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <command:EventToCommand Command="{Binding LoadedCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converter:IListToObservableConverter x:Key="IListToObservableConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <DockPanel>
+        <dragablz:TabablzControl TextElement.Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=(TextElement.Foreground)}" 
+                                 Background="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=Background}"
+                                 BorderThickness="0"
+                                 Margin="0,-1,0,1">
+            <TabItem Header="Documents">
+                <Grid Background="{DynamicResource PrimaryHueLightBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="60"/>
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="250"/>
+                        </Grid.ColumnDefinitions>
+                        <materialDesign:Card VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All"
+                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True"
+                                  CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedDocuments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="MouseDoubleClick">
+                                            <command:EventToCommand Command="{Binding ModifyDocumentCommand}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                    <DataGrid.ContextMenu>
+                                        <ContextMenu x:Name="DocumentsContextMenu">
+                                            <!--<ContextMenu.Template>
+                                                <ControlTemplate>
+                                                    <materialDesign:Card>
+                                                        <StackPanel Orientation="Vertical" Margin="2" HorizontalAlignment="Center" Background="{DynamicResource PrimaryHueLightBrush}">
+                                                            <Button Content="Delete" Click="ContextButtons_OnClick" Command="{Binding DeleteDocumentCommand}" Margin="2.5" />
+                                                            <Button Content="Add Tags" Click="ContextButtons_OnClick" Command="{Binding AssignTagCommand}" Margin="2.5"/>
+                                                            <Button Content="Remove Tags" Click="ContextButtons_OnClick" Command="{Binding RemoveAssignedTagCommand}" Margin="2.5"/>
+                                                            <Button Content="Clear Tag List" Click="ContextButtons_OnClick" Command="{Binding ClearTagListCommand}" Margin="2.5"/>
+                                                            <Button Content="Copy To" Click="ContextButtons_OnClick" Command="{Binding CopyToCommand}" Margin="2.5"/>
+                                                            <Button Content="Move To" Click="ContextButtons_OnClick" Command="{Binding MoveToCommand}" Margin="2.5"/>
+                                                        </StackPanel>
+                                                    </materialDesign:Card>
+                                                </ControlTemplate>
+                                            </ContextMenu.Template>-->
+
+                                            <MenuItem Header="Delete" Click="ContextButtons_OnClick" Command="{Binding DeleteDocumentCommand}" Margin="2.5" />
+                                            <MenuItem Header="Modify" Click="ContextButtons_OnClick" Command="{Binding ModifyDocumentCommand}" Margin="2.5,0"/>
+                                            <MenuItem Header="Remove Tags" Click="ContextButtons_OnClick" Command="{Binding RemoveAssignedTagCommand}" Margin="2.5"/>
+                                            <MenuItem Header="Add Tags" Click="ContextButtons_OnClick" Command="{Binding AssignTagCommand}" Margin="2.5,0"/>
+                                            <MenuItem Header="Clear Tag List" Click="ContextButtons_OnClick" Command="{Binding ClearTagListCommand}" Margin="2.5"/>
+                                            <MenuItem Header="Copy To" Click="ContextButtons_OnClick" Command="{Binding CopyToCommand}" Margin="2.5"/>
+                                            <MenuItem Header="Move To" Click="ContextButtons_OnClick" Command="{Binding MoveToCommand}" Margin="2.5"/>
+                                        </ContextMenu>
+                                    </DataGrid.ContextMenu>
+                                </control:CustomDataGrid>
+                                <view:Paginator Grid.Row="2" HorizontalAlignment="Center" DataContext="{Binding DocumentPaginatorViewModel}" />
+                            </Grid>
+                        </materialDesign:Card>
+                        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <materialDesign:Card Margin="10,5,10,10">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Sample"/>
+                                        <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
+                                        <StackPanel Margin="0,10">
+                                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                                <TextBlock Text="{Binding SelectedLabelForSample}" VerticalAlignment="Center"/>
+                                                <TextBlock Text=" tag(s) selected" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                <Button Content="Select" Command="{Binding SelectTagsForSampleCommand}"/>
+                                            </StackPanel>
+                                            <CheckBox Content="Stratified" Margin="0,10" IsChecked="{Binding Stratified}"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                                <RadioButton Content="Fix" GroupName="ModeRadioButtonGroup" IsChecked="{Binding IsFixSizeSample}" Margin="0,0,10,0"/>
+                                                <RadioButton Content="%" GroupName="ModeRadioButtonGroup"/>
+                                            </StackPanel>
+                                            <TextBox materialDesign:TextFieldAssist.Hint="Size" Margin="0,10" Text="{Binding SizeText}" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" FontSize="12"/>
+                                        </StackPanel>
+                                        <Button Content="Get Sample" HorizontalAlignment="Right" Margin="0,10" Command="{Binding GetSampleCommand}"/>
+                                    </StackPanel>
+                                </materialDesign:Card>
+                                <materialDesign:Card Grid.Row="1" Margin="10">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Filter"/>
+                                        <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
+                                        <StackPanel Margin="0,10">
+                                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                                <TextBlock Text="{Binding SelectedLabelForFilter}" VerticalAlignment="Center"/>
+                                                <TextBlock Text=" tag(s) selected" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                <Button Content="Select" Command="{Binding SelectTagsForFilterCommand}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBox wpf:TextFieldAssist.Hint="FilterQuery" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" ToolTip="e.g.: workplace:(city1 OR city2)"
+                                         TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" MaxHeight="200" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,40,0,10" Command="{Binding ApplyFilterCommand}" />
+                                    </StackPanel>
+                                </materialDesign:Card>
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Add New" Command="{Binding AddDocumentCommand}" Margin="2.5,0"/>
+                            <Button Content="Copy All To" Command="{Binding CopyAllToCommand}" Margin="2.5,0"/>
+                            <Button Content="Move All To" Command="{Binding MoveAllToCommand}" Margin="2.5,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Delete" Command="{Binding DeleteDocumentCommand}" Margin="2.5,0"/>
+                            <Button Content="Modify" Command="{Binding ModifyDocumentCommand}" Margin="2.5,0"/>
+                            <Button Content="Add Tags" Command="{Binding AssignTagCommand}" Margin="2.5,0"/>
+                            <Button Content="Remove Tags" Command="{Binding RemoveAssignedTagCommand}" Margin="2.5,0"/>
+                            <Button Content="Clear Tag List" Command="{Binding ClearTagListCommand}" Margin="2.5,0"/>
+                            <Button Content="Copy To" Command="{Binding CopyToCommand}" Margin="2.5,0"/>
+                            <Button Content="Move To" Command="{Binding MoveToCommand}" Margin="2.5,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Tags">
+                <Grid Background="{DynamicResource PrimaryHueLightBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="60"/>
+                    </Grid.RowDefinitions>
+                    <control:CustomDataGrid ItemsSource="{Binding Tags}" CanUserAddRows="False" dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="True" SelectionMode="Extended" IsIndexed="True" HeadersVisibility="All"
+                              CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}" AutoGenerateColumns="False">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDoubleClick">
+                                <command:EventToCommand Command="{Binding ModifyTagTagCommand}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopyToClipboardCommand}" />
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding Properties.Path}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Level" Binding="{Binding Properties.Level}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="IsLeaf" Binding="{Binding Properties.IsLeaf}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="DocumentCount" Binding="{Binding Properties.DocumentCount}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="WordCount" Binding="{Binding Properties.WordCount}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentId}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </control:CustomDataGrid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Add" Command="{Binding AddTagCommand}" Margin="5,0"/>
+                            <Button Content="Modify" Command="{Binding ModifyTagTagCommand}" Margin="5,0"/>
+                            <Button Content="Remove" Command="{Binding RemoveTagCommand}" Margin="5,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </dragablz:TabablzControl>
+    </DockPanel>
+</UserControl>
