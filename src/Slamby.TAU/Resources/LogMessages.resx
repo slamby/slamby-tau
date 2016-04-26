@@ -187,11 +187,17 @@
   <data name="ManageDataTagAdd" xml:space="preserve">
     <value>Add tag button clicked</value>
   </data>
+  <data name="ManageDataTagExportWords" xml:space="preserve">
+    <value>Export words button clicked</value>
+  </data>
   <data name="ManageDataTagModify" xml:space="preserve">
     <value>Modify tag button clicked</value>
   </data>
   <data name="ManageDataTagRemove" xml:space="preserve">
     <value>Remove tag</value>
+  </data>
+  <data name="ManageProcessLoadProcesses" xml:space="preserve">
+    <value>Loading processes</value>
   </data>
   <data name="ManageServiceCreate" xml:space="preserve">
     <value>Create service button clicked</value>

@@ -109,8 +109,8 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Slamby.SDK.Net, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Slamby.SDK.Net.0.12.0.0\lib\portable-net45+win+MonoAndroid10+xamarinios10+MonoTouch10\Slamby.SDK.Net.dll</HintPath>
+    <Reference Include="Slamby.SDK.Net, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Slamby.SDK.Net.0.13.0.0\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -140,8 +140,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter\ObjectToStringConverter.cs" />
+    <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
+    <Compile Include="Converter\StringToCellTemplateConverter.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
+    <Compile Include="ViewModel\ManageProcessViewModel.cs" />
     <Compile Include="View\AddDataSetDialog.xaml.cs">
       <DependentUpon>AddDataSetDialog.xaml</DependentUpon>
     </Compile>
@@ -183,6 +186,9 @@
     <Compile Include="Logger\Log.cs" />
     <Compile Include="View\ManageDataSet.xaml.cs">
       <DependentUpon>ManageDataSet.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ManageProcess.xaml.cs">
+      <DependentUpon>ManageProcess.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\ManageService.xaml.cs">
       <DependentUpon>ManageService.xaml</DependentUpon>
@@ -265,6 +271,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\ManageDataSet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ManageProcess.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

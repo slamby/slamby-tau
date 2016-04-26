@@ -12,9 +12,16 @@
   See http://www.galasoft.ch/mvvm
 */
 
+using System;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
+using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.ServiceLocation;
+using Slamby.SDK.Net;
+using Slamby.SDK.Net.Managers;
+using Slamby.TAU.Enum;
+using Slamby.TAU.Model;
+using Slamby.TAU.Properties;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -29,20 +36,31 @@ namespace Slamby.TAU.ViewModel
         /// </summary>
         public ViewModelLocator()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+            Messenger.Default.Register<UpdateMessage>(this, m =>
+            {
+                if (m.UpdateType == UpdateType.EndPointUpdate)
+                {
+                    SimpleIoc.Default.Reset();
+                    Initialize();
+                }
+            });
+            Initialize();
+        }
 
-            ////if (ViewModelBase.IsInDesignModeStatic)
-            ////{
-            ////    // Create design time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DesignDataService>();
-            ////}
-            ////else
-            ////{
-            ////    // Create run time view services and models
-            ////    SimpleIoc.Default.Register<IDataService, DataService>();
-            ////}
+        private void Initialize()
+        {
+            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+            if (ViewModelBase.IsInDesignModeStatic)
+            {
+            }
+            else
+            {
+                SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(_endpointConfiguration));
+            }
+
 
             SimpleIoc.Default.Register<MainViewModel>();
+            SimpleIoc.Default.Register<ManageProcessViewModel>();
         }
 
         public MainViewModel Main
@@ -52,10 +70,23 @@ namespace Slamby.TAU.ViewModel
                 return ServiceLocator.Current.GetInstance<MainViewModel>();
             }
         }
-        
+
+        private static Configuration _endpointConfiguration = new Configuration
+        {
+            ApiBaseEndpoint = new Uri(Settings.Default["EndpointUri"].ToString()),
+            ApiSecret = Settings.Default["EndpointSecret"].ToString()
+        };
+
+        public ManageProcessViewModel ManageProcess {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
+            }
+        }
+
         public static void Cleanup()
         {
-            // TODO Clear the ViewModels
+            SimpleIoc.Default.Unregister<MainViewModel>();
         }
     }
 }

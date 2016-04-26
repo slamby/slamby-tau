@@ -11,15 +11,15 @@
         xmlns:command="http://www.galasoft.ch/mvvmlight"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:view="clr-namespace:Slamby.TAU.View"
+        xmlns:models1="clr-namespace:Slamby.SDK.Net.Models;assembly=Slamby.SDK.Net"
+        xmlns:converter="clr-namespace:Slamby.TAU.Converter"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
         mc:Ignorable="d"
         Title="Slamby TAU" Height="800" Width="1200"
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
-    <Window.DataContext>
-        <viewModels:MainViewModel />
-    </Window.DataContext>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="SizeChanged" >
             <i:InvokeCommandAction Command="{Binding SizeChangedCommand}" />
@@ -35,6 +35,9 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Shadows.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <converter:StringListToStringConverter x:Key="StringListToStringConverter"/>
+            <converter:StringToCellTemplateConverter x:Key="StringToCellTemplateConverter"/>
+            <converter:ProcessStatusToBoolConverter x:Key="ProcessStatusToBoolConverter"/>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -76,7 +79,6 @@
                                 </ListBox>
                             </StackPanel>
                         </materialDesign:DrawerHost.LeftDrawerContent>
-
                         <DockPanel>
                             <Grid DockPanel.Dock="Top">
                                 <materialDesign:ColorZone Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
@@ -133,9 +135,72 @@
                                 </ListBox>
                             </StackPanel>
 
-                            <ContentControl Content="{Binding ElementName=MenuItemsListBox, Path=SelectedItem.Content}" />
-                        </DockPanel>
+                            <Grid>
+                                <ContentControl Margin ="0,30,0,0"  Content="{Binding ElementName=MenuItemsListBox, Path=SelectedItem.Content}" />
+                                <Grid Background="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Top">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Expander FlowDirection="RightToLeft" HorizontalAlignment="Stretch">
+                                        <Expander.Header>
+                                            <DockPanel FlowDirection="LeftToRight">
+                                                <Label Content="Runnning processes"/>
+                                                <fa:ImageAwesome Icon="Spinner" Height="15" Width="15" Margin="10,0"/>
+                                            </DockPanel>
+                                        </Expander.Header>
+                                        <Grid FlowDirection="LeftToRight">
+                                            <DataGrid FlowDirection="LeftToRight" ItemsSource="{Binding ActiveProcessesList}" AutoGenerateColumns="False" IsReadOnly="True">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
+                                                    <DataGridTemplateColumn Header="Percent">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel>
+                                                                    <TextBlock FlowDirection="LeftToRight" HorizontalAlignment="Center" Text="{Binding Percent, StringFormat={}{0} %}"/>
+                                                                    <ProgressBar Value="{Binding Path=Percent}" HorizontalAlignment="Center" Width="120"/>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True"/>
+                                                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True"/>
+                                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"/>
+                                                    <DataGridTextColumn Header="ErrorMessages" Binding="{Binding ErrorMessages, Converter={StaticResource StringListToStringConverter}}" IsReadOnly="True"/>
+                                                    <DataGridTemplateColumn Header="ResultMessage" IsReadOnly="True">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ContentControl FlowDirection="LeftToRight">
+                                                                    <Binding Path="ResultMessage" Converter="{StaticResource StringToCellTemplateConverter}"/>
+                                                                </ContentControl>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Button VerticalAlignment="Center" Command="{Binding Main.RefreshProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem.Id}" ToolTip="Refresh">
+                                                                    <fa:ImageAwesome Icon="Refresh" Margin="5"/>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn>
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <Button VerticalAlignment="Center" Command="{Binding Main.CancelProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem}" Content="Cancel" IsEnabled="{Binding Path=Status, Converter={StaticResource ProcessStatusToBoolConverter}}"/>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Grid>
+                                    </Expander>
+                                    <Separator Grid.Row="1"/>
+                                </Grid>
+                            </Grid>
 
+                        </DockPanel>
                     </materialDesign:DrawerHost>
 
                     <DockPanel x:Name="SettingsPanel" Visibility="{Binding ElementName=SettingsBackToggleButton, Path=IsChecked, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}">

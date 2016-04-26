@@ -34,5 +34,10 @@ namespace Slamby.TAU.Design
         {
             throw new NotImplementedException();
         }
+
+        public Task<ClientResponseWithObject<Process>> WordsExportAsync(TagsExportWordsSettings settings)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

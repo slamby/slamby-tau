@@ -268,6 +268,15 @@ namespace Slamby.TAU.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export words button clicked.
+        /// </summary>
+        internal static string ManageDataTagExportWords {
+            get {
+                return ResourceManager.GetString("ManageDataTagExportWords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modify tag button clicked.
         /// </summary>
         internal static string ManageDataTagModify {
@@ -282,6 +291,15 @@ namespace Slamby.TAU.Resources {
         internal static string ManageDataTagRemove {
             get {
                 return ResourceManager.GetString("ManageDataTagRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading processes.
+        /// </summary>
+        internal static string ManageProcessLoadProcesses {
+            get {
+                return ResourceManager.GetString("ManageProcessLoadProcesses", resourceCulture);
             }
         }
         

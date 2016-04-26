@@ -192,6 +192,7 @@
                             <Button Content="Add" Command="{Binding AddTagCommand}" Margin="5,0"/>
                             <Button Content="Modify" Command="{Binding ModifyTagTagCommand}" Margin="5,0"/>
                             <Button Content="Remove" Command="{Binding RemoveTagCommand}" Margin="5,0"/>
+                            <Button Content="Export Words" Command="{Binding ExportWordsCommand}" Margin="5,0"/>
                         </StackPanel>
                     </Grid>
                 </Grid>

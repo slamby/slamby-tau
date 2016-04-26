@@ -24,7 +24,9 @@ using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using Slamby.TAU.View;
 using FontAwesome.WPF;
+using Microsoft.Practices.ServiceLocation;
 using Slamby.SDK.Net.Helpers;
+using Slamby.SDK.Net.Models.Enums;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -78,6 +80,9 @@ namespace Slamby.TAU.ViewModel
                     case UpdateType.SelectedMenuItemChange:
                         SelectedMenuItem = MenuItems.FirstOrDefault(mi => mi.Name == (string)message.Parameter);
                         break;
+                    case UpdateType.NewProcessCreated:
+                        DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add((Process)message.Parameter));
+                        break;
                 }
             });
             Messenger.Default.Register<ClientResponse>(this, response => ErrorHandler(response));
@@ -109,6 +114,57 @@ namespace Slamby.TAU.ViewModel
                   }
               });
 
+            RefreshProcessCommand = new RelayCommand<string>(async id =>
+              {
+                  var processResponse = await _processManager.GetProcessAsync(id);
+                  if (ResponseValidator.Validate(processResponse))
+                  {
+                      var selectedItem = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
+                      if (selectedItem != null)
+                      {
+                          ActiveProcessesList[ActiveProcessesList.IndexOf(selectedItem)] = processResponse.ResponseObject;
+                          ActiveProcessesList = new ObservableCollection<Process>(ActiveProcessesList);
+                          if (processResponse.ResponseObject.Status != ProcessStatusEnum.InProgress)
+                          {
+                              Task.Run(async () =>
+                              {
+                                  await Task.Delay(20000);
+                                  DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                  {
+                                      var itemToRemove = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
+                                      if (itemToRemove != null)
+                                          ActiveProcessesList.Remove(itemToRemove);
+                                  });
+                              });
+                          }
+                      }
+                  }
+              });
+
+            CancelProcessCommand = new RelayCommand<Process>(async process =>
+            {
+                var processResponse = await _processManager.CancelProcessAsync(process.Id);
+                if (ResponseValidator.Validate(processResponse))
+                {
+                    var selectedItem = ActiveProcessesList.FirstOrDefault(p => p.Id == process.Id);
+                    if (selectedItem != null)
+                    {
+                        selectedItem.Status = ProcessStatusEnum.Cancelled;
+                        ActiveProcessesList = new ObservableCollection<Process>(ActiveProcessesList);
+                        Task.Run(async () =>
+                        {
+                            await Task.Delay(20000);
+                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                var itemToRemove = ActiveProcessesList.FirstOrDefault(p => p.Id == process.Id);
+                                if (itemToRemove != null)
+                                    ActiveProcessesList.Remove(itemToRemove);
+                            });
+                        });
+                    }
+                }
+            });
+
             CloseMenuCommand = new RelayCommand(() => MenuIsOpen = false);
             LoadCommand = new RelayCommand(InitData);
             PreviewKeyDownCommand = new RelayCommand<KeyEventArgs>(arg =>
@@ -132,6 +188,18 @@ namespace Slamby.TAU.ViewModel
 
         public RelayCommand SelectionChangedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Wait); });
 
+        public RelayCommand<string> RefreshProcessCommand { get; private set; }
+        public RelayCommand<Process> CancelProcessCommand { get; private set; }
+
+        private ObservableCollection<Process> _activeProcessesList = new ObservableCollection<Process>();
+
+        public ObservableCollection<Process> ActiveProcessesList
+        {
+            get { return _activeProcessesList; }
+            set { Set(() => ActiveProcessesList, ref _activeProcessesList, value); }
+        }
+
+
         private async void InitData()
         {
             Mouse.SetCursor(Cursors.Arrow);
@@ -139,6 +207,13 @@ namespace Slamby.TAU.ViewModel
              {
                  try
                  {
+                     _processManager = ServiceLocator.Current.GetInstance<IProcessManager>();
+                     var processResponse = await _processManager.GetProcessesAsync();
+                     if (ResponseValidator.Validate(processResponse))
+                     {
+                         ActiveProcessesList = new ObservableCollection<Process>(processResponse.ResponseObject.Where(p => p.Status == ProcessStatusEnum.InProgress));
+                     }
+
                      DataSetManager = IsInDesignModeStatic ? (IDataSetManager)new DesignDataSetManager() : new DataSetManager(GlobalStore.EndpointConfiguration);
                      DataSets.Clear();
                      var response = await DataSetManager.GetDataSetsAsync();
@@ -185,6 +260,12 @@ namespace Slamby.TAU.ViewModel
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Tasks, Brushes.WhiteSmoke),
                 Content = new ManageService { DataContext = new ManageServiceViewModel() }
             });
+            MenuItems.Add(new MenuItem
+            {
+                Name = "Processes",
+                Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Spinner, Brushes.WhiteSmoke),
+                Content = new ManageProcess()
+            });
             if (SelectedMenuItem == null)
                 SelectedMenuItem = MenuItems.First();
         }
@@ -204,6 +285,8 @@ namespace Slamby.TAU.ViewModel
                 }
             }
         }
+
+        private IProcessManager _processManager;
 
         private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 

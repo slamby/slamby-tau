@@ -2,7 +2,8 @@
              xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
              xmlns:control="clr-namespace:Slamby.TAU.Control"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:enums="clr-namespace:Slamby.SDK.Net.Models.Enums;assembly=Slamby.SDK.Net">
+             xmlns:enums="clr-namespace:Slamby.SDK.Net.Models.Enums;assembly=Slamby.SDK.Net"
+             xmlns:viewModel="clr-namespace:Slamby.TAU.ViewModel">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -51,6 +52,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <viewModel:ViewModelLocator x:Key="Locator"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

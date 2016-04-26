@@ -95,6 +95,7 @@ namespace Slamby.TAU.ViewModel
 
             PrepareCommand = new RelayCommand(Prepare);
             ActivateCommand = new RelayCommand(Activate);
+            ExportCommand = new RelayCommand(Export);
             RecommendCommand = new RelayCommand(Recommend);
             CancelCommand = new RelayCommand(Cancel);
             DeactivateCommand = new RelayCommand(Deactivate);
@@ -131,6 +132,8 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand RecommendCommand { get; private set; }
         public RelayCommand CancelCommand { get; private set; }
         public RelayCommand DeactivateCommand { get; private set; }
+        public RelayCommand ExportCommand { get; private set; }
+
 
         private ObservableCollection<Service> _services;
 
@@ -326,6 +329,7 @@ namespace Slamby.TAU.ViewModel
                                             selected.ActualProcessId = clientResponse.ResponseObject.Id;
                                             DispatcherHelper.CheckBeginInvokeOnUI(() => Services = new ObservableCollection<Service>(Services));
                                             _busyServiceIds.Add(selected.Id);
+                                            Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
                                         }
                                         break;
                                     }
@@ -338,6 +342,7 @@ namespace Slamby.TAU.ViewModel
                                             selected.ActualProcessId = clientResponse.ResponseObject.Id;
                                             DispatcherHelper.CheckBeginInvokeOnUI(() => Services = new ObservableCollection<Service>(Services));
                                             _busyServiceIds.Add(selected.Id);
+                                            Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
                                         }
                                         break;
                                     }
@@ -428,7 +433,48 @@ namespace Slamby.TAU.ViewModel
                 });
             }
         }
-
+        private async void Export()
+        {
+            if (SelectedServices == null || !SelectedServices.Any())
+                return;
+            var selected = SelectedServices.First();
+            var context = new CommonDialogViewModel
+            {
+                Content = new JContent(new ExportDictionariesSettings()),
+                Buttons = ButtonsEnum.OkCancel,
+                Header = "Export Settings"
+            };
+            var result = await DialogHost.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                await DialogHandler.ShowProgress(null, async () =>
+                {
+                    switch (selected.Type)
+                    {
+                        case ServiceTypeEnum.Classifier:
+                            {
+                                var clientResponse = await _classifierServiceManager.ExportDictionariesAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<ExportDictionariesSettings>());
+                                if (ResponseValidator.Validate(clientResponse))
+                                {
+                                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
+                                }
+                                break;
+                            }
+                        case ServiceTypeEnum.Prc:
+                            {
+                                var clientResponse = await _prcServiceManager.ExportDictionariesAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<ExportDictionariesSettings>());
+                                if (ResponseValidator.Validate(clientResponse))
+                                {
+                                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
+                                }
+                                break;
+                            }
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                });
+            }
+        }
         private async void Cancel()
         {
             if (SelectedServices == null || !SelectedServices.Any())
