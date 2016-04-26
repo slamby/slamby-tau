@@ -44,7 +44,8 @@ namespace Slamby.TAU.ViewModel
             DataSets = datasets;
             if (DataSets != null && DataSets.Any())
                 SelectedDataSet = DataSets[0];
-            AddCommand = new RelayCommand(Add);
+            AddCommand = new RelayCommand(async ()=> await Add());
+            CloneDatasetCommand = new RelayCommand(async () => await Add(SelectedDataSet));
             SeletcToWorkCommand = new RelayCommand(async () => await SelectToWork());
             ImportDocumentCommand = new RelayCommand(ImportJson<object>);
             ImportTagCommand = new RelayCommand(ImportJson<Tag>);
@@ -75,6 +76,7 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand LoadedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Arrow); });
 
         public RelayCommand AddCommand { get; private set; }
+        public RelayCommand CloneDatasetCommand { get; private set; }
 
         //public RelayCommand SetAsDefaultCommand { get; private set; }
 
@@ -90,24 +92,31 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand ImportDocumentCsvCommand { get; private set; }
         public RelayCommand ImportTagCsvCommand { get; private set; }
 
-        private async void Add()
+        private async Task Add(DataSet selectedDataSet = null)
         {
             Log.Info(LogMessages.ManageDataSetAddCommand);
-            var newDataSet = new DataSet
-            {
-                NGramCount = 3,
-                IdField = "id",
-                TagField = "tags",
-                InterpretedFields = new List<string> { "title", "desc" },
-                SampleDocument = new
-                {
-                    id = 10,
-                    title = "thisisthetitle",
-                    desc = "thisisthedesc",
-                    tags = new[] { "tag1" }
-                }
-            }
-                ;
+            var newDataSet = selectedDataSet == null ? new DataSet
+                                {
+                                    NGramCount = 3,
+                                    IdField = "id",
+                                    TagField = "tags",
+                                    InterpretedFields = new List<string> { "title", "desc" },
+                                    SampleDocument = new
+                                    {
+                                        id = 10,
+                                        title = "thisisthetitle",
+                                        desc = "thisisthedesc",
+                                        tags = new[] { "tag1" }
+                                    }
+                                } 
+                                : new DataSet
+                                    {
+                                        NGramCount = SelectedDataSet.NGramCount,
+                                        IdField = SelectedDataSet.IdField,
+                                        TagField = SelectedDataSet.TagField,
+                                        InterpretedFields = SelectedDataSet.InterpretedFields,
+                                        SampleDocument = SelectedDataSet.SampleDocument
+                                    };
             var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
             var isAccepted = await DialogHandler.Show(view, "RootDialog");
             if ((bool)isAccepted)

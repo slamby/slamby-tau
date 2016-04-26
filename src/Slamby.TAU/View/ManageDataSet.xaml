@@ -56,6 +56,8 @@
                                     <MenuItem Header="Import document from csv" Command="{Binding ImportDocumentCsvCommand}" IsEnabled="true" />
                                     <MenuItem Header="Import tag from csv" Command="{Binding ImportTagCsvCommand}" />
                                     <Separator/>
+                                    <MenuItem Header="Clone dataset" Command="{Binding CloneDatasetCommand}" />
+                                    <Separator/>
                                     <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
                                 </ContextMenu>
                             </ListBox.ContextMenu>
