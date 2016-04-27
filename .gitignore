@@ -8,3 +8,7 @@
 /src/packages
 /src/Slamby.TAU/bin/Debug
 /src/Slamby.TAU/obj/Debug
+/src/Slamby.TAU.Test/obj/Release
+/src/Slamby.TAU.Test/bin/Release
+/src/Slamby.TAU/obj/Release
+/src/Slamby.TAU/bin/Release
