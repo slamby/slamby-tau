@@ -76,6 +76,14 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => HasError, ref _hasError, value); }
         }
 
+        private bool _operationIsFinished;
+
+        public bool OperationIsFinished
+        {
+            get { return _operationIsFinished; }
+            set { Set(() => OperationIsFinished, ref _operationIsFinished, value); }
+        }
+
         public CancellationTokenSource CancellationTokenSource { get; set; }
 
         public RelayCommand CancelCommand { get; private set; }

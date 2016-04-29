@@ -107,6 +107,7 @@ namespace Slamby.TAU.ViewModel
             AddTagCommand = new RelayCommand(async () => await AddTag());
             RemoveTagCommand = new RelayCommand(RemoveTag);
             ModifyTagTagCommand = new RelayCommand(ModifyTag);
+            ExportWordsCommand=new RelayCommand(async () => await ExportWords());
 
             AddDocumentCommand = new RelayCommand(async () => await AddDocument());
             DeleteDocumentCommand = new RelayCommand(DeleteDocument);
@@ -369,6 +370,8 @@ namespace Slamby.TAU.ViewModel
 
         public RelayCommand ModifyTagTagCommand { get; private set; }
 
+        public RelayCommand ExportWordsCommand { get; private set; }
+
         public async Task AddTag()
         {
             Log.Info(LogMessages.ManageDataTagAdd);
@@ -446,6 +449,27 @@ namespace Slamby.TAU.ViewModel
                                 }
                             }
                         });
+                }
+            }
+        }
+
+        public async Task ExportWords()
+        {
+            Log.Info(LogMessages.ManageDataTagExportWords);
+            var context = new CommonDialogViewModel
+            {
+                Header = "Export Words",
+                Buttons = ButtonsEnum.OkCancel,
+                Content = new JContent(new TagsExportWordsSettings { TagIdList = SelectedTags.Select(t => t.Id).ToList() })
+            };
+            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                var settings = ((JContent)context.Content).GetJToken().ToObject<TagsExportWordsSettings>();
+                var response = await _tagManager.WordsExportAsync(settings);
+                if (ResponseValidator.Validate(response))
+                {
+                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, response.ResponseObject));
                 }
             }
         }

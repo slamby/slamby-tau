@@ -14,17 +14,17 @@ namespace Slamby.TAU.Test
     public class ManageDataViewModelTest
     {
 
-        //[TestMethod]
-        //public async Task AddTagTest()
-        //{
-        //    GlobalStore.IsInTestMode = true;
-        //    GlobalStore.EndpointConfiguration.ApiBaseEndpoint = new Uri("http://localhost:29689/");
-        //    DialogHandler.TestResult = CommonDialogResult.Ok;
-        //    DialogHandler.TestInput = new JContent(new Tag { Id = "testid3", Name = "testName3", ParentId = null });
-        //    var vm = new ManageDataViewModel();
-        //    Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, new DataSet { Name = "unit_test" }));
-        //    await vm.AddTag();
-        //}
+        [TestMethod]
+        public async Task AddTagTest()
+        {
+            //GlobalStore.IsInTestMode = true;
+            //GlobalStore.EndpointConfiguration.ApiBaseEndpoint = new Uri("http://localhost:29689/");
+            //DialogHandler.TestResult = CommonDialogResult.Ok;
+            //DialogHandler.TestInput = new JContent(new Tag { Id = "testid3", Name = "testName3", ParentId = null });
+            //var vm = new ManageDataViewModel();
+            //Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, new DataSet { Name = "unit_test" }));
+            //await vm.AddTag();
+        }
 
         //[TestMethod]
         //public async Task AddDocumentTest()

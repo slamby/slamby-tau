@@ -1,4 +1,4 @@
-# Slamby TAU (0.12.0)
+# Slamby TAU (0.13.0)
 
 *Integrated data management tool, dedicated for data-scientists and managers.
 Quick real-time data access, data-analysis and data-processing.*
@@ -8,6 +8,13 @@ Slamby TAU is an open-source software, using Slamby SDK, communicating real-time
 `Github` Project Page: [https://github.com/slamby/slamby-tau/](https://github.com/slamby/slamby-tau)
 
 License: [Apache License 2.0](LICENSE)
+
+**Changelog**
+
+- Dataset Clone,
+- Processes,
+- Words and Dictionaries Download,
+- Install.
 
 # Quick Overview
 
@@ -81,7 +88,8 @@ Available functions:
 - Create Dataset,
 - Remove Dataset,
 - Set Dataset to Work,
-- Open Dataset to Work.
+- Open Dataset to Work,
+- Clone Dataset.
 
 ## Create a Dataset
 
@@ -167,6 +175,12 @@ To remove a dataset select your target dataset, right-click and select *Remove*.
 After removing a dataset, each documents and tags will be removed.
 
 > Tip: to delete all your documents it's faster to remove and re-create the given dataset.
+
+## Clone Dataset
+
+Clone an existing dataset. Copy settings and dataset schema to modify, or save.
+
+![Demo Image2](img/clone_dataset.png)
 
 # Data management
 
@@ -512,6 +526,28 @@ Tag.Properties  |   Related properties by the recommended Tag.
 *Example Classifier Service JSON `response`*:
 
 ![Demo Image2](img/classifier_service_result.png)
+
+### Export Classifier Dictionaries
+
+When a Classifier Service is prepared, you can export the available dictionaries. Click on the export button and fill the required setting json form:
+- ngram list for which dictionaries you would like to export,
+- tag list for which tags you would like to export dictionaries.
+
+![Demo Image2](img/export_dictionaries.png)
+
+# Processes
+
+Built-in process manager for bigger processes. List, filter and manage available processes.
+
+Available functions:
+- List processes,
+- Filter processes,
+- Use ResultMessage to download CSV files as a process result,
+- Cancel a process.
+
+> A process cannot be removed.
+
+![Demo Image2](img/processes.png)
 
 ---------------------------------
 

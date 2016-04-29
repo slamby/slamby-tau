@@ -5,20 +5,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using Slamby.SDK.Net.Models.Enums;
 
 namespace Slamby.TAU.Converter
 {
-    public class StringListToStringConverter : IValueConverter
+    public class ProcessStatusToBoolConverter: IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return "";
-            return string.Join(", ", (List<string>)value);
+            return (ProcessStatusEnum) value == ProcessStatusEnum.InProgress;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((string)value).Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+            throw new NotImplementedException();
         }
     }
 }

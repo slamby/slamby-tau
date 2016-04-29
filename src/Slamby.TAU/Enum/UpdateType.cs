@@ -10,6 +10,7 @@ namespace Slamby.TAU.Enum
     {
         SelectedDataSetChange,
         EndPointUpdate,
-        SelectedMenuItemChange
+        SelectedMenuItemChange,
+        NewProcessCreated
     }
 }

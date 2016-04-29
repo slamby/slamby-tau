@@ -1,0 +1,74 @@
+﻿<UserControl x:Class="Slamby.TAU.View.ManageProcess"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Slamby.TAU.View"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:command="http://www.galasoft.ch/mvvmlight"
+             xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             mc:Ignorable="d" 
+             DataContext="{Binding ManageProcess, Source={StaticResource Locator}}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <converter:StringListToStringConverter x:Key="StringListToStringConverter"/>
+            <converter:ProcessStatusToBoolConverter x:Key="ProcessStatusToBoolConverter"/>
+            <converter:StringToCellTemplateConverter x:Key="StringToCellTemplateConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <command:EventToCommand Command="{Binding LoadedCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <DataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button VerticalAlignment="Center" Command="{Binding ManageProcess.RefreshProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem.Id}" ToolTip="Refresh">
+                                <fa:ImageAwesome Icon="Refresh" Margin="5"/>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button VerticalAlignment="Center" Command="{Binding ManageProcess.CancelProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem}" Content="Cancel" IsEnabled="{Binding Path=Status, Converter={StaticResource ProcessStatusToBoolConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="ResultMessage" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ContentControl>
+                                <Binding Path="ResultMessage" Converter="{StaticResource StringToCellTemplateConverter}"/>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Start" Binding="{Binding Start}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="End" Binding="{Binding End}" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="Percent">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock HorizontalAlignment="Center" Text="{Binding Percent, StringFormat={}{0} %}"/>
+                                <ProgressBar Value="{Binding Path=Percent}" HorizontalAlignment="Center" Width="200"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="ErrorMessages" MaxWidth="200" Binding="{Binding ErrorMessages, Converter={StaticResource StringListToStringConverter}}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

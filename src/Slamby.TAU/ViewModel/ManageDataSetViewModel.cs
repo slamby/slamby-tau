@@ -23,6 +23,7 @@ using System.Net;
 using System.Threading;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
+using Slamby.TAU.Properties;
 using Slamby.TAU.View;
 using CommonDialog = Slamby.TAU.View.CommonDialog;
 
@@ -44,7 +45,8 @@ namespace Slamby.TAU.ViewModel
             DataSets = datasets;
             if (DataSets != null && DataSets.Any())
                 SelectedDataSet = DataSets[0];
-            AddCommand = new RelayCommand(Add);
+            AddCommand = new RelayCommand(async () => await Add());
+            CloneDatasetCommand = new RelayCommand(async () => await Add(SelectedDataSet));
             SeletcToWorkCommand = new RelayCommand(async () => await SelectToWork());
             ImportDocumentCommand = new RelayCommand(ImportJson<object>);
             ImportTagCommand = new RelayCommand(ImportJson<Tag>);
@@ -75,6 +77,7 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand LoadedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Arrow); });
 
         public RelayCommand AddCommand { get; private set; }
+        public RelayCommand CloneDatasetCommand { get; private set; }
 
         //public RelayCommand SetAsDefaultCommand { get; private set; }
 
@@ -90,10 +93,10 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand ImportDocumentCsvCommand { get; private set; }
         public RelayCommand ImportTagCsvCommand { get; private set; }
 
-        private async void Add()
+        private async Task Add(DataSet selectedDataSet = null)
         {
             Log.Info(LogMessages.ManageDataSetAddCommand);
-            var newDataSet = new DataSet
+            var newDataSet = selectedDataSet == null ? new DataSet
             {
                 NGramCount = 3,
                 IdField = "id",
@@ -107,7 +110,14 @@ namespace Slamby.TAU.ViewModel
                     tags = new[] { "tag1" }
                 }
             }
-                ;
+                                : new DataSet
+                                {
+                                    NGramCount = SelectedDataSet.NGramCount,
+                                    IdField = SelectedDataSet.IdField,
+                                    TagField = SelectedDataSet.TagField,
+                                    InterpretedFields = SelectedDataSet.InterpretedFields,
+                                    SampleDocument = SelectedDataSet.SampleDocument
+                                };
             var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
             var isAccepted = await DialogHandler.Show(view, "RootDialog");
             if ((bool)isAccepted)
@@ -176,15 +186,12 @@ namespace Slamby.TAU.ViewModel
                                         var settings = new TagBulkSettings();
                                         settings.Tags = importResult.Tokens.Select(t => t.ToObject<Tag>()).ToList();
                                         response = await new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings);
-                                        if (!ResponseValidator.Validate(response))
-                                        {
-                                            return;
-                                        }
+                                        ResponseValidator.Validate(response);
                                     }
                                     catch (Exception ex)
                                     {
                                         errors.Add(string.Format("Error during bulk process:{0}{1}", Environment.NewLine, ex.Message));
-                                        status.ErrorCount += GlobalStore.BulkSize;
+                                        status.ErrorCount += importResult.Tokens.Count;
                                     }
                                     finally
                                     {
@@ -249,7 +256,7 @@ namespace Slamby.TAU.ViewModel
                         finally
                         {
                             stream?.Close();
-                            oa.Session.Close();
+                            status.OperationIsFinished = true;
                         }
                     });
 
@@ -283,11 +290,11 @@ namespace Slamby.TAU.ViewModel
         {
             var cancellationToken = new CancellationTokenSource();
             var status = new StatusDialogViewModel { Title = "Importing documents", CancellationTokenSource = cancellationToken };
+            var errors = new ConcurrentBag<string>();
             await DialogHost.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
             {
                 try
                 {
-                    var errors = new ConcurrentBag<string>();
                     var all = tokens.Count;
                     var done = 0;
                     await Task.Run(() =>
@@ -296,49 +303,33 @@ namespace Slamby.TAU.ViewModel
                         {
                             if (typeof(T) == typeof(Tag))
                             {
-                                var result = Parallel.ForEach(tokens,
-                                    new ParallelOptions
+                                var response = new ClientResponseWithObject<BulkResults>();
+                                try
+                                {
+                                    var settings = new TagBulkSettings();
+                                    settings.Tags = tokens.Select(t => t.ToObject<Tag>()).ToList();
+                                    response = new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
+                                    ResponseValidator.Validate(response);
+                                }
+                                catch (Exception ex)
+                                {
+                                    errors.Add(string.Format("Error during bulk process:{0}{1}", Environment.NewLine, ex.Message));
+                                    status.ErrorCount += tokens.Count;
+                                }
+                                finally
+                                {
+                                    var bulkErrors = response.ResponseObject?.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
+                                    if (bulkErrors != null && bulkErrors.Any())
                                     {
-                                        MaxDegreeOfParallelism = 8,
-                                        CancellationToken = cancellationToken.Token
-                                    }, token =>
-                                    {
-                                        ClientResponse response = new ClientResponse();
-                                        try
+                                        foreach (var error in bulkErrors)
                                         {
-
-                                            var newDocument = token.ToObject<Tag>();
-                                            response =
-                                                new TagManager(GlobalStore.EndpointConfiguration,
-                                                    SelectedDataSet.Name).CreateTagAsync(newDocument).Result;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            errors.Add(string.Format("Id: {0}, error: {1}", token["Id"], ex.Message));
+                                            errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
                                             status.ErrorCount++;
                                         }
-                                        finally
-                                        {
-                                            if (!response.IsSuccessFul)
-                                            {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", token["Id"], response.ServerMessage));
-                                                status.ErrorCount++;
-                                            }
-                                            done++;
-                                            status.DoneCount++;
-                                            status.ProgressValue = (done / (double)all) * 100;
-                                        }
-                                    });
-                                if (!result.IsCompleted || errors.Any())
-                                {
-                                    var errorResponse = new ClientResponse()
-                                    {
-                                        IsSuccessFul = false,
-                                        HttpStatusCode = System.Net.HttpStatusCode.InternalServerError,
-                                        Errors = new ErrorsModel { Errors = errors },
-                                        ServerMessage = "One or more error occurred during import."
-                                    };
-                                    ResponseValidator.Validate(errorResponse);
+
+                                    }
+                                    status.DoneCount += tokens.Count;
+                                    status.ProgressValue = 100;
                                 }
                             }
                             else
@@ -418,6 +409,7 @@ namespace Slamby.TAU.ViewModel
                             if (errors.Any())
                             {
                                 var errorResponse = new ClientResponse() { IsSuccessFul = false, HttpStatusCode = System.Net.HttpStatusCode.InternalServerError, Errors = new ErrorsModel { Errors = errors }, ServerMessage = "One or more error occurred during import." };
+                                errors = new ConcurrentBag<string>();
                                 ResponseValidator.Validate(errorResponse);
                             }
                         }
@@ -430,7 +422,12 @@ namespace Slamby.TAU.ViewModel
                 }
                 finally
                 {
-                    oa.Session.Close();
+                    if (errors.Any())
+                    {
+                        var errorResponse = new ClientResponse() { IsSuccessFul = false, HttpStatusCode = System.Net.HttpStatusCode.InternalServerError, Errors = new ErrorsModel { Errors = errors }, ServerMessage = "One or more error occurred during import." };
+                        ResponseValidator.Validate(errorResponse);
+                    }
+                    status.OperationIsFinished = true;
                 }
             });
         }
