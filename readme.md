@@ -5,6 +5,8 @@ Quick real-time data access, data-analysis and data-processing.*
 
 Slamby TAU is an open-source software, using Slamby SDK, communicating real-time with Slamby Server.
 
+`Download TAU:` [Slamby TAU 0.13.0 Installer](https://github.com/slamby/slamby-tau/releases/download/v0.13.0/Slamby.TAU.v0.13.0.zip)
+
 `Github` Project Page: [https://github.com/slamby/slamby-tau/](https://github.com/slamby/slamby-tau)
 
 License: [Apache License 2.0](LICENSE)
