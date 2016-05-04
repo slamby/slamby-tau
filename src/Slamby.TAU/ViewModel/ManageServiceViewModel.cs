@@ -38,60 +38,62 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageServiceViewModel class.
         /// </summary>
-        public ManageServiceViewModel()
+        public ManageServiceViewModel(IServiceManager serviceManager, IClassifierServiceManager classifierServiceManager, IPrcServiceManager prcServiceManager, IProcessManager processManager)
         {
             Services = new ObservableCollection<Service>();
-            _serviceManager = IsInDesignModeStatic ? new DesignServiceManager() :
-            (IServiceManager)new ServiceManager(GlobalStore.EndpointConfiguration);
+            _serviceManager = serviceManager;
+            _classifierServiceManager = classifierServiceManager;
+            _prcServiceManager = prcServiceManager;
+            _processManager = processManager;
 
             LoadedCommand = new RelayCommand(async () =>
-            {
-                Mouse.SetCursor(Cursors.Arrow);
-                if (_loadedFirst && _serviceManager != null)
                 {
-                    _loadedFirst = false;
-                    await DialogHandler.ShowProgress(null, async () =>
+                    Mouse.SetCursor(Cursors.Arrow);
+                    if (_loadedFirst && _serviceManager != null)
                     {
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => Services.Clear());
-                        Log.Info(LogMessages.ManageDataLoadTags);
-                        var response = await _serviceManager.GetServicesAsync();
-                        if (ResponseValidator.Validate(response))
+                        _loadedFirst = false;
+                        await DialogHandler.ShowProgress(null, async () =>
                         {
-                            Services = new ObservableCollection<Service>(response.ResponseObject);
-                            response.ResponseObject.Where(s => s.Status == ServiceStatusEnum.Busy).ToList().ForEach(s => _busyServiceIds.Add(s.Id));
-                        }
-                    });
-
-                    _timer.Elapsed += async (s, e) =>
-                    {
-                        await Task.Run(() =>
-                        {
-                            try
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Services.Clear());
+                            Log.Info(LogMessages.ManageDataLoadTags);
+                            var response = await _serviceManager.GetServicesAsync();
+                            if (ResponseValidator.Validate(response))
                             {
-                                foreach (var serviceId in _busyServiceIds.ToList())
-                                {
-                                    var response = _serviceManager.GetServiceAsync(serviceId).Result;
-                                    if (response.ResponseObject.Status != ServiceStatusEnum.Busy)
-                                    {
-                                        var removed = serviceId;
-                                        _busyServiceIds.TryTake(out removed);
-                                        DispatcherHelper.CheckBeginInvokeOnUI(() => Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = response.ResponseObject);
-                                    }
-                                }
-                                var selectedServices = SelectedServices?.ToList() ?? new List<Service>();
-                                Services = new ObservableCollection<Service>(Services);
-                                SelectedServices = new ObservableCollection<Service>(selectedServices);
-
-                            }
-                            catch (Exception exception)
-                            {
-                                DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                                Services = new ObservableCollection<Service>(response.ResponseObject);
+                                response.ResponseObject.Where(s => s.Status == ServiceStatusEnum.Busy).ToList().ForEach(s => _busyServiceIds.Add(s.Id));
                             }
                         });
-                    };
-                    _timer.Start();
-                }
-            });
+
+                        _timer.Elapsed += async (s, e) =>
+                        {
+                            await Task.Run(() =>
+                            {
+                                try
+                                {
+                                    foreach (var serviceId in _busyServiceIds.ToList())
+                                    {
+                                        var response = _serviceManager.GetServiceAsync(serviceId).Result;
+                                        if (response.ResponseObject.Status != ServiceStatusEnum.Busy)
+                                        {
+                                            var removed = serviceId;
+                                            _busyServiceIds.TryTake(out removed);
+                                            DispatcherHelper.CheckBeginInvokeOnUI(() => Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = response.ResponseObject);
+                                        }
+                                    }
+                                    var selectedServices = SelectedServices?.ToList() ?? new List<Service>();
+                                    Services = new ObservableCollection<Service>(Services);
+                                    SelectedServices = new ObservableCollection<Service>(selectedServices);
+
+                                }
+                                catch (Exception exception)
+                                {
+                                    DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                                }
+                            });
+                        };
+                        _timer.Start();
+                    }
+                });
 
             PrepareCommand = new RelayCommand(Prepare);
             ActivateCommand = new RelayCommand(Activate);
@@ -106,16 +108,18 @@ namespace Slamby.TAU.ViewModel
         }
 
         private Timer _timer = new Timer { Interval = 10000, AutoReset = true, Enabled = true };
+
         private ConcurrentBag<string> _busyServiceIds = new ConcurrentBag<string>();
 
         private bool _loadedFirst = true;
 
         private IServiceManager _serviceManager;
 
-        private SDK.Net.Managers.ClassifierServiceManager _classifierServiceManager = new SDK.Net.Managers.ClassifierServiceManager(GlobalStore.EndpointConfiguration);
-        private PrcServiceManager _prcServiceManager = new SDK.Net.Managers.PrcServiceManager(GlobalStore.EndpointConfiguration);
+        private IClassifierServiceManager _classifierServiceManager;
 
-        private ProcessManager _processManager = new ProcessManager(GlobalStore.EndpointConfiguration);
+        private IPrcServiceManager _prcServiceManager;
+
+        private IProcessManager _processManager;
 
         public RelayCommand LoadedCommand { get; private set; }
 

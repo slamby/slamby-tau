@@ -18,6 +18,7 @@ using Slamby.TAU.Logger;
 using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
+using Microsoft.Practices.ServiceLocation;
 using Slamby.TAU.View;
 using Clipboard = System.Windows.Clipboard;
 using CommonDialog = Slamby.TAU.View.CommonDialog;
@@ -37,26 +38,12 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageDataViewModel class.
         /// </summary>
-        public ManageDataViewModel()
+        public ManageDataViewModel(IDocumentManager documentManager, ITagManager tagManager)
         {
-            Messenger.Default.Register<UpdateMessage>(this, message =>
-            {
-                if (message.UpdateType == UpdateType.SelectedDataSetChange)
-                {
-                    var dataset = (DataSet)message.Parameter;
-                    if (dataset != null && !string.IsNullOrEmpty(dataset.Name))
-                    {
-                        _documentManager = IsInDesignModeStatic
-                            ? new DesignDocumentManager()
-                            : (IDocumentManager)
-                                new DocumentManager(GlobalStore.EndpointConfiguration, dataset.Name);
-                        _tagManager = IsInDesignModeStatic ? new DesignTagManager() : (ITagManager)new TagManager(GlobalStore.EndpointConfiguration, dataset.Name);
-                        _dataSetManager = IsInDesignModeStatic ? new DesignDataSetManager() : (IDataSetManager)new DataSetManager(GlobalStore.EndpointConfiguration);
-                        _currentDataSet = dataset;
-                        _loadedFirst = true;
-                    }
-                }
-            });
+
+            _documentManager = documentManager;
+            _tagManager = tagManager;
+            _currentDataSet = ServiceLocator.Current.GetInstance<MainViewModel>().SelectedDataSet;
 
             Tags = new ObservableCollection<Tag>();
             Documents = new ObservableCollection<object>();
@@ -66,6 +53,7 @@ namespace Slamby.TAU.ViewModel
                 Mouse.SetCursor(Cursors.Arrow);
                 if (_loadedFirst && _tagManager != null && _documentManager != null)
                 {
+                    _currentDataSet = ServiceLocator.Current.GetInstance<MainViewModel>().SelectedDataSet;
                     _loadedFirst = false;
                     await DialogHandler.ShowProgress(null, async () =>
                     {
@@ -107,7 +95,7 @@ namespace Slamby.TAU.ViewModel
             AddTagCommand = new RelayCommand(async () => await AddTag());
             RemoveTagCommand = new RelayCommand(RemoveTag);
             ModifyTagTagCommand = new RelayCommand(ModifyTag);
-            ExportWordsCommand=new RelayCommand(async () => await ExportWords());
+            ExportWordsCommand = new RelayCommand(async () => await ExportWords());
 
             AddDocumentCommand = new RelayCommand(async () => await AddDocument());
             DeleteDocumentCommand = new RelayCommand(DeleteDocument);
@@ -150,7 +138,6 @@ namespace Slamby.TAU.ViewModel
 
         private ITagManager _tagManager;
         private IDocumentManager _documentManager;
-        private IDataSetManager _dataSetManager;
         private DataSet _currentDataSet;
 
 
@@ -753,7 +740,7 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentCopyTo);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
-                IEnumerable<DataSet> datasets = await GetDataSets();
+                IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
                 var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
                 var view = new DataSetSelector { DataContext = context };
@@ -769,7 +756,7 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentMoveTo);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
-                IEnumerable<DataSet> datasets = await GetDataSets();
+                IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
                 var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
                 var view = new DataSetSelector { DataContext = context };
@@ -784,7 +771,7 @@ namespace Slamby.TAU.ViewModel
         {
             Log.Info(LogMessages.ManageDataDocumentCopyAllTo);
 
-            IEnumerable<DataSet> datasets = await GetDataSets();
+            IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
             var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
             var view = new DataSetSelector { DataContext = context };
@@ -797,7 +784,7 @@ namespace Slamby.TAU.ViewModel
 
         private async void MoveAllTo()
         {
-            IEnumerable<DataSet> datasets = await GetDataSets();
+            IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
             var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
             var view = new DataSetSelector { DataContext = context };
@@ -806,20 +793,6 @@ namespace Slamby.TAU.ViewModel
                 var documentIds = await GetAllDocumentIdsByCurrentSettings();
                 await MoveDocuments(documentIds, context.SelectedDataSet.Name);
             }
-        }
-
-        private async Task<IEnumerable<DataSet>> GetDataSets()
-        {
-            IEnumerable<DataSet> datasets = null;
-            await DialogHandler.ShowProgress(null, async () =>
-            {
-                var response = await _dataSetManager.GetDataSetsAsync();
-                if (ResponseValidator.Validate(response))
-                {
-                    datasets = response.ResponseObject;
-                }
-            });
-            return datasets;
         }
 
         private async Task<List<string>> GetAllDocumentIdsByCurrentSettings()

@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Slamby.TAU"
         xmlns:models="clr-namespace:Slamby.TAU.Model"
         xmlns:viewModels="clr-namespace:Slamby.TAU.ViewModel"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -11,7 +10,6 @@
         xmlns:command="http://www.galasoft.ch/mvvmlight"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:view="clr-namespace:Slamby.TAU.View"
-        xmlns:models1="clr-namespace:Slamby.SDK.Net.Models;assembly=Slamby.SDK.Net"
         xmlns:converter="clr-namespace:Slamby.TAU.Converter"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
@@ -19,6 +17,7 @@
         mc:Ignorable="d"
         Title="Slamby TAU" Height="800" Width="1200"
         DataContext="{Binding Main, Source={StaticResource Locator}}"
+        IsEnabled="{Binding IsEnable}"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="SizeChanged" >
@@ -47,11 +46,6 @@
         </Grid.RowDefinitions>
         <materialDesign:DialogHost x:Name="ErrorDialog" Identifier="ErrorDialog">
             <materialDesign:DialogHost x:Name="RootDialog" Identifier="RootDialog">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="Loaded">
-                        <i:InvokeCommandAction Command="{Binding LoadCommand}"/>
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
                 <Grid>
                     <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
                         <materialDesign:DrawerHost.LeftDrawerContent>
@@ -136,7 +130,10 @@
                             </StackPanel>
 
                             <Grid>
-                                <ContentControl Margin ="0,30,0,0"  Content="{Binding ElementName=MenuItemsListBox, Path=SelectedItem.Content}" />
+                                <Grid Margin ="0,30,0,0">
+                                    <TextBlock Text="Loading data. Please wait!" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <ContentControl Content="{Binding ElementName=MenuItemsListBox, Path=SelectedItem.Content}"/>
+                                </Grid>
                                 <Grid Background="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Top">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>

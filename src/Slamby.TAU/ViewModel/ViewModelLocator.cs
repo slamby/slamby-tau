@@ -13,15 +13,18 @@
 */
 
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
+using GalaSoft.MvvmLight.Threading;
 using Microsoft.Practices.ServiceLocation;
-using Slamby.SDK.Net;
 using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Models;
 using Slamby.TAU.Enum;
+using Slamby.TAU.Helper;
 using Slamby.TAU.Model;
-using Slamby.TAU.Properties;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -29,19 +32,43 @@ namespace Slamby.TAU.ViewModel
     /// This class contains static references to all the view models in the
     /// application and provides an entry point for the bindings.
     /// </summary>
-    public class ViewModelLocator
+    public class ViewModelLocator : INotifyPropertyChanged
     {
         /// <summary>
         /// Initializes a new instance of the ViewModelLocator class.
         /// </summary>
         public ViewModelLocator()
         {
+            DispatcherHelper.Initialize();
             Messenger.Default.Register<UpdateMessage>(this, m =>
             {
-                if (m.UpdateType == UpdateType.EndPointUpdate)
+                switch (m.UpdateType)
                 {
-                    SimpleIoc.Default.Reset();
-                    Initialize();
+                    case UpdateType.SelectedDataSetChange:
+                        SimpleIoc.Default.Unregister<IDocumentManager>();
+                        SimpleIoc.Default.Unregister<ITagManager>();
+                        SimpleIoc.Default.Unregister<ManageDataViewModel>();
+                        if (m.Parameter is DataSet && !string.IsNullOrEmpty(((DataSet)m.Parameter).Name))
+                        {
+                            _selectedDataSet = (DataSet)m.Parameter;
+                            SimpleIoc.Default.Register<IDocumentManager>(
+                                () => new DocumentManager(GlobalStore.EndpointConfiguration, _selectedDataSet.Name));
+                            SimpleIoc.Default.Register<ITagManager>(
+                                () => new TagManager(GlobalStore.EndpointConfiguration, _selectedDataSet.Name));
+                            SimpleIoc.Default.Register<ManageDataViewModel>();
+                            OnPropertyChanged("ManageData");
+                        }
+                        break;
+                    case UpdateType.EndPointUpdate:
+                        SimpleIoc.Default.Reset();
+                        Initialize();
+                        break;
+                    case UpdateType.SelectedMenuItemChange:
+                        break;
+                    case UpdateType.NewProcessCreated:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             });
             Initialize();
@@ -55,38 +82,53 @@ namespace Slamby.TAU.ViewModel
             }
             else
             {
-                SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(_endpointConfiguration));
+                SimpleIoc.Default.Register<IDataSetManager>(() => new DataSetManager(GlobalStore.EndpointConfiguration));
+                SimpleIoc.Default.Register<IServiceManager>(() => new ServiceManager(GlobalStore.EndpointConfiguration));
+                SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.EndpointConfiguration));
+                SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.EndpointConfiguration));
+                SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.EndpointConfiguration));
             }
 
+            InitializeViewModels();
+        }
+
+        private void InitializeViewModels()
+        {
+            Cleanup();
 
             SimpleIoc.Default.Register<MainViewModel>();
+            OnPropertyChanged("Main");
+            SimpleIoc.Default.Register<ManageDataSetViewModel>();
+            SimpleIoc.Default.Register<ManageServiceViewModel>();
             SimpleIoc.Default.Register<ManageProcessViewModel>();
         }
 
-        public MainViewModel Main
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<MainViewModel>();
-            }
-        }
+        private static DataSet _selectedDataSet;
 
-        private static Configuration _endpointConfiguration = new Configuration
-        {
-            ApiBaseEndpoint = new Uri(Settings.Default["EndpointUri"].ToString()),
-            ApiSecret = Settings.Default["EndpointSecret"].ToString()
-        };
+        public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
 
-        public ManageProcessViewModel ManageProcess {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
-            }
-        }
+        public ManageDataSetViewModel ManageDataSet => ServiceLocator.Current.GetInstance<ManageDataSetViewModel>();
+
+        public ManageDataViewModel ManageData => SimpleIoc.Default.IsRegistered<ManageDataViewModel>() ? ServiceLocator.Current.GetInstance<ManageDataViewModel>() : null;
+
+        public ManageServiceViewModel ManageService => ServiceLocator.Current.GetInstance<ManageServiceViewModel>();
+        public ManageProcessViewModel ManageProcess => ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
 
         public static void Cleanup()
         {
             SimpleIoc.Default.Unregister<MainViewModel>();
+            SimpleIoc.Default.Unregister<ManageDataSetViewModel>();
+            SimpleIoc.Default.Unregister<ManageDataViewModel>();
+            SimpleIoc.Default.Unregister<ManageServiceViewModel>();
+            SimpleIoc.Default.Unregister<ManageProcessViewModel>();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        
+
+        protected virtual void OnPropertyChanged(string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

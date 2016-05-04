@@ -47,15 +47,15 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
-        public MainViewModel()
+        public MainViewModel(IProcessManager processManager)
         {
+            IsEnable = false;
+            Mouse.SetCursor(Cursors.Wait);
+            _processManager = processManager;
             if (Application.Current != null)
                 Application.Current.DispatcherUnhandledException += DispatcherUnhandledException;
+            
 
-            MenuItems = new ObservableCollection<MenuItem>();
-            DataSets = new ObservableCollection<DataSet>();
-
-            DispatcherHelper.Initialize();
 
             if (Properties.Settings.Default.UpdateSettings)
             {
@@ -70,12 +70,9 @@ namespace Slamby.TAU.ViewModel
                 switch (message.UpdateType)
                 {
                     case UpdateType.SelectedDataSetChange:
-                        var selected = DataSets.FirstOrDefault(ds => ds.Name == ((DataSet)message.Parameter).Name);
+                        var selected = DataSets?.FirstOrDefault(ds => ds.Name == ((DataSet)message.Parameter).Name);
                         if (selected != null)
                             SelectedDataSet = selected;
-                        break;
-                    case UpdateType.EndPointUpdate:
-                        InitData();
                         break;
                     case UpdateType.SelectedMenuItemChange:
                         SelectedMenuItem = MenuItems.FirstOrDefault(mi => mi.Name == (string)message.Parameter);
@@ -166,7 +163,7 @@ namespace Slamby.TAU.ViewModel
             });
 
             CloseMenuCommand = new RelayCommand(() => MenuIsOpen = false);
-            LoadCommand = new RelayCommand(InitData);
+            InitData();
             PreviewKeyDownCommand = new RelayCommand<KeyEventArgs>(arg =>
               {
                   if (arg.Key == Key.F5)
@@ -182,14 +179,20 @@ namespace Slamby.TAU.ViewModel
             e.Handled = true;
         }
 
-        public RelayCommand LoadCommand { get; private set; }
-
         public RelayCommand<KeyEventArgs> PreviewKeyDownCommand { get; private set; }
 
         public RelayCommand SelectionChangedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Wait); });
 
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
+
+        private bool _isEnable;
+
+        public bool IsEnable
+        {
+            get { return _isEnable; }
+            set { Set(() => IsEnable, ref _isEnable, value); }
+        }
 
         private ObservableCollection<Process> _activeProcessesList = new ObservableCollection<Process>();
 
@@ -200,43 +203,35 @@ namespace Slamby.TAU.ViewModel
         }
 
 
-        private async void InitData()
+        private async Task InitData()
         {
-            Mouse.SetCursor(Cursors.Arrow);
-            await DialogHandler.Show(new ProgressDialog(), "RootDialog", async (object e, DialogOpenedEventArgs oa) =>
-             {
-                 try
-                 {
-                     _processManager = ServiceLocator.Current.GetInstance<IProcessManager>();
-                     var processResponse = await _processManager.GetProcessesAsync();
-                     if (ResponseValidator.Validate(processResponse))
-                     {
-                         ActiveProcessesList = new ObservableCollection<Process>(processResponse.ResponseObject.Where(p => p.Status == ProcessStatusEnum.InProgress));
-                     }
-
-                     DataSetManager = IsInDesignModeStatic ? (IDataSetManager)new DesignDataSetManager() : new DataSetManager(GlobalStore.EndpointConfiguration);
-                     DataSets.Clear();
-                     var response = await DataSetManager.GetDataSetsAsync();
-                     if (ResponseValidator.Validate(response))
-                     {
-                         response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
-                         InitMenuItems();
-                     }
-                 }
-                 catch (Exception exception)
-                 {
-                     DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
-                 }
-                 finally
-                 {
-                     oa.Session.Close();
-                 }
-             });
+            try
+            {
+                var processResponse = await _processManager.GetProcessesAsync();
+                if (ResponseValidator.Validate(processResponse))
+                {
+                    ActiveProcessesList =
+                        new ObservableCollection<Process>(
+                            processResponse.ResponseObject.Where(p => p.Status == ProcessStatusEnum.InProgress));
+                }
+                MenuItems = new ObservableCollection<MenuItem>();
+                InitMenuItems();
+                DataSets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
+            }
+            catch (Exception exception)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+            }
+            finally
+            {
+                Mouse.SetCursor(Cursors.Arrow);
+                IsEnable = true;
+            }
             if (DataSets != null && DataSets.Any())
             {
                 SelectedDataSet = DataSets[0];
             }
-
+        
         }
 
         private void InitMenuItems()
@@ -246,19 +241,19 @@ namespace Slamby.TAU.ViewModel
             {
                 Name = "DataSets",
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Database, Brushes.WhiteSmoke),
-                Content = new ManageDataSet { DataContext = new ManageDataSetViewModel(DataSetManager, DataSets) }
+                Content = new ManageDataSet()
             });
             MenuItems.Add(new MenuItem
             {
                 Name = "Data",
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.FilesOutline, Brushes.WhiteSmoke),
-                Content = new ManageData { DataContext = new ManageDataViewModel() }
+                Content = new ManageData()
             });
             MenuItems.Add(new MenuItem
             {
                 Name = "Services",
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Tasks, Brushes.WhiteSmoke),
-                Content = new ManageService { DataContext = new ManageServiceViewModel() }
+                Content = new ManageService()
             });
             MenuItems.Add(new MenuItem
             {
@@ -287,6 +282,7 @@ namespace Slamby.TAU.ViewModel
         }
 
         private IProcessManager _processManager;
+        private IDataSetManager _dataSetManager;
 
         private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 
@@ -307,9 +303,13 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => SelectedMenuItem, ref _selectedMenuItem, value); }
         }
 
-        public IDataSetManager DataSetManager { get; private set; }
+        private ObservableCollection<DataSet> _dataSets;
 
-        public ObservableCollection<DataSet> DataSets { get; private set; }
+        public ObservableCollection<DataSet> DataSets
+        {
+            get { return _dataSets; }
+            set { Set(() => DataSets, ref _dataSets, value); }
+        }
 
 
         DataSet _selectedDataSet;

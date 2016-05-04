@@ -38,13 +38,11 @@ namespace Slamby.TAU.ViewModel
     public class ManageDataSetViewModel : ViewModelBase
     {
 
-        public ManageDataSetViewModel(IDataSetManager dataSetManager, ObservableCollection<DataSet> datasets)
+        public ManageDataSetViewModel(IDataSetManager dataSetManager)
         {
-            _dataSetManager = IsInDesignModeStatic ? new DesignDataSetManager() : dataSetManager;
+            _dataSetManager = dataSetManager;
 
-            DataSets = datasets;
-            if (DataSets != null && DataSets.Any())
-                SelectedDataSet = DataSets[0];
+
             AddCommand = new RelayCommand(async () => await Add());
             CloneDatasetCommand = new RelayCommand(async () => await Add(SelectedDataSet));
             SeletcToWorkCommand = new RelayCommand(async () => await SelectToWork());
@@ -54,11 +52,41 @@ namespace Slamby.TAU.ViewModel
             ImportTagCsvCommand = new RelayCommand(ImportCsv<Tag>);
             DoubleClickCommand = new RelayCommand(async () => await DoubleClick());
             DeleteCommand = new RelayCommand(Delete);
+            if (_loadedFirst)
+            {
+                DataSets.Clear();
+                try
+                {
+                    Task.Run(async () =>
+                                    {
+                                        var response = await _dataSetManager.GetDataSetsAsync();
+                                        if (ResponseValidator.Validate(response))
+                                        {
+                                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                            {
+                                                response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
+                                                if (DataSets != null && DataSets.Any())
+                                                {
+                                                    SelectedDataSet = DataSets[0];
+                                                    Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, DataSets[0]));
+                                                }
+                                            });
+                                        }
+                                        _loadedFirst = false;
+                                    }).Wait();
+                }
+                catch (Exception exception)
+                {
+                    Messenger.Default.Send(exception);
+                }
+
+            }
         }
 
+        private bool _loadedFirst = true;
         private IDataSetManager _dataSetManager;
 
-        private ObservableCollection<DataSet> _dataSets;
+        private ObservableCollection<DataSet> _dataSets = new ObservableCollection<DataSet>();
 
         public ObservableCollection<DataSet> DataSets
         {
@@ -74,7 +102,7 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => SelectedDataSet, ref _selectedDataSet, value); }
         }
 
-        public RelayCommand LoadedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Arrow); });
+        public RelayCommand LoadedCommand { get; private set; }
 
         public RelayCommand AddCommand { get; private set; }
         public RelayCommand CloneDatasetCommand { get; private set; }
