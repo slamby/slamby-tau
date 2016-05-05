@@ -50,11 +50,11 @@ namespace Slamby.TAU.ViewModel
                         SimpleIoc.Default.Unregister<ManageDataViewModel>();
                         if (m.Parameter is DataSet && !string.IsNullOrEmpty(((DataSet)m.Parameter).Name))
                         {
-                            _selectedDataSet = (DataSet)m.Parameter;
+                            GlobalStore.CurrentDataset = (DataSet)m.Parameter;
                             SimpleIoc.Default.Register<IDocumentManager>(
-                                () => new DocumentManager(GlobalStore.EndpointConfiguration, _selectedDataSet.Name));
+                                () => new DocumentManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name));
                             SimpleIoc.Default.Register<ITagManager>(
-                                () => new TagManager(GlobalStore.EndpointConfiguration, _selectedDataSet.Name));
+                                () => new TagManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name));
                             SimpleIoc.Default.Register<ManageDataViewModel>();
                             OnPropertyChanged("ManageData");
                         }
@@ -82,11 +82,19 @@ namespace Slamby.TAU.ViewModel
             }
             else
             {
-                SimpleIoc.Default.Register<IDataSetManager>(() => new DataSetManager(GlobalStore.EndpointConfiguration));
-                SimpleIoc.Default.Register<IServiceManager>(() => new ServiceManager(GlobalStore.EndpointConfiguration));
-                SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.EndpointConfiguration));
-                SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.EndpointConfiguration));
-                SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.EndpointConfiguration));
+                if (GlobalStore.IsInTestMode)
+                {
+                    SimpleIoc.Default.Register<DialogHandler>(() => new TestDialogHandler());
+                }
+                else
+                {
+                    SimpleIoc.Default.Register<DialogHandler>();
+                    SimpleIoc.Default.Register<IDataSetManager>(() => new DataSetManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<IServiceManager>(() => new ServiceManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.EndpointConfiguration));
+                }
             }
 
             InitializeViewModels();
@@ -102,8 +110,6 @@ namespace Slamby.TAU.ViewModel
             SimpleIoc.Default.Register<ManageServiceViewModel>();
             SimpleIoc.Default.Register<ManageProcessViewModel>();
         }
-
-        private static DataSet _selectedDataSet;
 
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
 
@@ -124,7 +130,7 @@ namespace Slamby.TAU.ViewModel
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
 
         protected virtual void OnPropertyChanged(string propertyName = null)
         {

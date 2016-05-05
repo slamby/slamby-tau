@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Slamby.SDK.Net;
+using Slamby.SDK.Net.Models;
 using Slamby.TAU.Properties;
 
 namespace Slamby.TAU.Helper
@@ -48,6 +49,10 @@ namespace Slamby.TAU.Helper
             }
         }
 
+        public static DataSet CurrentDataset { get; set; }
+
         public static bool IsInTestMode { get; set; } = false;
+
+        public static bool DialogIsOpen { get; set; } = false;
     }
 }

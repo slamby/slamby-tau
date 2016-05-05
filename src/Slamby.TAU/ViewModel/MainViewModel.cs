@@ -47,15 +47,15 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
-        public MainViewModel(IProcessManager processManager)
+        public MainViewModel(IProcessManager processManager, DialogHandler dialogHandler)
         {
             IsEnable = false;
             Mouse.SetCursor(Cursors.Wait);
             _processManager = processManager;
+            _dialogHandler = dialogHandler;
             if (Application.Current != null)
                 Application.Current.DispatcherUnhandledException += DispatcherUnhandledException;
             
-
 
             if (Properties.Settings.Default.UpdateSettings)
             {
@@ -95,7 +95,7 @@ namespace Slamby.TAU.ViewModel
             {
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
                 var sdkVersion = Assembly.LoadFrom("Slamby.SDK.Net.dll").GetName().Version;
-                await DialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "About", Content = $"Tau version: {version.Major}.{version.Minor}.{version.Build}{Environment.NewLine}SDK version: {sdkVersion.Major}.{sdkVersion.Minor}.{sdkVersion.Build}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "About", Content = $"Tau version: {version.Major}.{version.Minor}.{version.Build}{Environment.NewLine}SDK version: {sdkVersion.Major}.{sdkVersion.Minor}.{sdkVersion.Build}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
             });
             HelpCommand = new RelayCommand(() =>
             {
@@ -163,14 +163,11 @@ namespace Slamby.TAU.ViewModel
             });
 
             CloseMenuCommand = new RelayCommand(() => MenuIsOpen = false);
+            SelectionChangedCommand = new RelayCommand(() =>
+            {
+                Mouse.SetCursor(Cursors.Wait);
+            });
             InitData();
-            PreviewKeyDownCommand = new RelayCommand<KeyEventArgs>(arg =>
-              {
-                  if (arg.Key == Key.F5)
-                      RefreshCommand.Execute(null);
-                  else
-                      arg.Handled = false;
-              });
         }
 
         private void DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -179,9 +176,7 @@ namespace Slamby.TAU.ViewModel
             e.Handled = true;
         }
 
-        public RelayCommand<KeyEventArgs> PreviewKeyDownCommand { get; private set; }
-
-        public RelayCommand SelectionChangedCommand { get; private set; } = new RelayCommand(() => { Mouse.SetCursor(Cursors.Wait); });
+        public RelayCommand SelectionChangedCommand { get; private set; }
 
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
@@ -231,7 +226,7 @@ namespace Slamby.TAU.ViewModel
             {
                 SelectedDataSet = DataSets[0];
             }
-        
+
         }
 
         private void InitMenuItems()
@@ -274,7 +269,7 @@ namespace Slamby.TAU.ViewModel
                 while (_errors.Any())
                 {
                     var context = errorObject is ClientResponse ? new ErrorViewModel((ClientResponse)_errors.First()) : new ErrorViewModel((Exception)_errors.First());
-                    await DialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
+                    await _dialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
                     object current;
                     while (!_errors.TryDequeue(out current)) ;
                 }
@@ -283,6 +278,7 @@ namespace Slamby.TAU.ViewModel
 
         private IProcessManager _processManager;
         private IDataSetManager _dataSetManager;
+        private DialogHandler _dialogHandler;
 
         private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 

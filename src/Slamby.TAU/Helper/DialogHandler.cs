@@ -12,58 +12,61 @@ using Slamby.TAU.View;
 
 namespace Slamby.TAU.Helper
 {
-    public static class DialogHandler
+    public class DialogHandler
     {
-        public static object TestResult { get; set; } = true;
-        public static JContent TestInput { get; set; } = null;
 
+        public virtual void SetTestResult(object result)
+        {
+            Messenger.Default.Send<Exception>(new NotSupportedException("This method supported only in test mode!"));
+        }
+        public virtual void SetTestInput(JContent input)
+        {
+            Messenger.Default.Send<Exception>(new NotSupportedException("This method supported only in test mode!"));
+        }
 
-        public static async Task<object> Show(object content)
+        public virtual async Task<object> Show(object content)
         {
             return await Show(content, "RootDialog");
         }
 
-        public static async Task<object> Show(object content, string identifier)
+        public virtual async Task<object> Show(object content, string identifier)
         {
             return await Show(content, identifier, null, null);
         }
 
-        public static async Task<object> Show(object content, string identifier, DialogClosingEventHandler closingHandler)
+        public virtual async Task<object> Show(object content, string identifier, DialogClosingEventHandler closingHandler)
         {
             return await Show(content, identifier, closingHandler, null);
         }
 
-        public static async Task<object> Show(object content, string identifier, DialogOpenedEventHandler openingHandler)
+        public virtual async Task<object> Show(object content, string identifier, DialogOpenedEventHandler openingHandler)
         {
             return await Show(content, identifier, null, openingHandler);
         }
 
-        public static async Task<object> Show(object content, string identifier, DialogClosingEventHandler closingHandler, DialogOpenedEventHandler openingHandler)
+        public virtual async Task<object> Show(object content, string identifier, DialogClosingEventHandler closingHandler, DialogOpenedEventHandler openingHandler)
         {
-            if (GlobalStore.IsInTestMode)
-            {
-                if (TestInput != null && content is CommonDialog)
-                {
-                    ((CommonDialogViewModel)((CommonDialog)content).DataContext).Content = TestInput;
-                    TestInput = null;
-                }
-                return TestResult;
-            }
+            if (GlobalStore.DialogIsOpen)
+                throw new Exception("Another process is in progress. Please try again!");
+            GlobalStore.DialogIsOpen = true;
+            object result;
             if (closingHandler == null)
             {
-                return openingHandler == null
+                result = openingHandler == null
                     ? await DialogHost.Show(content, identifier)
                     : await DialogHost.Show(content, identifier, openingHandler);
             }
             else
             {
-                return openingHandler == null
+                result = openingHandler == null
                     ? await DialogHost.Show(content, identifier, closingHandler)
                     : await DialogHost.Show(content, identifier, openingHandler, closingHandler);
             }
+            GlobalStore.DialogIsOpen = false;
+            return result;
         }
 
-        public static async Task ShowProgress(Action closingHandler, Action openingHandler)
+        public virtual async Task ShowProgress(Action closingHandler, Action openingHandler)
         {
             if (closingHandler == null)
             {
@@ -82,16 +85,12 @@ namespace Slamby.TAU.Helper
 
         }
 
-        public static async Task ShowProgress(Func<Task> closingHandler, Func<Task> openingHandler)
+        public virtual async Task ShowProgress(Func<Task> closingHandler, Func<Task> openingHandler)
         {
-            if (GlobalStore.IsInTestMode)
-            {
-                await Task.Run(async () =>
-                {
-                    if (openingHandler != null) await openingHandler.Invoke();
-                    if (closingHandler != null) await closingHandler.Invoke();
-                });
-            }
+            if (GlobalStore.DialogIsOpen)
+                throw new Exception("Another process is in progress. Please try again!");
+            GlobalStore.DialogIsOpen = true;
+
             if (closingHandler == null)
             {
                 if (openingHandler == null)
@@ -155,6 +154,7 @@ namespace Slamby.TAU.Helper
                         }
                     });
             }
+            GlobalStore.DialogIsOpen = false;
         }
     }
 }

@@ -38,10 +38,10 @@ namespace Slamby.TAU.ViewModel
     public class ManageDataSetViewModel : ViewModelBase
     {
 
-        public ManageDataSetViewModel(IDataSetManager dataSetManager)
+        public ManageDataSetViewModel(IDataSetManager dataSetManager, DialogHandler dialogHandler)
         {
             _dataSetManager = dataSetManager;
-
+            _dialogHandler = dialogHandler;
 
             AddCommand = new RelayCommand(async () => await Add());
             CloneDatasetCommand = new RelayCommand(async () => await Add(SelectedDataSet));
@@ -85,6 +85,7 @@ namespace Slamby.TAU.ViewModel
 
         private bool _loadedFirst = true;
         private IDataSetManager _dataSetManager;
+        private DialogHandler _dialogHandler;
 
         private ObservableCollection<DataSet> _dataSets = new ObservableCollection<DataSet>();
 
@@ -147,10 +148,10 @@ namespace Slamby.TAU.ViewModel
                                     SampleDocument = SelectedDataSet.SampleDocument
                                 };
             var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
-            var isAccepted = await DialogHandler.Show(view, "RootDialog");
+            var isAccepted = await _dialogHandler.Show(view, "RootDialog");
             if ((bool)isAccepted)
             {
-                await DialogHandler.ShowProgress(null, async () =>
+                await _dialogHandler.ShowProgress(null, async () =>
                 {
                     var response = await _dataSetManager.CreateDataSetAsync(newDataSet);
                     if (ResponseValidator.Validate(response))
@@ -173,7 +174,7 @@ namespace Slamby.TAU.ViewModel
             if (ofd.ShowDialog() == true)
             {
                 var importSettings = new CsvImportSettings { Delimiter = ",", Force = true };
-                var dialogResult = await DialogHandler.Show(
+                var dialogResult = await _dialogHandler.Show(
                         new CommonDialog
                         {
                             DataContext =
@@ -289,9 +290,9 @@ namespace Slamby.TAU.ViewModel
                     });
 
                 if (invalidRows.Any())
-                    await DialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more invalid row found", Content = $"Invalid rows:{Environment.NewLine}{string.Join(", ", invalidRows)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                    await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more invalid row found", Content = $"Invalid rows:{Environment.NewLine}{string.Join(", ", invalidRows)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
                 if (errors.Any())
-                    await DialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more error occured", Content = $"Errors:{Environment.NewLine}{string.Join(", ", errors)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                    await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more error occured", Content = $"Errors:{Environment.NewLine}{string.Join(", ", errors)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
 
             }
         }
@@ -304,7 +305,7 @@ namespace Slamby.TAU.ViewModel
             if (ofd.ShowDialog() == true)
             {
                 var tokens = new List<JToken>();
-                await DialogHandler.ShowProgress(null, async () =>
+                await _dialogHandler.ShowProgress(null, async () =>
                   {
                       tokens = await JsonProcesser.GetTokens(ofd.FileName);
                   });
@@ -468,12 +469,12 @@ namespace Slamby.TAU.ViewModel
 
         private async Task SelectToWork()
         {
-            await DialogHandler.ShowProgress(null, () => Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, SelectedDataSet)));
+            await _dialogHandler.ShowProgress(null, () => Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, SelectedDataSet)));
         }
 
         private async Task DoubleClick()
         {
-            await DialogHandler.ShowProgress(null, () =>
+            await _dialogHandler.ShowProgress(null, () =>
             {
                 Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, SelectedDataSet));
                 Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedMenuItemChange, "Data"));
@@ -504,7 +505,7 @@ namespace Slamby.TAU.ViewModel
                 Buttons = ButtonsEnum.YesNoCancel
             };
             var view = new CommonDialog { DataContext = context };
-            var result = await DialogHandler.Show(view, "RootDialog");
+            var result = await _dialogHandler.Show(view, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Yes)
             {
                 await DialogHost.Show(new ProgressDialog(), "RootDialog", async (object s, DialogOpenedEventArgs oa) =>

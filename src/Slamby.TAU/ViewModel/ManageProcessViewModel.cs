@@ -28,9 +28,10 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageProcessViewModel class.
         /// </summary>
-        public ManageProcessViewModel(IProcessManager processManager)
+        public ManageProcessViewModel(IProcessManager processManager, DialogHandler dialogHandler)
         {
             _processManager = processManager;
+            _dialogHandler = dialogHandler;
 
             Messenger.Default.Register<UpdateMessage>(this, message =>
             {
@@ -52,7 +53,7 @@ namespace Slamby.TAU.ViewModel
                 if (_loadedFirst && _processManager != null)
                 {
                     _loadedFirst = false;
-                    await DialogHandler.ShowProgress(null, async () =>
+                    await _dialogHandler.ShowProgress(null, async () =>
                     {
                         DispatcherHelper.CheckBeginInvokeOnUI(() => Processes.Clear());
                         Log.Info(LogMessages.ManageProcessLoadProcesses);
@@ -101,6 +102,7 @@ namespace Slamby.TAU.ViewModel
 
         private bool _loadedFirst = true;
         private IProcessManager _processManager;
+        private DialogHandler _dialogHandler;
 
         private ObservableCollection<Process> _processes = new ObservableCollection<Process>();
 

@@ -23,10 +23,10 @@
         <i:EventTrigger EventName="SizeChanged" >
             <i:InvokeCommandAction Command="{Binding SizeChangedCommand}" />
         </i:EventTrigger>
-        <i:EventTrigger EventName="PreviewKeyDown" >
-            <command:EventToCommand Command="{Binding PreviewKeyDownCommand}" PassEventArgsToCommand="True"/>
-        </i:EventTrigger>
     </i:Interaction.Triggers>
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+    </Window.InputBindings>
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

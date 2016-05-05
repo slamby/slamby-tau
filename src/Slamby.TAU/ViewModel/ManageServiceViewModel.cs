@@ -38,13 +38,14 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageServiceViewModel class.
         /// </summary>
-        public ManageServiceViewModel(IServiceManager serviceManager, IClassifierServiceManager classifierServiceManager, IPrcServiceManager prcServiceManager, IProcessManager processManager)
+        public ManageServiceViewModel(IServiceManager serviceManager, IClassifierServiceManager classifierServiceManager, IPrcServiceManager prcServiceManager, IProcessManager processManager, DialogHandler dialogHandler)
         {
             Services = new ObservableCollection<Service>();
             _serviceManager = serviceManager;
             _classifierServiceManager = classifierServiceManager;
             _prcServiceManager = prcServiceManager;
             _processManager = processManager;
+            _dialogHandler = dialogHandler;
 
             LoadedCommand = new RelayCommand(async () =>
                 {
@@ -52,7 +53,7 @@ namespace Slamby.TAU.ViewModel
                     if (_loadedFirst && _serviceManager != null)
                     {
                         _loadedFirst = false;
-                        await DialogHandler.ShowProgress(null, async () =>
+                        await _dialogHandler.ShowProgress(null, async () =>
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() => Services.Clear());
                             Log.Info(LogMessages.ManageDataLoadTags);
@@ -121,6 +122,8 @@ namespace Slamby.TAU.ViewModel
 
         private IProcessManager _processManager;
 
+        private DialogHandler _dialogHandler;
+
         public RelayCommand LoadedCommand { get; private set; }
 
         public RelayCommand<ServiceTypeEnum> CreateCommand { get; private set; }
@@ -165,10 +168,10 @@ namespace Slamby.TAU.ViewModel
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new Service { Type = serviceType }
             };
-            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await DialogHandler.ShowProgress(null,
+                await _dialogHandler.ShowProgress(null,
                     async () =>
                     {
                         var response = await _serviceManager.CreateServiceAsync((Service)context.Content);
@@ -246,10 +249,10 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.YesNoCancel
                 };
                 var view = new CommonDialog { DataContext = context };
-                var result = await DialogHandler.Show(view, "RootDialog");
+                var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Yes)
                 {
-                    await DialogHandler.ShowProgress(null, async () =>
+                    await _dialogHandler.ShowProgress(null, async () =>
                     {
                         var deletedServices = new List<Service>();
                         foreach (var selectedService in SelectedServices)
@@ -318,7 +321,7 @@ namespace Slamby.TAU.ViewModel
                 });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await DialogHandler.ShowProgress(null,
+                await _dialogHandler.ShowProgress(null,
                         async () =>
                         {
                             ClientResponseWithObject<Process> clientResponse;
@@ -401,7 +404,7 @@ namespace Slamby.TAU.ViewModel
               });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await DialogHandler.ShowProgress(null, async () =>
+                await _dialogHandler.ShowProgress(null, async () =>
                 {
                     switch (selected.Type)
                     {
@@ -451,7 +454,7 @@ namespace Slamby.TAU.ViewModel
             var result = await DialogHost.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await DialogHandler.ShowProgress(null, async () =>
+                await _dialogHandler.ShowProgress(null, async () =>
                 {
                     switch (selected.Type)
                     {
@@ -486,7 +489,7 @@ namespace Slamby.TAU.ViewModel
             var selected = SelectedServices.First();
             if (string.IsNullOrEmpty(selected.ActualProcessId))
                 return;
-            await DialogHandler.ShowProgress(null, async () =>
+            await _dialogHandler.ShowProgress(null, async () =>
             {
                 var clientResponse = await _processManager.CancelProcessAsync(selected.ActualProcessId);
                 if (ResponseValidator.Validate(clientResponse))
@@ -507,7 +510,7 @@ namespace Slamby.TAU.ViewModel
             if (SelectedServices == null || !SelectedServices.Any())
                 return;
             var selected = SelectedServices.First();
-            await DialogHandler.ShowProgress(null, async () =>
+            await _dialogHandler.ShowProgress(null, async () =>
             {
                 ClientResponse clientResponse;
                 switch (selected.Type)
@@ -553,7 +556,7 @@ namespace Slamby.TAU.ViewModel
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
                 var recommendResult = await DialogHost.Show(new ProgressDialog(), "RootDialog", async (object s, DialogOpenedEventArgs oa) =>
@@ -614,7 +617,7 @@ namespace Slamby.TAU.ViewModel
                         Buttons = ButtonsEnum.Ok,
                         Header = "Recommendation Result"
                     };
-                    await DialogHandler.Show(new CommonDialog { DataContext = recommendationContext }, "RootDialog");
+                    await _dialogHandler.Show(new CommonDialog { DataContext = recommendationContext }, "RootDialog");
                 }
             }
         }

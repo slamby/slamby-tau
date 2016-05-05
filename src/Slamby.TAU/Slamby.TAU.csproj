@@ -187,6 +187,7 @@
     <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
     <Compile Include="Converter\StringToCellTemplateConverter.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
+    <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
     <Compile Include="ViewModel\ManageProcessViewModel.cs" />
     <Compile Include="View\AddDataSetDialog.xaml.cs">
