@@ -38,12 +38,12 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageDataViewModel class.
         /// </summary>
-        public ManageDataViewModel(IDocumentManager documentManager, ITagManager tagManager, DialogHandler dialogHandler)
+        public ManageDataViewModel(DataSet dataSet, DialogHandler dialogHandler)
         {
 
-            _documentManager = documentManager;
-            _tagManager = tagManager;
-            _currentDataSet = GlobalStore.CurrentDataset;
+            _documentManager = new DocumentManager(GlobalStore.EndpointConfiguration,dataSet.Name);
+            _tagManager = new TagManager(GlobalStore.EndpointConfiguration, dataSet.Name);
+            _currentDataSet = dataSet;
             _dialogHandler = dialogHandler;
 
             Tags = new ObservableCollection<Tag>();
@@ -54,7 +54,6 @@ namespace Slamby.TAU.ViewModel
                 Mouse.SetCursor(Cursors.Arrow);
                 if (_loadedFirst && _tagManager != null && _documentManager != null)
                 {
-                    _currentDataSet = GlobalStore.CurrentDataset;
                     _loadedFirst = false;
                     await _dialogHandler.ShowProgress(null, async () =>
                     {

@@ -17,9 +17,13 @@ using Slamby.TAU.Helper;
 using Slamby.TAU.Model;
 using System.Reflection;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Windows.Controls;
 using Slamby.TAU.Logger;
 using System.Windows.Input;
 using System.Windows.Media;
+using Dragablz;
+using Dragablz.Dockablz;
 using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using Slamby.TAU.View;
@@ -27,6 +31,8 @@ using FontAwesome.WPF;
 using Microsoft.Practices.ServiceLocation;
 using Slamby.SDK.Net.Helpers;
 using Slamby.SDK.Net.Models.Enums;
+using MenuItem = Slamby.TAU.Model.MenuItem;
+using Process = Slamby.SDK.Net.Models.Process;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -55,7 +61,7 @@ namespace Slamby.TAU.ViewModel
             _dialogHandler = dialogHandler;
             if (Application.Current != null)
                 Application.Current.DispatcherUnhandledException += DispatcherUnhandledException;
-            
+
 
             if (Properties.Settings.Default.UpdateSettings)
             {
@@ -69,16 +75,11 @@ namespace Slamby.TAU.ViewModel
             {
                 switch (message.UpdateType)
                 {
-                    case UpdateType.SelectedDataSetChange:
-                        var selected = DataSets?.FirstOrDefault(ds => ds.Name == ((DataSet)message.Parameter).Name);
-                        if (selected != null)
-                            SelectedDataSet = selected;
-                        break;
-                    case UpdateType.SelectedMenuItemChange:
-                        SelectedMenuItem = MenuItems.FirstOrDefault(mi => mi.Name == (string)message.Parameter);
-                        break;
                     case UpdateType.NewProcessCreated:
                         DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add((Process)message.Parameter));
+                        break;
+                    case UpdateType.OpenNewTab:
+                        Tabs.Add((HeaderedItemViewModel)message.Parameter);
                         break;
                 }
             });
@@ -110,7 +111,24 @@ namespace Slamby.TAU.ViewModel
                       LogWindowIsOpen = true;
                   }
               });
-
+            DoubleClickCommand = new RelayCommand(() =>
+            {
+                object content = null;
+                switch (SelectedMenuItem.Name.ToLower())
+                {
+                    case "datasets":
+                        content = new ManageDataSet();
+                        break;
+                    case "services":
+                        content = new ManageService();
+                        break;
+                    case "processes":
+                        content = new ManageProcess();
+                        break;
+                }
+                Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
+                    new HeaderedItemViewModel(SelectedMenuItem.Name, content, true)));
+            });
             RefreshProcessCommand = new RelayCommand<string>(async id =>
               {
                   var processResponse = await _processManager.GetProcessAsync(id);
@@ -162,12 +180,12 @@ namespace Slamby.TAU.ViewModel
                 }
             });
 
-            CloseMenuCommand = new RelayCommand(() => MenuIsOpen = false);
             SelectionChangedCommand = new RelayCommand(() =>
             {
                 Mouse.SetCursor(Cursors.Wait);
             });
             InitData();
+            Tabs = new ObservableCollection<HeaderedItemViewModel> { new HeaderedItemViewModel("DataSet", new ManageDataSet(), true) };
         }
 
         private void DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -177,6 +195,7 @@ namespace Slamby.TAU.ViewModel
         }
 
         public RelayCommand SelectionChangedCommand { get; private set; }
+        public RelayCommand DoubleClickCommand { get; private set; }
 
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
@@ -222,11 +241,6 @@ namespace Slamby.TAU.ViewModel
                 Mouse.SetCursor(Cursors.Arrow);
                 IsEnable = true;
             }
-            if (DataSets != null && DataSets.Any())
-            {
-                SelectedDataSet = DataSets[0];
-            }
-
         }
 
         private void InitMenuItems()
@@ -238,12 +252,12 @@ namespace Slamby.TAU.ViewModel
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Database, Brushes.WhiteSmoke),
                 Content = new ManageDataSet()
             });
-            MenuItems.Add(new MenuItem
-            {
-                Name = "Data",
-                Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.FilesOutline, Brushes.WhiteSmoke),
-                Content = new ManageData()
-            });
+            //MenuItems.Add(new MenuItem
+            //{
+            //    Name = "Data",
+            //    Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.FilesOutline, Brushes.WhiteSmoke),
+            //    Content = new ManageData()
+            //});
             MenuItems.Add(new MenuItem
             {
                 Name = "Services",
@@ -256,8 +270,6 @@ namespace Slamby.TAU.ViewModel
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Spinner, Brushes.WhiteSmoke),
                 Content = new ManageProcess()
             });
-            if (SelectedMenuItem == null)
-                SelectedMenuItem = MenuItems.First();
         }
 
         private async void ErrorHandler(object errorObject)
@@ -269,9 +281,16 @@ namespace Slamby.TAU.ViewModel
                 while (_errors.Any())
                 {
                     var context = errorObject is ClientResponse ? new ErrorViewModel((ClientResponse)_errors.First()) : new ErrorViewModel((Exception)_errors.First());
-                    await _dialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
-                    object current;
-                    while (!_errors.TryDequeue(out current)) ;
+                    try
+                    {
+                        await _dialogHandler.Show(new ErrorDialog {DataContext = context}, "ErrorDialog");
+                        object current;
+                        while (!_errors.TryDequeue(out current)) ;
+                    }
+                    catch (Exception)
+                    {
+                        Log.Debug("Show error failed!");
+                    }
                 }
             }
         }
@@ -306,31 +325,6 @@ namespace Slamby.TAU.ViewModel
             get { return _dataSets; }
             set { Set(() => DataSets, ref _dataSets, value); }
         }
-
-
-        DataSet _selectedDataSet;
-
-        public DataSet SelectedDataSet
-        {
-            get { return _selectedDataSet; }
-            set
-            {
-                var previousSelected = SelectedDataSet;
-                Set(() => SelectedDataSet, ref _selectedDataSet, value);
-                if (previousSelected == null || (SelectedDataSet != null && previousSelected.Name != SelectedDataSet.Name))
-                {
-                    Messenger.Default.Send(new UpdateMessage(UpdateType.SelectedDataSetChange, SelectedDataSet));
-                    //if selectedMenuItem != DataSetManager
-                    if (!(SelectedMenuItem?.Content is ManageDataSetViewModel))
-                    {
-                        var currentSelected = SelectedMenuItem;
-                        SelectedMenuItem = null;
-                        SelectedMenuItem = currentSelected;
-                    }
-                }
-            }
-        }
-
 
         private bool _isInSettingsMode;
 
@@ -383,14 +377,41 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand SizeChangedCommand { get; private set; }
 
 
-        private bool _menuIsOpen;
+        private IInterTabClient _interTabClient = new InterTabClient();
 
-        public bool MenuIsOpen
+        public IInterTabClient InterTabClient
         {
-            get { return _menuIsOpen; }
-            set { Set(() => MenuIsOpen, ref _menuIsOpen, value); }
+            get { return _interTabClient; }
+            set { Set(() => InterTabClient, ref _interTabClient, value); }
         }
 
-        public RelayCommand CloseMenuCommand { get; set; }
+        public ItemActionCallback ClosingTabItemHandler => ClosingTabItemHandlerImpl;
+
+        private static void ClosingTabItemHandlerImpl(ItemActionCallbackArgs<TabablzControl> args)
+        {
+
+            //here's your view model:
+            var viewModel = args.DragablzItem.DataContext as HeaderedItemViewModel;
+            Debug.Assert(viewModel != null);
+        }
+
+        public ClosingFloatingItemCallback ClosingFloatingItemHandler
+        {
+            get { return ClosingFloatingItemHandlerImpl; }
+        }
+
+        /// <summary>
+        /// Callback to handle floating toolbar/MDI window closing.
+        /// </summary>        
+        private static void ClosingFloatingItemHandlerImpl(ItemActionCallbackArgs<Layout> args)
+        {
+
+            //here's your view model: 
+            var disposable = args.DragablzItem.DataContext as IDisposable;
+            if (disposable != null)
+                disposable.Dispose();
+        }
+
+        public ObservableCollection<HeaderedItemViewModel> Tabs { get; set; }
     }
 }

@@ -49,8 +49,6 @@ namespace Slamby.TAU.Helper
             }
         }
 
-        public static DataSet CurrentDataset { get; set; }
-
         public static bool IsInTestMode { get; set; } = false;
 
         public static bool DialogIsOpen { get; set; } = false;

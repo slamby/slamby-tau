@@ -14,7 +14,6 @@
              xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:view="clr-namespace:Slamby.TAU.View"
              mc:Ignorable="d"
-             DataContext="{Binding ManageData, Source={StaticResource Locator}}"
              d:DesignHeight="800" d:DesignWidth="1000">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">

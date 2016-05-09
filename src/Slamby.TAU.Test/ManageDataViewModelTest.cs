@@ -19,7 +19,6 @@ namespace Slamby.TAU.Test
         public void TestInitialize()
         {
             GlobalStore.IsInTestMode = true;
-            GlobalStore.CurrentDataset = new DataSet { Name = "unit_test" };
             GlobalStore.EndpointConfiguration.ApiBaseEndpoint=new Uri("http://tautest/");
         }
 
@@ -29,8 +28,9 @@ namespace Slamby.TAU.Test
         {
             var dialogHandler = new TestDialogHandler();
             dialogHandler.SetTestResult(CommonDialogResult.Ok);
-            dialogHandler.SetTestInput(new JContent(new Tag { Id = "testid4", Name = "testName4", ParentId = null }));
-            var vm = new ManageDataViewModel(new DocumentManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name), new TagManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name), dialogHandler);
+            var guid = Guid.NewGuid().ToString();
+            dialogHandler.SetTestInput(new JContent(new Tag { Id = guid, Name = guid, ParentId = null }));
+            var vm = new ManageDataViewModel(new DataSet { Name = "unit_test" }, dialogHandler);
             await vm.AddTag();
         }
 

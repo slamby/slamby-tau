@@ -44,31 +44,12 @@ namespace Slamby.TAU.ViewModel
             {
                 switch (m.UpdateType)
                 {
-                    case UpdateType.SelectedDataSetChange:
-                        SimpleIoc.Default.Unregister<IDocumentManager>();
-                        SimpleIoc.Default.Unregister<ITagManager>();
-                        SimpleIoc.Default.Unregister<ManageDataViewModel>();
-                        if (m.Parameter is DataSet && !string.IsNullOrEmpty(((DataSet)m.Parameter).Name))
-                        {
-                            GlobalStore.CurrentDataset = (DataSet)m.Parameter;
-                            SimpleIoc.Default.Register<IDocumentManager>(
-                                () => new DocumentManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name));
-                            SimpleIoc.Default.Register<ITagManager>(
-                                () => new TagManager(GlobalStore.EndpointConfiguration, GlobalStore.CurrentDataset.Name));
-                            SimpleIoc.Default.Register<ManageDataViewModel>();
-                            OnPropertyChanged("ManageData");
-                        }
-                        break;
                     case UpdateType.EndPointUpdate:
                         SimpleIoc.Default.Reset();
                         Initialize();
                         break;
-                    case UpdateType.SelectedMenuItemChange:
-                        break;
                     case UpdateType.NewProcessCreated:
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             });
             Initialize();
@@ -104,19 +85,17 @@ namespace Slamby.TAU.ViewModel
         {
             Cleanup();
 
-            SimpleIoc.Default.Register<MainViewModel>();
-            OnPropertyChanged("Main");
             SimpleIoc.Default.Register<ManageDataSetViewModel>();
             SimpleIoc.Default.Register<ManageServiceViewModel>();
             SimpleIoc.Default.Register<ManageProcessViewModel>();
+            SimpleIoc.Default.Register<MainViewModel>();
+            OnPropertyChanged("Main");
         }
 
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
 
         public ManageDataSetViewModel ManageDataSet => ServiceLocator.Current.GetInstance<ManageDataSetViewModel>();
-
-        public ManageDataViewModel ManageData => SimpleIoc.Default.IsRegistered<ManageDataViewModel>() ? ServiceLocator.Current.GetInstance<ManageDataViewModel>() : null;
-
+        
         public ManageServiceViewModel ManageService => ServiceLocator.Current.GetInstance<ManageServiceViewModel>();
         public ManageProcessViewModel ManageProcess => ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
 

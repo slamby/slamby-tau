@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using MaterialDesignThemes.Wpf;
+using Slamby.TAU.Logger;
 using Slamby.TAU.Model;
 using Slamby.TAU.ViewModel;
 using Slamby.TAU.View;
@@ -49,20 +50,31 @@ namespace Slamby.TAU.Helper
             if (GlobalStore.DialogIsOpen)
                 throw new Exception("Another process is in progress. Please try again!");
             GlobalStore.DialogIsOpen = true;
-            object result;
-            if (closingHandler == null)
+            object result = null;
+            try
             {
-                result = openingHandler == null
-                    ? await DialogHost.Show(content, identifier)
-                    : await DialogHost.Show(content, identifier, openingHandler);
+
+                if (closingHandler == null)
+                {
+                    result = openingHandler == null
+                        ? await DialogHost.Show(content, identifier)
+                        : await DialogHost.Show(content, identifier, openingHandler);
+                }
+                else
+                {
+                    result = openingHandler == null
+                        ? await DialogHost.Show(content, identifier, closingHandler)
+                        : await DialogHost.Show(content, identifier, openingHandler, closingHandler);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                result = openingHandler == null
-                    ? await DialogHost.Show(content, identifier, closingHandler)
-                    : await DialogHost.Show(content, identifier, openingHandler, closingHandler);
+                Log.Error(exception);
             }
-            GlobalStore.DialogIsOpen = false;
+            finally
+            {
+                GlobalStore.DialogIsOpen = false;
+            }
             return result;
         }
 
@@ -91,12 +103,14 @@ namespace Slamby.TAU.Helper
                 throw new Exception("Another process is in progress. Please try again!");
             GlobalStore.DialogIsOpen = true;
 
-            if (closingHandler == null)
+            try
             {
-                if (openingHandler == null)
-                    await DialogHost.Show(new ProgressDialog(), "RootDialog");
-                else
-                    await DialogHost.Show(new ProgressDialog(), "RootDialog",
+                if (closingHandler == null)
+                {
+                    if (openingHandler == null)
+                        await DialogHost.Show(new ProgressDialog(), "RootDialog");
+                    else
+                        await DialogHost.Show(new ProgressDialog(), "RootDialog",
                             async (object s, DialogOpenedEventArgs oa) =>
                             {
                                 try
@@ -112,49 +126,62 @@ namespace Slamby.TAU.Helper
                                     oa.Session.Close();
                                 }
                             });
-            }
-            else
-            {
-                if (openingHandler == null)
-                    await DialogHost.Show(new ProgressDialog(), "RootDialog", async (object s, DialogClosingEventArgs oa) =>
-                   {
-                       try
-                       {
-                           await Task.Run(async () => await closingHandler.Invoke());
-                       }
-                       catch (Exception exception)
-                       {
-                           Messenger.Default.Send(exception);
-                       }
-                   });
+                }
                 else
-                    await DialogHost.Show(new ProgressDialog(), "RootDialog", async (object s, DialogOpenedEventArgs oa) =>
-                    {
-                        try
-                        {
-                            await Task.Run(async () => await openingHandler.Invoke());
-                        }
-                        catch (Exception exception)
-                        {
-                            Messenger.Default.Send(exception);
-                        }
-                        finally
-                        {
-                            oa.Session.Close();
-                        }
-                    }, async (object s, DialogClosingEventArgs oa) =>
-                    {
-                        try
-                        {
-                            await Task.Run(async () => await closingHandler.Invoke());
-                        }
-                        catch (Exception exception)
-                        {
-                            Messenger.Default.Send(exception);
-                        }
-                    });
+                {
+                    if (openingHandler == null)
+                        await
+                            DialogHost.Show(new ProgressDialog(), "RootDialog",
+                                async (object s, DialogClosingEventArgs oa) =>
+                                {
+                                    try
+                                    {
+                                        await Task.Run(async () => await closingHandler.Invoke());
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        Messenger.Default.Send(exception);
+                                    }
+                                });
+                    else
+                        await
+                            DialogHost.Show(new ProgressDialog(), "RootDialog",
+                                async (object s, DialogOpenedEventArgs oa) =>
+                                {
+                                    try
+                                    {
+                                        await Task.Run(async () => await openingHandler.Invoke());
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        Messenger.Default.Send(exception);
+                                    }
+                                    finally
+                                    {
+                                        oa.Session.Close();
+                                    }
+                                }, async (object s, DialogClosingEventArgs oa) =>
+                                {
+                                    try
+                                    {
+                                        await Task.Run(async () => await closingHandler.Invoke());
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        Messenger.Default.Send(exception);
+                                    }
+                                });
+                }
             }
-            GlobalStore.DialogIsOpen = false;
+            catch (Exception exception)
+            {
+                Log.Error(exception);
+            }
+
+            finally
+            {
+                GlobalStore.DialogIsOpen = false;
+            }
         }
     }
 }

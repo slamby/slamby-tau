@@ -7,10 +7,12 @@
         xmlns:viewModels="clr-namespace:Slamby.TAU.ViewModel"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        xmlns:command="http://www.galasoft.ch/mvvmlight"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:view="clr-namespace:Slamby.TAU.View"
         xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+        xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
+        xmlns:dockablz="http://dragablz.net/winfx/xaml/dockablz"
+        xmlns:helper="clr-namespace:Slamby.TAU.Helper"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
@@ -47,94 +49,79 @@
         <materialDesign:DialogHost x:Name="ErrorDialog" Identifier="ErrorDialog">
             <materialDesign:DialogHost x:Name="RootDialog" Identifier="RootDialog">
                 <Grid>
-                    <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
-                        <materialDesign:DrawerHost.LeftDrawerContent>
-                            <StackPanel  Orientation="Vertical" Background="{DynamicResource PrimaryHueDarkBrush}">
-                                <ToggleButton HorizontalAlignment="Right"  Style="{StaticResource MaterialDesignHamburgerToggleButton}"
-                                  Margin="16" IsChecked="{Binding ElementName=MenuToggleButton, Path=IsChecked, Mode=TwoWay}" />
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top">
+                            <materialDesign:ColorZone Padding="5" materialDesign:ShadowAssist.ShadowDepth="Depth2" Mode="PrimaryDark">
+                                <DockPanel LastChildFill="False">
+                                    <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignRightEdges">
+                                        <StackPanel>
+                                            <Button Command="{Binding ChangeSettingsModeCommand}">
+                                                <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
+                                                    <fa:ImageAwesome Icon="Wrench" Height="15" Width="15" Margin="10,0"/>
+                                                    <TextBlock Text="Settings" Margin="3" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Command="{Binding RefreshCommand}">
+                                                <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
+                                                    <fa:ImageAwesome Icon="Refresh" Height="15" Width="15" Margin="10,0"/>
+                                                    <TextBlock Text="Refresh" Margin="3" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Command="{Binding HelpCommand}">
+                                                <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
+                                                    <fa:ImageAwesome Icon="Question" Height="15" Width="15" Margin="10,0"/>
+                                                    <TextBlock Text="Help" Margin="3" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Command="{Binding AboutCommand}">
+                                                <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
+                                                    <fa:ImageAwesome Icon="Info" Height="15" Width="15" Margin="10,0"/>
+                                                    <TextBlock Text="About" Margin="3" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </materialDesign:PopupBox>
+                                </DockPanel>
+                            </materialDesign:ColorZone>
+                        </Grid>
+                        <StackPanel  Orientation="Vertical" Width="70" DockPanel.Dock="Left" Background="{DynamicResource PrimaryHueDarkBrush}">
+                            <ListBox x:Name="IconMenuItemsListBox" SelectedItem="{Binding SelectedMenuItem}" Background="{DynamicResource PrimaryHueLightBrush}" ItemsSource="{Binding MenuItems}">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseDoubleClick">
+                                        <i:InvokeCommandAction Command="{Binding DoubleClickCommand}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:MenuItem">
+                                        <Grid Margin="5 0" ToolTip="{Binding Name}">
+                                            <Image Margin="2" Source="{Binding Icon}" Height="28" Width="28" HorizontalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
 
-                                <ListBox x:Name="MenuItemsListBox" SelectedItem="{Binding SelectedMenuItem}" Background="{DynamicResource PrimaryHueLightBrush}" ItemsSource="{Binding MenuItems}">
-                                    <i:Interaction.Triggers>
-                                        <i:EventTrigger EventName="PreviewMouseLeftButtonUp" >
-                                            <i:InvokeCommandAction Command="{Binding CloseMenuCommand}" />
-                                        </i:EventTrigger>
-                                        <i:EventTrigger EventName="SelectionChanged" >
-                                            <i:InvokeCommandAction Command="{Binding SelectionChangedCommand}" />
-                                        </i:EventTrigger>
-                                    </i:Interaction.Triggers>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate DataType="models:MenuItem">
-                                            <StackPanel Orientation="Horizontal" Margin="32 0 32 0" ToolTip="{Binding Name}">
-                                                <Image Margin="2" Source="{Binding Icon}" Height="28" Width="28"/>
-                                                <TextBlock Text="{Binding Name}" Margin="3" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </StackPanel>
-                        </materialDesign:DrawerHost.LeftDrawerContent>
-                        <DockPanel>
-                            <Grid DockPanel.Dock="Top">
-                                <materialDesign:ColorZone Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
-                                          Mode="PrimaryDark">
-                                    <DockPanel>
-                                        <ToggleButton IsChecked="{Binding MenuIsOpen}"  Style="{StaticResource MaterialDesignHamburgerToggleButton}"
-                                      x:Name="MenuToggleButton"/>
-                                        <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignRightEdges">
-                                            <StackPanel>
-                                                <Button Command="{Binding ChangeSettingsModeCommand}">
-                                                    <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
-                                                        <fa:ImageAwesome Icon="Wrench" Height="15" Width="15" Margin="10,0"/>
-                                                        <TextBlock Text="Settings" Margin="3" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button Command="{Binding RefreshCommand}">
-                                                    <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
-                                                        <fa:ImageAwesome Icon="Refresh" Height="15" Width="15" Margin="10,0"/>
-                                                        <TextBlock Text="Refresh" Margin="3" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button Command="{Binding HelpCommand}">
-                                                    <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
-                                                        <fa:ImageAwesome Icon="Question" Height="15" Width="15" Margin="10,0"/>
-                                                        <TextBlock Text="Help" Margin="3" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button Command="{Binding AboutCommand}">
-                                                    <StackPanel Orientation="Horizontal" Margin="32 0 32 0">
-                                                        <fa:ImageAwesome Icon="Info" Height="15" Width="15" Margin="10,0"/>
-                                                        <TextBlock Text="About" Margin="3" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </StackPanel>
-                                        </materialDesign:PopupBox>
-
-                                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22" Margin="30,0,0,0" Text="{Binding SelectedMenuItem.Name}"/>
-
-                                    </DockPanel>
-                                </materialDesign:ColorZone>
-                                <StackPanel HorizontalAlignment="Right" Margin="0,25,60,0" Background="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Top">
-                                    <ComboBox DisplayMemberPath="Name" SelectedItem="{Binding SelectedDataSet}" Background="{DynamicResource PrimaryHueLightBrush}" ItemsSource="{Binding DataSets}" />
-                                </StackPanel>
-                            </Grid>
-                            <StackPanel  Orientation="Vertical" Width="70" DockPanel.Dock="Left" Background="{DynamicResource PrimaryHueDarkBrush}">
-                                <ListBox x:Name="IconMenuItemsListBox" SelectedItem="{Binding ElementName=MenuItemsListBox, Path=SelectedItem, Mode=TwoWay}" Background="{DynamicResource PrimaryHueLightBrush}" ItemsSource="{Binding ElementName=MenuItemsListBox, Path=Items}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate DataType="models:MenuItem">
-                                            <Grid Margin="5 0" ToolTip="{Binding Name}">
-                                                <Image Margin="2" Source="{Binding Icon}" Height="28" Width="28" HorizontalAlignment="Center"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </StackPanel>
-
+                        <dockablz:Layout>
                             <Grid>
-                                <Grid Margin ="0,30,0,0">
-                                    <TextBlock Text="Loading data. Please wait!" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <ContentControl Content="{Binding ElementName=MenuItemsListBox, Path=SelectedItem.Content}"/>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="1">
+                                    <dockablz:Layout Partition="Partition" Name="LayoutRoot"  ClosingFloatingItemCallback="{Binding ClosingFloatingItemHandler}">
+                                        <dockablz:Layout.Resources>
+                                            <DataTemplate DataType="{x:Type dragablz:HeaderedItemViewModel}">
+                                                <ContentControl Content="{Binding Content}"/>
+                                            </DataTemplate>
+                                        </dockablz:Layout.Resources>
+                                        <dragablz:TabablzControl ConsolidateOrphanedItems="True" ClosingItemCallback="{Binding ClosingTabItemHandler}" ItemsSource="{Binding Tabs}" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" >
+                                            <dragablz:TabablzControl.InterTabController>
+                                                <dragablz:InterTabController InterTabClient="{Binding InterTabClient}" Partition="Partition" />
+                                            </dragablz:TabablzControl.InterTabController>
+                                        </dragablz:TabablzControl>
+                                    </dockablz:Layout>
                                 </Grid>
-                                <Grid Background="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Top">
+                                <Grid Background="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Top" Grid.RowSpan="2">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
@@ -196,13 +183,13 @@
                                     <Separator Grid.Row="1"/>
                                 </Grid>
                             </Grid>
+                        </dockablz:Layout>
 
-                        </DockPanel>
-                    </materialDesign:DrawerHost>
+                    </DockPanel>
 
                     <DockPanel x:Name="SettingsPanel" Visibility="{Binding ElementName=SettingsBackToggleButton, Path=IsChecked, Mode=TwoWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid DockPanel.Dock="Top">
-                            <materialDesign:ColorZone Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                            <materialDesign:ColorZone materialDesign:ShadowAssist.ShadowDepth="Depth2"
                                           Mode="PrimaryDark">
                                 <DockPanel>
                                     <ToggleButton HorizontalAlignment="Right"  Style="{StaticResource MaterialDesignHamburgerToggleButton}" x:Name="SettingsBackToggleButton"
