@@ -75,6 +75,7 @@ namespace Slamby.TAU.ViewModel
                     SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.EndpointConfiguration));
                     SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.EndpointConfiguration));
                     SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<StatusManager>(() => new StatusManager(GlobalStore.EndpointConfiguration));
                 }
             }
 
@@ -88,6 +89,7 @@ namespace Slamby.TAU.ViewModel
             SimpleIoc.Default.Register<ManageDataSetViewModel>();
             SimpleIoc.Default.Register<ManageServiceViewModel>();
             SimpleIoc.Default.Register<ManageProcessViewModel>();
+            SimpleIoc.Default.Register<ResourcesMonitorViewModel>();
             SimpleIoc.Default.Register<MainViewModel>();
             OnPropertyChanged("Main");
         }
@@ -95,9 +97,10 @@ namespace Slamby.TAU.ViewModel
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
 
         public ManageDataSetViewModel ManageDataSet => ServiceLocator.Current.GetInstance<ManageDataSetViewModel>();
-        
+
         public ManageServiceViewModel ManageService => ServiceLocator.Current.GetInstance<ManageServiceViewModel>();
         public ManageProcessViewModel ManageProcess => ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
+        public ResourcesMonitorViewModel ResourcesMonitor => ServiceLocator.Current.GetInstance<ResourcesMonitorViewModel>();
 
         public static void Cleanup()
         {
@@ -106,6 +109,7 @@ namespace Slamby.TAU.ViewModel
             SimpleIoc.Default.Unregister<ManageDataViewModel>();
             SimpleIoc.Default.Unregister<ManageServiceViewModel>();
             SimpleIoc.Default.Unregister<ManageProcessViewModel>();
+            SimpleIoc.Default.Unregister<MainViewModel>();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

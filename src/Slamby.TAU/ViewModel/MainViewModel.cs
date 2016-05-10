@@ -18,6 +18,7 @@ using Slamby.TAU.Model;
 using System.Reflection;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Timers;
 using System.Windows.Controls;
 using Slamby.TAU.Logger;
 using System.Windows.Input;
@@ -125,10 +126,15 @@ namespace Slamby.TAU.ViewModel
                     case "processes":
                         content = new ManageProcess();
                         break;
+                    case "resourcesmonitor":
+                        content = new ResourcesMonitor();
+                        break;
                 }
                 Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
                     new HeaderedItemViewModel(SelectedMenuItem.Name, content, true)));
             });
+            ExpandStatusCommand = new RelayCommand(() => Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
+                      new HeaderedItemViewModel("ResourcesMonitor", new ResourcesMonitor(), true))));
             RefreshProcessCommand = new RelayCommand<string>(async id =>
               {
                   var processResponse = await _processManager.GetProcessAsync(id);
@@ -196,6 +202,7 @@ namespace Slamby.TAU.ViewModel
 
         public RelayCommand SelectionChangedCommand { get; private set; }
         public RelayCommand DoubleClickCommand { get; private set; }
+        public RelayCommand ExpandStatusCommand { get; private set; }
 
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
@@ -270,6 +277,12 @@ namespace Slamby.TAU.ViewModel
                 Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Spinner, Brushes.WhiteSmoke),
                 Content = new ManageProcess()
             });
+            MenuItems.Add(new MenuItem
+            {
+                Name = "ResourcesMonitor",
+                Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.AreaChart, Brushes.WhiteSmoke),
+                Content = new ResourcesMonitor()
+            });
         }
 
         private async void ErrorHandler(object errorObject)
@@ -283,7 +296,7 @@ namespace Slamby.TAU.ViewModel
                     var context = errorObject is ClientResponse ? new ErrorViewModel((ClientResponse)_errors.First()) : new ErrorViewModel((Exception)_errors.First());
                     try
                     {
-                        await _dialogHandler.Show(new ErrorDialog {DataContext = context}, "ErrorDialog");
+                        await _dialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
                         object current;
                         while (!_errors.TryDequeue(out current)) ;
                     }
@@ -298,7 +311,7 @@ namespace Slamby.TAU.ViewModel
         private IProcessManager _processManager;
         private IDataSetManager _dataSetManager;
         private DialogHandler _dialogHandler;
-
+        
         private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 
         private ObservableCollection<MenuItem> _menuItems;
@@ -375,6 +388,14 @@ namespace Slamby.TAU.ViewModel
         }
 
         public RelayCommand SizeChangedCommand { get; private set; }
+
+        private Status _status = new Status();
+
+        public Status Status
+        {
+            get { return _status; }
+            set { Set(() => Status, ref _status, value); }
+        }
 
 
         private IInterTabClient _interTabClient = new InterTabClient();

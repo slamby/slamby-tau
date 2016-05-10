@@ -191,6 +191,7 @@
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
     <Compile Include="ViewModel\ManageProcessViewModel.cs" />
+    <Compile Include="ViewModel\ResourcesMonitorViewModel.cs" />
     <Compile Include="View\AddDataSetDialog.xaml.cs">
       <DependentUpon>AddDataSetDialog.xaml</DependentUpon>
     </Compile>
@@ -262,6 +263,9 @@
       <DependentUpon>LogMessages.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="View\ResourcesMonitor.xaml.cs">
+      <DependentUpon>ResourcesMonitor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\StatusDialog..xaml.cs">
       <DependentUpon>StatusDialog..xaml</DependentUpon>
     </Compile>
@@ -344,6 +348,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Resources\ClassifierServiceDataTemplates.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ResourcesMonitor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

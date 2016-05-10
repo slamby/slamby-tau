@@ -13,6 +13,7 @@
         xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
         xmlns:dockablz="http://dragablz.net/winfx/xaml/dockablz"
         xmlns:helper="clr-namespace:Slamby.TAU.Helper"
+        xmlns:sdk="clr-namespace:Slamby.SDK.Net.Models;assembly=Slamby.SDK.Net"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
@@ -261,8 +262,27 @@
         </materialDesign:DialogHost>
 
 
-        <StackPanel Grid.Row="1" Height="20" Background="{DynamicResource SecondaryAccentBrush}">
-            <ToggleButton x:Name="LogToggleButton" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="{Binding LogWindowIsOpen}" Margin="0,1,10,0"/>
+        <DockPanel Grid.Row="1" Height="20" Background="{DynamicResource SecondaryAccentBrush}">
+            <ContentPresenter Content="{Binding Path=ResourcesMonitor.Status, Source={StaticResource Locator}}" DockPanel.Dock="Left" Height="20" Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <ContentPresenter.Resources>
+                    <DataTemplate DataType="{x:Type sdk:Status}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="{Binding CpuUsage, StringFormat=CPU: {0}}" VerticalAlignment="Center"/>
+                            <TextBlock Margin="10,0,0,0" Text="{Binding FreeMemory, StringFormat=Memory: {0}/}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalMemory, StringFormat={}{0} Mb}" VerticalAlignment="Center"/>
+                            <TextBlock Margin="10,0,0,0" Text="{Binding AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}" VerticalAlignment="Center"/>
+                            <Button Margin="10,0" Command="{Binding ExpandStatusCommand}" Height="10" Width="10" DataContext="{Binding Path=Main, Source={StaticResource Locator}}" VerticalAlignment="Center">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <fa:ImageAwesome Icon="Expand" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentPresenter.Resources>
+            </ContentPresenter>
+            <ToggleButton DockPanel.Dock="Right" x:Name="LogToggleButton" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="{Binding LogWindowIsOpen}" Margin="0,1,10,0"/>
             <Popup IsOpen="{Binding ElementName=LogToggleButton, Path=IsChecked}">
                 <Border BorderThickness="3" BorderBrush="{DynamicResource SecondaryAccentBrush}">
                     <StackPanel Background="White">
@@ -276,7 +296,7 @@
                     </StackPanel>
                 </Border>
             </Popup>
-        </StackPanel>
+        </DockPanel>
     </Grid>
 </Window>
 
