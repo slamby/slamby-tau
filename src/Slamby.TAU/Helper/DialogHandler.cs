@@ -47,7 +47,7 @@ namespace Slamby.TAU.Helper
 
         public virtual async Task<object> Show(object content, string identifier, DialogClosingEventHandler closingHandler, DialogOpenedEventHandler openingHandler)
         {
-            if (GlobalStore.DialogIsOpen)
+            if (GlobalStore.DialogIsOpen && identifier!= "ErrorDialog")
                 throw new Exception("Another process is in progress. Please try again!");
             GlobalStore.DialogIsOpen = true;
             object result = null;

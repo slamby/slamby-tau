@@ -243,6 +243,15 @@
                                         <view:EndPointSettings/>
                                     </models:MenuItem.Content>
                                 </models:MenuItem>
+                                <models:MenuItem Name="Version">
+                                    <models:MenuItem.Content>
+                                        <view:VersionSettings>
+                                            <view:VersionSettings.DataContext>
+                                                <viewModels:VersionSettingsViewModel/>
+                                            </view:VersionSettings.DataContext>
+                                        </view:VersionSettings>
+                                    </models:MenuItem.Content>
+                                </models:MenuItem>
                                 <models:MenuItem Name="Theme">
                                     <models:MenuItem.Content>
                                         <Grid Background="White"/>

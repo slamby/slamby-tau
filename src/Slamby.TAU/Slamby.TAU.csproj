@@ -158,6 +158,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -188,10 +189,12 @@
     <Compile Include="Converter\StringToCellTemplateConverter.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
     <Compile Include="Helper\InterTabClient.cs" />
+    <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
     <Compile Include="ViewModel\ManageProcessViewModel.cs" />
     <Compile Include="ViewModel\ResourcesMonitorViewModel.cs" />
+    <Compile Include="ViewModel\VersionSettingsViewModel.cs" />
     <Compile Include="View\AddDataSetDialog.xaml.cs">
       <DependentUpon>AddDataSetDialog.xaml</DependentUpon>
     </Compile>
@@ -283,6 +286,9 @@
     <Compile Include="ViewModel\ManageDataViewModel.cs" />
     <Compile Include="ViewModel\MessageWindowViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Compile Include="View\VersionSettings.xaml.cs">
+      <DependentUpon>VersionSettings.xaml</DependentUpon>
+    </Compile>
     <Page Include="View\AddDataSetDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -356,6 +362,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\StatusDialog..xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\VersionSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
