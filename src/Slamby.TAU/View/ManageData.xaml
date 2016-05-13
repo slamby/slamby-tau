@@ -17,7 +17,7 @@
              d:DesignHeight="800" d:DesignWidth="1000">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <command:EventToCommand Command="{Binding LoadedCommand}"/>
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <UserControl.Resources>
@@ -56,7 +56,7 @@
                                   CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedDocuments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}">
                                     <i:Interaction.Triggers>
                                         <i:EventTrigger EventName="MouseDoubleClick">
-                                            <command:EventToCommand Command="{Binding ModifyDocumentCommand}"/>
+                                            <i:InvokeCommandAction Command="{Binding ModifyDocumentCommand}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
                                     <DataGrid.ContextMenu>
@@ -166,7 +166,7 @@
                               CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}" AutoGenerateColumns="False">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseDoubleClick">
-                                <command:EventToCommand Command="{Binding ModifyTagTagCommand}"/>
+                                <i:InvokeCommandAction Command="{Binding ModifyTagTagCommand}"/>
                             </i:EventTrigger>
                         </i:Interaction.Triggers>
                         <DataGrid.InputBindings>

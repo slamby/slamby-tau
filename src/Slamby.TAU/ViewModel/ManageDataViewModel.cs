@@ -18,6 +18,7 @@ using Slamby.TAU.Logger;
 using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
+using Microsoft.Practices.ServiceLocation;
 using Slamby.TAU.View;
 using Clipboard = System.Windows.Clipboard;
 using CommonDialog = Slamby.TAU.View.CommonDialog;
@@ -37,26 +38,13 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the ManageDataViewModel class.
         /// </summary>
-        public ManageDataViewModel()
+        public ManageDataViewModel(DataSet dataSet, DialogHandler dialogHandler)
         {
-            Messenger.Default.Register<UpdateMessage>(this, message =>
-            {
-                if (message.UpdateType == UpdateType.SelectedDataSetChange)
-                {
-                    var dataset = (DataSet)message.Parameter;
-                    if (dataset != null && !string.IsNullOrEmpty(dataset.Name))
-                    {
-                        _documentManager = IsInDesignModeStatic
-                            ? new DesignDocumentManager()
-                            : (IDocumentManager)
-                                new DocumentManager(GlobalStore.EndpointConfiguration, dataset.Name);
-                        _tagManager = IsInDesignModeStatic ? new DesignTagManager() : (ITagManager)new TagManager(GlobalStore.EndpointConfiguration, dataset.Name);
-                        _dataSetManager = IsInDesignModeStatic ? new DesignDataSetManager() : (IDataSetManager)new DataSetManager(GlobalStore.EndpointConfiguration);
-                        _currentDataSet = dataset;
-                        _loadedFirst = true;
-                    }
-                }
-            });
+
+            _documentManager = new DocumentManager(GlobalStore.EndpointConfiguration,dataSet.Name);
+            _tagManager = new TagManager(GlobalStore.EndpointConfiguration, dataSet.Name);
+            _currentDataSet = dataSet;
+            _dialogHandler = dialogHandler;
 
             Tags = new ObservableCollection<Tag>();
             Documents = new ObservableCollection<object>();
@@ -67,7 +55,7 @@ namespace Slamby.TAU.ViewModel
                 if (_loadedFirst && _tagManager != null && _documentManager != null)
                 {
                     _loadedFirst = false;
-                    await DialogHandler.ShowProgress(null, async () =>
+                    await _dialogHandler.ShowProgress(null, async () =>
                     {
                         DispatcherHelper.CheckBeginInvokeOnUI(() => Tags.Clear());
                         Log.Info(LogMessages.ManageDataLoadTags);
@@ -107,7 +95,7 @@ namespace Slamby.TAU.ViewModel
             AddTagCommand = new RelayCommand(async () => await AddTag());
             RemoveTagCommand = new RelayCommand(RemoveTag);
             ModifyTagTagCommand = new RelayCommand(ModifyTag);
-            ExportWordsCommand=new RelayCommand(async () => await ExportWords());
+            ExportWordsCommand = new RelayCommand(async () => await ExportWords());
 
             AddDocumentCommand = new RelayCommand(async () => await AddDocument());
             DeleteDocumentCommand = new RelayCommand(DeleteDocument);
@@ -133,7 +121,7 @@ namespace Slamby.TAU.ViewModel
                         _filterSettings.Pagination = p;
                     else if (_activeSource == ActiveSourceEnum.Sample)
                         _sampleSettings.Pagination = p;
-                    await DialogHandler.ShowProgress(null, async () =>
+                    await _dialogHandler.ShowProgress(null, async () =>
                     {
                         await LoadDocuments();
                     });
@@ -150,8 +138,8 @@ namespace Slamby.TAU.ViewModel
 
         private ITagManager _tagManager;
         private IDocumentManager _documentManager;
-        private IDataSetManager _dataSetManager;
         private DataSet _currentDataSet;
+        private DialogHandler _dialogHandler;
 
 
         private ObservableCollection<Tag> _tags;
@@ -290,7 +278,7 @@ namespace Slamby.TAU.ViewModel
         {
             Log.Info(LogMessages.ManageDataFilterApply);
             _activeSource = ActiveSourceEnum.Filter;
-            await DialogHandler.ShowProgress(null, async () =>
+            await _dialogHandler.ShowProgress(null, async () =>
             {
                 _filterSettings.Filter.Query = Filter;
                 if (_selectedTagsForFilter != null)
@@ -304,7 +292,7 @@ namespace Slamby.TAU.ViewModel
         {
             Log.Info(LogMessages.ManageDataSampleGet);
             _activeSource = ActiveSourceEnum.Sample;
-            await DialogHandler.ShowProgress(null, async () =>
+            await _dialogHandler.ShowProgress(null, async () =>
             {
                 _sampleSettings.Id = Guid.NewGuid().ToString();
                 _sampleSettings.Pagination.Offset = 0;
@@ -381,7 +369,7 @@ namespace Slamby.TAU.ViewModel
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(new Tag { Properties = new TagProperties() })
             };
-            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
                 var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
@@ -407,7 +395,7 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.OkCancel,
                     Content = new JContent(selectedTag)
                 };
-                var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+                var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
                     var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
@@ -434,10 +422,10 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.YesNoCancel
                 };
                 var view = new CommonDialog { DataContext = context };
-                var result = await DialogHandler.Show(view, "RootDialog");
+                var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result != CommonDialogResult.Cancel)
                 {
-                    await DialogHandler.ShowProgress(null,
+                    await _dialogHandler.ShowProgress(null,
                         async () =>
                         {
                             foreach (var selectedTag in SelectedTags)
@@ -462,7 +450,7 @@ namespace Slamby.TAU.ViewModel
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(new TagsExportWordsSettings { TagIdList = SelectedTags.Select(t => t.Id).ToList() })
             };
-            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
                 var settings = ((JContent)context.Content).GetJToken().ToObject<TagsExportWordsSettings>();
@@ -498,10 +486,10 @@ namespace Slamby.TAU.ViewModel
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(_currentDataSet.SampleDocument)
             };
-            var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await DialogHandler.ShowProgress(null, async () =>
+                await _dialogHandler.ShowProgress(null, async () =>
                  {
                      var newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
                      var response = await _documentManager.CreateDocumentAsync(newDocument);
@@ -529,7 +517,7 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.OkCancel,
                     Content = new JContent(selectedDocument)
                 };
-                var result = await DialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+                var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
                     var newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
@@ -558,10 +546,10 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.YesNoCancel
                 };
                 var view = new CommonDialog { DataContext = context };
-                var result = await DialogHandler.Show(view, "RootDialog");
+                var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Yes)
                 {
-                    await DialogHandler.ShowProgress(null,
+                    await _dialogHandler.ShowProgress(null,
                         async () =>
                         {
                             var deletedDocs = new List<object>();
@@ -593,12 +581,12 @@ namespace Slamby.TAU.ViewModel
             {
                 var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>());
                 var view = new AssignTagDialog { DataContext = context };
-                if ((bool)await DialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
+                if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
                     if (!(((JObject)SelectedDocuments.First())[_currentDataSet.TagField] is JArray) &&
                         context.SelectedTags.Count > 1)
                     {
-                        await DialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "Warning", Content = new Message("Category field is not array"), Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                        await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "Warning", Content = new Message("Category field is not array"), Buttons = ButtonsEnum.Ok } }, "RootDialog");
                         return;
                     }
                     SelectedDocuments.ToList().ForEach(async d =>
@@ -655,7 +643,7 @@ namespace Slamby.TAU.ViewModel
                 });
                 var context = new AssignTagDialogViewModel(new ObservableCollection<Tag>(Tags.Where(t => commonTags.Contains(t.Id))), new ObservableCollection<Tag>());
                 var view = new AssignTagDialog { DataContext = context };
-                if ((bool)await DialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
+                if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
                     SelectedDocuments.ToList().ForEach(async d =>
                     {
@@ -709,7 +697,7 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.YesNoCancel
                 };
                 var view = new CommonDialog { DataContext = context };
-                var result = await DialogHandler.Show(view, "RootDialog");
+                var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Yes)
                 {
                     var selectedList = SelectedDocuments.ToList();
@@ -753,11 +741,11 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentCopyTo);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
-                IEnumerable<DataSet> datasets = await GetDataSets();
+                IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
                 var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
                 var view = new DataSetSelector { DataContext = context };
-                if ((bool)await DialogHandler.Show(view, "RootDialog"))
+                if ((bool)await _dialogHandler.Show(view, "RootDialog"))
                 {
                     await CopyDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
                 }
@@ -769,11 +757,11 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentMoveTo);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
-                IEnumerable<DataSet> datasets = await GetDataSets();
+                IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
                 var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
                 var view = new DataSetSelector { DataContext = context };
-                if ((bool)await DialogHandler.Show(view, "RootDialog"))
+                if ((bool)await _dialogHandler.Show(view, "RootDialog"))
                 {
                     await MoveDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
                 }
@@ -784,11 +772,11 @@ namespace Slamby.TAU.ViewModel
         {
             Log.Info(LogMessages.ManageDataDocumentCopyAllTo);
 
-            IEnumerable<DataSet> datasets = await GetDataSets();
+            IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
             var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
             var view = new DataSetSelector { DataContext = context };
-            if ((bool)await DialogHandler.Show(view, "RootDialog"))
+            if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
                 var documentIds = await GetAllDocumentIdsByCurrentSettings();
                 await CopyDocuments(documentIds, context.SelectedDataSet.Name);
@@ -797,36 +785,22 @@ namespace Slamby.TAU.ViewModel
 
         private async void MoveAllTo()
         {
-            IEnumerable<DataSet> datasets = await GetDataSets();
+            IEnumerable<DataSet> datasets = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>().DataSets;
 
             var context = new DataSetSelectorViewModel { DataSets = new ObservableCollection<DataSet>(datasets.Where(ds => ds.Name != _currentDataSet.Name)) };
             var view = new DataSetSelector { DataContext = context };
-            if ((bool)await DialogHandler.Show(view, "RootDialog"))
+            if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
                 var documentIds = await GetAllDocumentIdsByCurrentSettings();
                 await MoveDocuments(documentIds, context.SelectedDataSet.Name);
             }
         }
 
-        private async Task<IEnumerable<DataSet>> GetDataSets()
-        {
-            IEnumerable<DataSet> datasets = null;
-            await DialogHandler.ShowProgress(null, async () =>
-            {
-                var response = await _dataSetManager.GetDataSetsAsync();
-                if (ResponseValidator.Validate(response))
-                {
-                    datasets = response.ResponseObject;
-                }
-            });
-            return datasets;
-        }
-
         private async Task<List<string>> GetAllDocumentIdsByCurrentSettings()
         {
             //get documents
             var documentIds = new List<string>();
-            await DialogHandler.ShowProgress(null, async () =>
+            await _dialogHandler.ShowProgress(null, async () =>
             {
                 ClientResponseWithObject<PaginatedList<object>> response = null;
                 if (_activeSource == ActiveSourceEnum.Filter)
@@ -873,7 +847,7 @@ namespace Slamby.TAU.ViewModel
 
         private async Task CopyDocuments(List<string> docIdList, string targetDataSetName)
         {
-            await DialogHandler.ShowProgress(null,
+            await _dialogHandler.ShowProgress(null,
                     async () =>
                     {
                         var response = await _documentManager.CopyDocumentsToAsync(new DocumentCopySettings
@@ -887,7 +861,7 @@ namespace Slamby.TAU.ViewModel
 
         private async Task MoveDocuments(List<string> docIdList, string targetDataSetName)
         {
-            await DialogHandler.ShowProgress(null,
+            await _dialogHandler.ShowProgress(null,
                         async () =>
                         {
                             var response = await _documentManager.MoveDocumentsToAsync(new DocumentMoveSettings
@@ -908,7 +882,7 @@ namespace Slamby.TAU.ViewModel
             var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForSample));
             context.SelectedTags = _selectedTagsForSample;
             var view = new AssignTagDialog { DataContext = context };
-            if ((bool)await DialogHandler.Show(view, "RootDialog"))
+            if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
                 _selectedTagsForSample = context.SelectedTags;
                 SelectedLabelForSample = _selectedTagsForSample == null || !_selectedTagsForSample.Any()
@@ -923,7 +897,7 @@ namespace Slamby.TAU.ViewModel
             var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForFilter));
             context.SelectedTags = _selectedTagsForFilter;
             var view = new AssignTagDialog { DataContext = context };
-            if ((bool)await DialogHandler.Show(view, "RootDialog"))
+            if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
                 _selectedTagsForFilter = context.SelectedTags;
                 SelectedLabelForFilter = _selectedTagsForFilter == null || !_selectedTagsForFilter.Any()

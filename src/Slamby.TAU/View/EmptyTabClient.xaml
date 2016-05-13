@@ -1,0 +1,35 @@
+﻿<Window x:Class="Slamby.TAU.View.EmptyTabClient"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Slamby.TAU.View"
+        xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
+        xmlns:dockablz="http://dragablz.net/winfx/xaml/dockablz"
+        xmlns:helper="clr-namespace:Slamby.TAU.Helper"
+        mc:Ignorable="d"
+        Title="Slamby TAU" Height="300" Width="300">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Shadows.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <dragablz:InterTabController x:Key="InterTabController" x:Shared="False"  InterTabClient="{Binding InterTabClient}" Partition="Partition" />
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+    </Window.InputBindings>
+    <Grid>
+        <dockablz:Layout Partition="Partition" Name="LayoutRoot" FloatingItemsSource="{Binding FloatingTabs}" ClosingFloatingItemCallback="{Binding ClosingFloatingItemHandler}">
+            <dockablz:Layout.Resources>
+                <DataTemplate DataType="{x:Type dragablz:HeaderedItemViewModel}">
+                    <ContentControl Content="{Binding Content}"/>
+                </DataTemplate>
+            </dockablz:Layout.Resources>
+            <dragablz:TabablzControl InterTabController="{StaticResource InterTabController}" ClosingItemCallback="{Binding ClosingTabItemHandler}" ConsolidateOrphanedItems="False" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" />
+        </dockablz:Layout>
+    </Grid>
+</Window>

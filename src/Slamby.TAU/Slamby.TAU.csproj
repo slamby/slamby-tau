@@ -145,8 +145,8 @@
       <HintPath>..\packages\squirrel.windows.1.4.0\lib\Net45\NuGet.Squirrel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Slamby.SDK.Net, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Slamby.SDK.Net.0.13.0.0\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
+    <Reference Include="Slamby.SDK.Net, Version=0.14.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Slamby.SDK.Net.0.14.1.0\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
@@ -158,6 +158,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -187,8 +188,13 @@
     <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
     <Compile Include="Converter\StringToCellTemplateConverter.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
+    <Compile Include="Helper\InterTabClient.cs" />
+    <Compile Include="SlambySettingsProvider.cs" />
+    <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
     <Compile Include="ViewModel\ManageProcessViewModel.cs" />
+    <Compile Include="ViewModel\ResourcesMonitorViewModel.cs" />
+    <Compile Include="ViewModel\VersionSettingsViewModel.cs" />
     <Compile Include="View\AddDataSetDialog.xaml.cs">
       <DependentUpon>AddDataSetDialog.xaml</DependentUpon>
     </Compile>
@@ -208,6 +214,9 @@
     <Compile Include="Design\DesignDocumentManager.cs" />
     <Compile Include="Design\DesignServiceManager.cs" />
     <Compile Include="Design\DesignTagManager.cs" />
+    <Compile Include="View\EmptyTabClient.xaml.cs">
+      <DependentUpon>EmptyTabClient.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\EndPointSettings.xaml.cs">
       <DependentUpon>EndPointSettings.xaml</DependentUpon>
     </Compile>
@@ -257,6 +266,9 @@
       <DependentUpon>LogMessages.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="View\ResourcesMonitor.xaml.cs">
+      <DependentUpon>ResourcesMonitor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\StatusDialog..xaml.cs">
       <DependentUpon>StatusDialog..xaml</DependentUpon>
     </Compile>
@@ -274,6 +286,9 @@
     <Compile Include="ViewModel\ManageDataViewModel.cs" />
     <Compile Include="ViewModel\MessageWindowViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Compile Include="View\VersionSettings.xaml.cs">
+      <DependentUpon>VersionSettings.xaml</DependentUpon>
+    </Compile>
     <Page Include="View\AddDataSetDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -287,6 +302,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\DataSetSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\EmptyTabClient.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -338,7 +357,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\ResourcesMonitor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\StatusDialog..xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\VersionSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
