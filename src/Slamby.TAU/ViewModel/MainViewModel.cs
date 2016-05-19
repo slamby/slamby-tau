@@ -80,12 +80,14 @@ namespace Slamby.TAU.ViewModel
                         DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add((Process)message.Parameter));
                         break;
                     case UpdateType.OpenNewTab:
-                        Tabs.Add((HeaderedItemViewModel)message.Parameter);
+                        var newTab = (HeaderedItemViewModel)message.Parameter;
+                        Tabs.Add(newTab);
+                        SelectedTab = newTab;
                         break;
                 }
             });
-            Messenger.Default.Register<ClientResponse>(this, response => ErrorHandler(response));
-            Messenger.Default.Register<Exception>(this, exception => ErrorHandler(exception));
+            Messenger.Default.Register<ClientResponse>(this, async response => await ErrorHandler(response));
+            Messenger.Default.Register<Exception>(this, async exception => await ErrorHandler(exception));
             IsInSettingsMode = false;
             ChangeSettingsModeCommand = new RelayCommand(() => IsInSettingsMode = !IsInSettingsMode);
             RefreshCommand = new RelayCommand(() =>
@@ -192,6 +194,7 @@ namespace Slamby.TAU.ViewModel
             });
             InitData();
             Tabs = new ObservableCollection<HeaderedItemViewModel> { new HeaderedItemViewModel("DataSet", new ManageDataSet(), true) };
+            SelectedTab = Tabs.First();
         }
 
         private void DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -285,7 +288,7 @@ namespace Slamby.TAU.ViewModel
             });
         }
 
-        private async void ErrorHandler(object errorObject)
+        private async Task ErrorHandler(object errorObject)
         {
             if (errorObject is ClientResponse || errorObject is Exception)
                 _errors.Enqueue(errorObject);
@@ -299,6 +302,7 @@ namespace Slamby.TAU.ViewModel
                         await _dialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
                         object current;
                         while (!_errors.TryDequeue(out current)) ;
+
                     }
                     catch (Exception)
                     {
@@ -311,7 +315,7 @@ namespace Slamby.TAU.ViewModel
         private IProcessManager _processManager;
         private IDataSetManager _dataSetManager;
         private DialogHandler _dialogHandler;
-        
+
         private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 
         private ObservableCollection<MenuItem> _menuItems;
@@ -434,5 +438,13 @@ namespace Slamby.TAU.ViewModel
         }
 
         public ObservableCollection<HeaderedItemViewModel> Tabs { get; set; }
+
+        private HeaderedItemViewModel _selectedTab;
+
+        public HeaderedItemViewModel SelectedTab
+        {
+            get { return _selectedTab; }
+            set { Set(() => SelectedTab, ref _selectedTab, value); }
+        }
     }
 }

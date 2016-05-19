@@ -56,7 +56,9 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate>
-                                                        <Button Margin="2,0" HorizontalAlignment="Center" Content="Prepare" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.PrepareCommand}"/>
+                                                        <Grid Background="Transparent">
+                                                            <Button Margin="2,0" HorizontalAlignment="Center" Content="Prepare" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.PrepareCommand}"/>
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -65,10 +67,12 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Margin="2,0" Content="Cancel" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.CancelCommand}"/>
-                                                            <!--<ProgressBar Margin="2,0" Orientation="Horizontal" IsIndeterminate="False" Value="{Binding}"/>-->
-                                                        </StackPanel>
+                                                        <Grid Background="Transparent">
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Margin="2,0" Content="Cancel" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.CancelCommand}"/>
+                                                                <!--<ProgressBar Margin="2,0" Orientation="Horizontal" IsIndeterminate="False" Value="{Binding}"/>-->
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -77,10 +81,12 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Margin="2,0" HorizontalAlignment="Center" Content="Activate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ActivateCommand}"/>
-                                                            <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
-                                                        </StackPanel>
+                                                        <Grid Background="Transparent">
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Margin="2,0" HorizontalAlignment="Center" Content="Activate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ActivateCommand}"/>
+                                                                <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -93,11 +99,13 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
-                                                            <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
-                                                            <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
-                                                        </StackPanel>
+                                                        <Grid Background="Transparent">
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
+                                                                <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                                <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -110,11 +118,13 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate>
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
-                                                            <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
-                                                            <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
-                                                        </StackPanel>
+                                                        <Grid Background="Transparent">
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
+                                                                <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                                <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -123,6 +133,7 @@
                                 </Style>
                             </DataGridTemplateColumn.CellStyle>
                         </DataGridTemplateColumn>
+                        <DataGridTextColumn Width="*"/>
                     </DataGrid.Columns>
                 </control:CustomDataGrid>
                 <!--<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0 12 0 0">

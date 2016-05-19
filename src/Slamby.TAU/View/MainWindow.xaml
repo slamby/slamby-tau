@@ -115,7 +115,7 @@
                                                 <ContentControl Content="{Binding Content}"/>
                                             </DataTemplate>
                                         </dockablz:Layout.Resources>
-                                        <dragablz:TabablzControl ConsolidateOrphanedItems="True" ClosingItemCallback="{Binding ClosingTabItemHandler}" ItemsSource="{Binding Tabs}" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" >
+                                        <dragablz:TabablzControl ConsolidateOrphanedItems="True" ClosingItemCallback="{Binding ClosingTabItemHandler}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" >
                                             <dragablz:TabablzControl.InterTabController>
                                                 <dragablz:InterTabController InterTabClient="{Binding InterTabClient}" Partition="Partition" />
                                             </dragablz:TabablzControl.InterTabController>

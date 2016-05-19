@@ -13,6 +13,8 @@
              xmlns:control="clr-namespace:Slamby.TAU.Control"
              xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:view="clr-namespace:Slamby.TAU.View"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:linq="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1000">
     <i:Interaction.Triggers>
@@ -31,8 +33,7 @@
     <DockPanel>
         <dragablz:TabablzControl TextElement.Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=(TextElement.Foreground)}" 
                                  Background="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=Background}"
-                                 BorderThickness="0"
-                                 Margin="0,-1,0,1">
+                                 BorderThickness="0" Margin="0,-1,0,1">
             <TabItem Header="Documents">
                 <Grid Background="{DynamicResource PrimaryHueLightBrush}">
                     <Grid.RowDefinitions>
@@ -51,7 +52,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All"
+                                <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All" RowHeight="50"
                               dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True"
                                   CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedDocuments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}">
                                     <i:Interaction.Triggers>
@@ -180,7 +181,7 @@
                             <DataGridTextColumn Header="DocumentCount" Binding="{Binding Properties.DocumentCount}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="WordCount" Binding="{Binding Properties.WordCount}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentId}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentId}" IsReadOnly="True" Width="*"/>
                         </DataGrid.Columns>
                     </control:CustomDataGrid>
                     <Grid Grid.Row="1">

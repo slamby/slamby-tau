@@ -449,10 +449,11 @@ namespace Slamby.TAU.ViewModel
         private async void Delete()
         {
             Log.Info(LogMessages.ManageDataSetDeleteCommand);
+            if (SelectedDataSet == null) return;
             var context = new CommonDialogViewModel
             {
                 Content = new Message("Are you sure to remove the following data set: " + SelectedDataSet.Name),
-                Buttons = ButtonsEnum.YesNoCancel
+                Buttons = ButtonsEnum.YesNo
             };
             var view = new CommonDialog { DataContext = context };
             var result = await _dialogHandler.Show(view, "RootDialog");
