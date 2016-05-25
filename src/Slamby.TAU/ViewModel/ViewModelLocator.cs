@@ -21,7 +21,7 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using Microsoft.Practices.ServiceLocation;
 using Slamby.SDK.Net.Managers;
-using Slamby.SDK.Net.Models;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.TAU.Enum;
 using Slamby.TAU.Helper;
 using Slamby.TAU.Model;

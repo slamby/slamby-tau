@@ -19,6 +19,7 @@ using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
 using Microsoft.Practices.ServiceLocation;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.TAU.View;
 using Clipboard = System.Windows.Clipboard;
 using CommonDialog = Slamby.TAU.View.CommonDialog;

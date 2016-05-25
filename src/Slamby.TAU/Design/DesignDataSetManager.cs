@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 
 namespace Slamby.TAU.Design

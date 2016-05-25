@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
         <TextBlock Text="{Binding CurrentVersion, StringFormat=Current version: {0}}" HorizontalAlignment="Left" FontWeight="Bold" Margin="15,10,15,15"/>
         <TextBlock Grid.Row="1" Margin="10,0" Text="AvailableReleases:"/>
-        <DataGrid Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" SelectionMode="Single" AutoGenerateColumns="False">
+        <DataGrid Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" SelectionMode="Single" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Apply" Command="{Binding ApplyReleaseCommand}"/>

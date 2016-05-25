@@ -54,7 +54,7 @@ namespace Slamby.TAU.ViewModel
                 }
 
                 AvailableReleases =
-                    new ObservableCollection<Version>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Select(v => new Version(v)));
+                    new ObservableCollection<Version>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(v => new Version(v)));
                 CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version;
             });
         }

@@ -24,6 +24,7 @@ using System.Threading;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
 using Dragablz;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.TAU.Properties;
 using Slamby.TAU.View;
 using CommonDialog = Slamby.TAU.View.CommonDialog;

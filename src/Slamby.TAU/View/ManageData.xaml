@@ -28,6 +28,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converter:IListToObservableConverter x:Key="IListToObservableConverter"/>
+            <converter:ObjectToStringConverter x:Key="ObjectToStringConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel>
@@ -60,6 +61,11 @@
                                             <i:InvokeCommandAction Command="{Binding ModifyDocumentCommand}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
                                     <DataGrid.ContextMenu>
                                         <ContextMenu x:Name="DocumentsContextMenu">
                                             <!--<ContextMenu.Template>
@@ -86,6 +92,13 @@
                                             <MenuItem Header="Move To" Click="ContextButtons_OnClick" Command="{Binding MoveToCommand}" Margin="2.5"/>
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
+                                    <!--<DataGrid.RowDetailsTemplate>
+                                        <DataTemplate>
+                                            <ScrollViewer VerticalAlignment="Bottom" MaxHeight="200" >
+                                                <TextBlock Text="{Binding Converter={StaticResource ObjectToStringConverter}}" TextWrapping="Wrap"/>
+                                            </ScrollViewer>
+                                        </DataTemplate>
+                                    </DataGrid.RowDetailsTemplate>-->
                                 </control:CustomDataGrid>
                                 <view:Paginator Grid.Row="2" HorizontalAlignment="Center" DataContext="{Binding DocumentPaginatorViewModel}" />
                             </Grid>

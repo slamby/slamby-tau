@@ -10,6 +10,9 @@
              xmlns:services="clr-namespace:Slamby.SDK.Net.Models.Services;assembly=Slamby.SDK.Net"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

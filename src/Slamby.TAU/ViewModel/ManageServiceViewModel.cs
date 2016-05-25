@@ -13,7 +13,7 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json.Linq;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 using Slamby.SDK.Net.Models.Enums;
 using Slamby.SDK.Net.Models.Services;

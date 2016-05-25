@@ -50,18 +50,6 @@ namespace Slamby.TAU.Properties {
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://bulldozer:88/install/")]
-        public string UpdateFeed {
-            get {
-                return ((string)(this["UpdateFeed"]));
-            }
-            set {
-                this["UpdateFeed"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Configuration.SettingsProviderAttribute(typeof(SlambySettingsProvider))]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("http://tautest/")]
@@ -83,6 +71,18 @@ namespace Slamby.TAU.Properties {
             }
             set {
                 this["UpdateSettings"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://tau.slamby.com/install/")]
+        public string UpdateFeed {
+            get {
+                return ((string)(this["UpdateFeed"]));
+            }
+            set {
+                this["UpdateFeed"] = value;
             }
         }
     }

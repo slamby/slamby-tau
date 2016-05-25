@@ -6,7 +6,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 using Slamby.SDK.Net.Models.Enums;
 using Slamby.TAU.Enum;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 using Slamby.SDK.Net.Models.Enums;
 using Slamby.SDK.Net.Models.Services;
