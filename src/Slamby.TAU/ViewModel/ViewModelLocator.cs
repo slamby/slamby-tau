@@ -45,6 +45,8 @@ namespace Slamby.TAU.ViewModel
                 switch (m.UpdateType)
                 {
                     case UpdateType.EndPointUpdate:
+                        if (SimpleIoc.Default.IsRegistered<ResourcesMonitorViewModel>())
+                            SimpleIoc.Default.GetInstance<ResourcesMonitorViewModel>().Dispose();
                         SimpleIoc.Default.Reset();
                         Initialize();
                         break;
@@ -104,11 +106,11 @@ namespace Slamby.TAU.ViewModel
 
         public static void Cleanup()
         {
-            SimpleIoc.Default.Unregister<MainViewModel>();
             SimpleIoc.Default.Unregister<ManageDataSetViewModel>();
             SimpleIoc.Default.Unregister<ManageDataViewModel>();
             SimpleIoc.Default.Unregister<ManageServiceViewModel>();
             SimpleIoc.Default.Unregister<ManageProcessViewModel>();
+            SimpleIoc.Default.Unregister<ResourcesMonitorViewModel>();
             SimpleIoc.Default.Unregister<MainViewModel>();
         }
 

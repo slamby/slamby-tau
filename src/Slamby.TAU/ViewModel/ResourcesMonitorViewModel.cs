@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Timers;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -15,7 +16,7 @@ namespace Slamby.TAU.ViewModel
     /// See http://www.galasoft.ch/mvvm
     /// </para>
     /// </summary>
-    public class ResourcesMonitorViewModel : ViewModelBase
+    public class ResourcesMonitorViewModel : ViewModelBase, IDisposable
     {
         /// <summary>
         /// Initializes a new instance of the ResourcesMonitorViewModel class.
@@ -29,9 +30,14 @@ namespace Slamby.TAU.ViewModel
                 Task.Run(async () =>
                 {
                     var statusResponse = await _statusManager.GetStatusAsync();
-                    if (ResponseValidator.Validate(statusResponse))
+                    if (statusResponse.IsSuccessFul)
                     {
                         Status = statusResponse.ResponseObject;
+                        IsFailed = false;
+                    }
+                    else
+                    {
+                        IsFailed = true;
                     }
                 });
             };
@@ -52,6 +58,13 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => Status, ref _status, value); }
         }
 
+        private bool _isFailed;
+
+        public bool IsFailed
+        {
+            get { return _isFailed; }
+            set { Set(() => IsFailed, ref _isFailed, value); }
+        }
 
         private int _refreshInterval = 20;
 
@@ -62,5 +75,11 @@ namespace Slamby.TAU.ViewModel
         }
 
         public RelayCommand ApplyIntervalSettingsCommand { get; private set; }
+
+        public void Dispose()
+        {
+            _timer.Close();
+            _timer = null;
+        }
     }
 }
