@@ -85,5 +85,18 @@ namespace Slamby.TAU.Properties {
                 this["UpdateFeed"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(SlambySettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{}")]
+        public string GridSettingsDictionary {
+            get {
+                return ((string)(this["GridSettingsDictionary"]));
+            }
+            set {
+                this["GridSettingsDictionary"] = value;
+            }
+        }
     }
 }

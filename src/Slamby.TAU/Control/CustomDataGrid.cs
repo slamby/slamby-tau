@@ -12,6 +12,7 @@ using System.Windows.Input;
 using GalaSoft.MvvmLight.Threading;
 using Microsoft.Practices.ServiceLocation;
 using Slamby.TAU.Helper;
+using Slamby.TAU.Model;
 using Cursors = System.Windows.Input.Cursors;
 using DataGrid = System.Windows.Controls.DataGrid;
 
@@ -22,6 +23,7 @@ namespace Slamby.TAU.Control
 
         public CustomDataGrid()
         {
+            this.LoadingRow += OnLoadingRow;
             this.EnableRowVirtualization = true;
             this.SelectionChanged += CustomDataGrid_SelectionChanged;
             this.Loaded += CustomDataGrid_Loaded;
@@ -37,7 +39,6 @@ namespace Slamby.TAU.Control
         {
             await Task.Run(() => DispatcherHelper.CheckBeginInvokeOnUI(() =>
              {
-
                  Mouse.SetCursor(Cursors.Wait);
                  if (SelectedItemsList != null)
                  {
@@ -52,7 +53,32 @@ namespace Slamby.TAU.Control
 
         private void OnLoadingRow(object sender, DataGridRowEventArgs e)
         {
-            e.Row.Header = e.Row.GetIndex() + 1;
+            if (IsIndexed)
+                e.Row.Header = e.Row.GetIndex() + 1;
+            if (_isFirstRow)
+            {
+                if (GridSettings != null)
+                {
+                    //Column setting
+                    var isColumnMissmatch = GridSettings.Columns.Any(c => !Columns.Where(col => col.Header != null && col.Header is string).Select(col => col.Header.ToString()).Contains(c));
+                    if (GridSettings.Columns != null && !isColumnMissmatch)
+                    {
+                        var i = 0;
+                        GridSettings.Columns.ForEach(c =>
+                        {
+                            var currentCol = Columns.Where(col => col.Header != null && col.Header is string).FirstOrDefault(col => col.Header.ToString() == c);
+                            currentCol.DisplayIndex = i++;
+                        });
+                    }
+                    else
+                    {
+                        var oldSettings = (DataGridSettings)GridSettings;
+                        oldSettings.Columns = this.Columns.ToList().Select(c => c.Header.ToString()).ToList();
+                        GridSettings = oldSettings;
+                    }
+                }
+                _isFirstRow = false;
+            }
         }
 
         void CustomDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -63,6 +89,17 @@ namespace Slamby.TAU.Control
             {
                 this.SelectedItemsList?.Clear();
             }
+        }
+
+        protected override void OnColumnReordered(DataGridColumnEventArgs e)
+        {
+            base.OnColumnReordered(e);
+            var cols = new Dictionary<string, int>();
+            this.Columns.Where(c => c.Header != null && c.Header is string).ToList().ForEach(c => cols.Add(c.Header.ToString(), c.DisplayIndex));
+            var oldSettings = GridSettings == null ? new DataGridSettings() : (DataGridSettings)GridSettings;
+            oldSettings.Columns = Columns.Where(c => c.Header != null && c.Header is string).ToList().OrderBy(c => c.DisplayIndex).Select(c => c.Header.ToString()).ToList();
+            GridSettings = null;
+            GridSettings = oldSettings;
         }
 
         public ObservableCollection<object> SelectedItemsList
@@ -79,6 +116,22 @@ namespace Slamby.TAU.Control
             DependencyProperty.Register("SelectedItemsList", typeof(ObservableCollection<object>), typeof(CustomDataGrid), new PropertyMetadata(new ObservableCollection<object>()));
 
 
+        public DataGridSettings GridSettings
+        {
+            get { return (DataGridSettings)GetValue(GridSettingsProperty); }
+            set
+            {
+                SetValue(GridSettingsProperty, value);
+            }
+        }
+
+        // Using a DependencyProperty as the backing store for GridSettings.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty GridSettingsProperty =
+            DependencyProperty.Register("GridSettings", typeof(DataGridSettings), typeof(CustomDataGrid), new PropertyMetadata());
+
+
+        private bool _isFirstRow = true;
+
         private bool _isindexed;
 
         public bool IsIndexed
@@ -87,14 +140,6 @@ namespace Slamby.TAU.Control
             set
             {
                 _isindexed = value;
-                if (value)
-                {
-                    this.LoadingRow += OnLoadingRow;
-                }
-                else
-                {
-                    this.LoadingRow -= OnLoadingRow;
-                }
             }
         }
     }

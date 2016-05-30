@@ -14,6 +14,7 @@ using Slamby.TAU.Enum;
 using Slamby.TAU.Helper;
 using Slamby.TAU.Model;
 using System;
+using System.Drawing.Text;
 using Slamby.TAU.Logger;
 using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
@@ -42,7 +43,7 @@ namespace Slamby.TAU.ViewModel
         public ManageDataViewModel(DataSet dataSet, DialogHandler dialogHandler)
         {
 
-            _documentManager = new DocumentManager(GlobalStore.EndpointConfiguration,dataSet.Name);
+            _documentManager = new DocumentManager(GlobalStore.EndpointConfiguration, dataSet.Name);
             _tagManager = new TagManager(GlobalStore.EndpointConfiguration, dataSet.Name);
             _currentDataSet = dataSet;
             _dialogHandler = dialogHandler;
@@ -53,6 +54,7 @@ namespace Slamby.TAU.ViewModel
             LoadedCommand = new RelayCommand(async () =>
             {
                 Mouse.SetCursor(Cursors.Arrow);
+                SetGridSettings();
                 if (_loadedFirst && _tagManager != null && _documentManager != null)
                 {
                     _loadedFirst = false;
@@ -130,6 +132,99 @@ namespace Slamby.TAU.ViewModel
                 PaginatedList = new PaginatedList<object> { Pagination = new Pagination { Limit = 50 } }
             };
         }
+
+        #region GridSettings
+
+        private void SetGridSettings()
+        {
+            var gridSettingsDict = GlobalStore.GridSettingsDictionary;
+            if (gridSettingsDict != null && gridSettingsDict.Any())
+            {
+                if (gridSettingsDict.ContainsKey("ManageData_Tags"))
+                {
+                    var tagsSettings = gridSettingsDict["ManageData_Tags"];
+                    if (tagsSettings.ContainsKey(_currentDataSet.Name))
+                    {
+                        _tagGridSettingsLadedFromFile = true;
+                        TagsGridSettings = tagsSettings[_currentDataSet.Name];
+                    }
+                    else
+                    {
+                        TagsGridSettings = null;
+                    }
+                }
+                else
+                {
+                    TagsGridSettings = null;
+                }
+
+                if (gridSettingsDict.ContainsKey("ManageData_Documents"))
+                {
+                    var documentsSettings = gridSettingsDict["ManageData_Documents"];
+                    if (documentsSettings.ContainsKey(_currentDataSet.Name))
+                    {
+                        _documentGridSettingsLadedFromFile = true;
+                        DocumetsGridSettings = documentsSettings[_currentDataSet.Name];
+                    }
+                    else
+                    {
+                        DocumetsGridSettings = null;
+                    }
+                }
+                else
+                {
+                    DocumetsGridSettings = null;
+                }
+            }
+            else
+            {
+                TagsGridSettings = null;
+                DocumetsGridSettings = null;
+            }
+        }
+
+        private bool _documentGridSettingsLadedFromFile = false;
+        private DataGridSettings _documetsGridSettings;
+
+        public DataGridSettings DocumetsGridSettings
+        {
+            get
+            {
+                return _documetsGridSettings;
+            }
+            set
+            {
+                if (Set(() => DocumetsGridSettings, ref _documetsGridSettings, value))
+                {
+                    if (value != null && !_documentGridSettingsLadedFromFile)
+                    {
+                        GlobalStore.SaveGridSettings("ManageData_Documents", _currentDataSet.Name, value);
+                    }
+                    _documentGridSettingsLadedFromFile = false;
+                }
+            }
+        }
+
+        private bool _tagGridSettingsLadedFromFile = false;
+        private DataGridSettings _tagsGridSettings;
+
+        public DataGridSettings TagsGridSettings
+        {
+            get { return _tagsGridSettings; }
+            set
+            {
+                if (Set(() => TagsGridSettings, ref _tagsGridSettings, value))
+                {
+                    if (value != null && !_tagGridSettingsLadedFromFile)
+                    {
+                        GlobalStore.SaveGridSettings("ManageData_Tags", _currentDataSet.Name, value);
+                    }
+                    _tagGridSettingsLadedFromFile = false;
+                }
+            }
+        }
+
+        #endregion
 
         public RelayCommand CopyToClipboardCommand { get; private set; }
 
@@ -580,7 +675,7 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentAddTag);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
-                var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>());
+                var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(), TagsGridSettings);
                 var view = new AssignTagDialog { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
@@ -642,7 +737,7 @@ namespace Slamby.TAU.ViewModel
                         commonTags.Add(((JObject)d)[_currentDataSet.TagField].ToObject<string>());
                     }
                 });
-                var context = new AssignTagDialogViewModel(new ObservableCollection<Tag>(Tags.Where(t => commonTags.Contains(t.Id))), new ObservableCollection<Tag>());
+                var context = new AssignTagDialogViewModel(new ObservableCollection<Tag>(Tags.Where(t => commonTags.Contains(t.Id))), new ObservableCollection<Tag>(), TagsGridSettings);
                 var view = new AssignTagDialog { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
@@ -880,7 +975,7 @@ namespace Slamby.TAU.ViewModel
         private async void SelectSampleTags()
         {
             Log.Info(LogMessages.ManageDataSampleTagSelect);
-            var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForSample));
+            var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForSample), TagsGridSettings);
             context.SelectedTags = _selectedTagsForSample;
             var view = new AssignTagDialog { DataContext = context };
             if ((bool)await _dialogHandler.Show(view, "RootDialog"))
@@ -895,7 +990,7 @@ namespace Slamby.TAU.ViewModel
         private async void SelectFilterTags()
         {
             Log.Info(LogMessages.ManageDataFilterTagSelect);
-            var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForFilter));
+            var context = new AssignTagDialogViewModel(Tags, new ObservableCollection<Tag>(_selectedTagsForFilter), TagsGridSettings);
             context.SelectedTags = _selectedTagsForFilter;
             var view = new AssignTagDialog { DataContext = context };
             if ((bool)await _dialogHandler.Show(view, "RootDialog"))

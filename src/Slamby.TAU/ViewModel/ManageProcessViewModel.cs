@@ -52,6 +52,7 @@ namespace Slamby.TAU.ViewModel
             LoadedCommand = new RelayCommand(async () =>
             {
                 Mouse.SetCursor(Cursors.Arrow);
+                SetGridSettings();
                 if (_loadedFirst && _processManager != null)
                 {
                     _loadedFirst = false;
@@ -123,5 +124,53 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
 
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
+
+        private bool _processesGridSettingsLadedFromFile = false;
+        private DataGridSettings _processesGridSettings;
+
+        public DataGridSettings ProcessesGridSettings
+        {
+            get { return _processesGridSettings; }
+            set
+            {
+                if (Set(() => ProcessesGridSettings, ref _processesGridSettings, value))
+                {
+                    if (value != null && !_processesGridSettingsLadedFromFile)
+                    {
+                        GlobalStore.SaveGridSettings("ManageProcess_Processes", "all", value);
+                    }
+                    _processesGridSettingsLadedFromFile = false;
+                }
+            }
+        }
+
+        private void SetGridSettings()
+        {
+            var gridSettingsDict = GlobalStore.GridSettingsDictionary;
+            if (gridSettingsDict != null && gridSettingsDict.Any())
+            {
+                if (gridSettingsDict.ContainsKey("ManageProcess_Processes"))
+                {
+                    var tagsSettings = gridSettingsDict["ManageProcess_Processes"];
+                    if (tagsSettings.ContainsKey("all"))
+                    {
+                        _processesGridSettingsLadedFromFile = true;
+                        ProcessesGridSettings = tagsSettings["all"];
+                    }
+                    else
+                    {
+                        ProcessesGridSettings = null;
+                    }
+                }
+                else
+                {
+                    ProcessesGridSettings = null;
+                }
+            }
+            else
+            {
+                ProcessesGridSettings = null;
+            }
+        }
     }
 }

@@ -17,5 +17,8 @@
     <Setting Name="UpdateFeed" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://tau.slamby.com/install/</Value>
     </Setting>
+    <Setting Name="GridSettingsDictionary" Provider="SlambySettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{}</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

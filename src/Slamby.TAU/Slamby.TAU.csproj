@@ -187,8 +187,10 @@
     <Compile Include="Converter\ObjectToStringConverter.cs" />
     <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
     <Compile Include="Converter\StringToCellTemplateConverter.cs" />
+    <Compile Include="Helper\Commands.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
     <Compile Include="Helper\InterTabClient.cs" />
+    <Compile Include="Model\DataGridSettings.cs" />
     <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />

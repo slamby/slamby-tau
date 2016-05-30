@@ -8,6 +8,7 @@
              xmlns:command="http://www.galasoft.ch/mvvmlight"
              xmlns:converter="clr-namespace:Slamby.TAU.Converter"
              xmlns:fa="http://schemas.fontawesome.io/icons/"
+             xmlns:control="clr-namespace:Slamby.TAU.Control"
              mc:Ignorable="d" 
              DataContext="{Binding ManageProcess, Source={StaticResource Locator}}"
              d:DesignHeight="300" d:DesignWidth="300">
@@ -24,9 +25,9 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Grid>
-        <DataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True">
+        <control:CustomDataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True" GridSettings="{Binding ProcessesGridSettings}">
             <DataGrid.Columns>
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Refresh">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button VerticalAlignment="Center" Command="{Binding ManageProcess.RefreshProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem.Id}" ToolTip="Refresh">
@@ -35,7 +36,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Cancel">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button VerticalAlignment="Center" Command="{Binding ManageProcess.CancelProcessCommand, Source={StaticResource Locator}}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=SelectedItem}" Content="Cancel" IsEnabled="{Binding Path=Status, Converter={StaticResource ProcessStatusToBoolConverter}}"/>
@@ -69,6 +70,6 @@
                 <DataGridTextColumn Header="ErrorMessages" MaxWidth="200" Binding="{Binding ErrorMessages, Converter={StaticResource StringListToStringConverter}}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
             </DataGrid.Columns>
-        </DataGrid>
+        </control:CustomDataGrid>
     </Grid>
 </UserControl>
