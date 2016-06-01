@@ -36,7 +36,8 @@ namespace Slamby.TAU.ViewModel
                 Uri uri = new Uri(baseUri, SelectedRelease);
                 using (var mgr = new UpdateManager(uri.ToString(), "SlambyTau"))
                 {
-                    Directory.Delete(Path.Combine(mgr.RootAppDirectory, "packages"), true);
+                    if (Directory.Exists(Path.Combine(mgr.RootAppDirectory, "packages")))
+                        Directory.Delete(Path.Combine(mgr.RootAppDirectory, "packages"), true);
                     await mgr.FullInstall();
                 }
                 Application.Current.Shutdown();
