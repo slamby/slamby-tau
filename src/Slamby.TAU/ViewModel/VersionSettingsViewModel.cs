@@ -31,9 +31,9 @@ namespace Slamby.TAU.ViewModel
         {
             ApplyReleaseCommand = new RelayCommand(async () =>
             {
-                var selectedVersion = $"{SelectedRelease.Major}.{SelectedRelease.Minor}.{SelectedRelease.Build}";
+                if (string.IsNullOrEmpty(SelectedRelease)) return;
                 Uri baseUri = new Uri(Settings.Default.UpdateFeed);
-                Uri uri = new Uri(baseUri, selectedVersion);
+                Uri uri = new Uri(baseUri, SelectedRelease);
                 using (var mgr = new UpdateManager(uri.ToString(), "SlambyTau"))
                 {
                     Directory.Delete(Path.Combine(mgr.RootAppDirectory, "packages"), true);
@@ -54,30 +54,30 @@ namespace Slamby.TAU.ViewModel
                 }
 
                 AvailableReleases =
-                    new ObservableCollection<Version>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(v => new Version(v)));
-                CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                    new ObservableCollection<string>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries));
+                CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             });
         }
 
-        private ObservableCollection<Version> _availableReleases = new ObservableCollection<Version>();
+        private ObservableCollection<string> _availableReleases = new ObservableCollection<string>();
 
-        public ObservableCollection<Version> AvailableReleases
+        public ObservableCollection<string> AvailableReleases
         {
             get { return _availableReleases; }
             set { Set(() => AvailableReleases, ref _availableReleases, value); }
         }
 
-        private Version _currentVersion;
+        private string _currentVersion;
 
-        public Version CurrentVersion
+        public string CurrentVersion
         {
             get { return _currentVersion; }
             set { Set(() => CurrentVersion, ref _currentVersion, value); }
         }
 
-        private Version _selectedRelease;
+        private string _selectedRelease;
 
-        public Version SelectedRelease
+        public string SelectedRelease
         {
             get { return _selectedRelease; }
             set { Set(() => SelectedRelease, ref _selectedRelease, value); }

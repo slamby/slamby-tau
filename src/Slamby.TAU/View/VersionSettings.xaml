@@ -16,21 +16,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock Text="{Binding CurrentVersion, StringFormat=Current version: {0}}" HorizontalAlignment="Left" FontWeight="Bold" Margin="15,10,15,15"/>
         <TextBlock Grid.Row="1" Margin="10,0" Text="AvailableReleases:"/>
-        <DataGrid Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" SelectionMode="Single" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True">
-            <DataGrid.ContextMenu>
+        <ListView Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" Width="Auto">
+            <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Apply" Command="{Binding ApplyReleaseCommand}"/>
                 </ContextMenu>
-            </DataGrid.ContextMenu>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Major" Binding="{Binding Major}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Minor" Binding="{Binding Minor}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Build" Binding="{Binding Build}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            </ListView.ContextMenu>
+        </ListView>
     </Grid>
 </UserControl>
