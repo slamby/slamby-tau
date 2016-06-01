@@ -16,6 +16,11 @@ namespace Slamby.TAU.Design
             throw new NotImplementedException();
         }
 
+        public Task<ClientResponse> CreateDataSetSchemaAsync(DataSet dataSet)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ClientResponse> DeleteDataSetAsync(string dataSetName)
         {
             throw new NotImplementedException();

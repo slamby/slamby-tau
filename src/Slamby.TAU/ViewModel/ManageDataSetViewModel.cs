@@ -24,6 +24,7 @@ using System.Threading;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
 using Dragablz;
+using Newtonsoft.Json;
 using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.TAU.Properties;
 using Slamby.TAU.View;
@@ -123,23 +124,25 @@ namespace Slamby.TAU.ViewModel
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
-                }
-            }
-                                : new DataSet
-                                {
-                                    NGramCount = SelectedDataSet.NGramCount,
-                                    IdField = SelectedDataSet.IdField,
-                                    TagField = SelectedDataSet.TagField,
-                                    InterpretedFields = SelectedDataSet.InterpretedFields,
-                                    SampleDocument = SelectedDataSet.SampleDocument
-                                };
+                },
+                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tag\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
+            } : new DataSet
+            {
+                NGramCount = SelectedDataSet.NGramCount,
+                IdField = SelectedDataSet.IdField,
+                TagField = SelectedDataSet.TagField,
+                InterpretedFields = SelectedDataSet.InterpretedFields,
+                SampleDocument = SelectedDataSet.SampleDocument,
+                Schema = selectedDataSet.Schema
+            };
             var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
             var isAccepted = await _dialogHandler.Show(view, "RootDialog");
             if ((bool)isAccepted)
             {
                 await _dialogHandler.ShowProgress(null, async () =>
                 {
-                    var response = await _dataSetManager.CreateDataSetAsync(newDataSet);
+
+                    var response = newDataSet.Schema == null ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
                     if (ResponseValidator.Validate(response))
                     {
                         var createdResponse = await _dataSetManager.GetDataSetAsync(newDataSet.Name);

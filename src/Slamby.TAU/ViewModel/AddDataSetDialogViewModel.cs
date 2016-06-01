@@ -28,7 +28,8 @@ namespace Slamby.TAU.ViewModel
             AcceptCommand = new RelayCommand<DataSet>(ds =>
             {
                 Log.Info(string.Format(LogMessages.AddDataSetAcceptCommand, ds.Name));
-                DataSet.SampleDocument = JsonConvert.DeserializeObject(SampleDocument);
+                DataSet.SampleDocument = SampleDocumentChecked ? JsonConvert.DeserializeObject(SampleDocument) : null;
+                DataSet.Schema = SampleDocumentChecked ? null : JsonConvert.DeserializeObject(DocumentSchema);
                 DialogHost.CloseDialogCommand.Execute(true, null);
             }, Validate);
 
@@ -36,6 +37,7 @@ namespace Slamby.TAU.ViewModel
             Name = dataSet.Name;
             NGramCount = dataSet.NGramCount;
             SampleDocument = JsonConvert.SerializeObject(dataSet.SampleDocument, Formatting.Indented);
+            DocumentSchema = JsonConvert.SerializeObject(dataSet.Schema, Formatting.Indented);
             InterpretedFields = dataSet.InterpretedFields;
         }
 
@@ -52,6 +54,13 @@ namespace Slamby.TAU.ViewModel
             }
         }
 
+        private bool _sampleDocumentChecked = true;
+
+        public bool SampleDocumentChecked
+        {
+            get { return _sampleDocumentChecked; }
+            set { Set(() => SampleDocumentChecked, ref _sampleDocumentChecked, value); }
+        }
 
         private string _sampleDocument;
 
@@ -63,6 +72,14 @@ namespace Slamby.TAU.ViewModel
                 Set(() => SampleDocument, ref _sampleDocument, value);
                 AcceptCommand.RaiseCanExecuteChanged();
             }
+        }
+
+        private string _documentSchema;
+
+        public string DocumentSchema
+        {
+            get { return _documentSchema; }
+            set { Set(() => DocumentSchema, ref _documentSchema, value); }
         }
 
 
@@ -92,6 +109,11 @@ namespace Slamby.TAU.ViewModel
                 AcceptCommand.RaiseCanExecuteChanged();
             }
         }
+
+        public RelayCommand HelpCommand { get; private set; } = new RelayCommand(() =>
+            {
+                System.Diagnostics.Process.Start("http://developers.slamby.com");
+            });
 
         public RelayCommand<DataSet> AcceptCommand { get; private set; }
 
@@ -130,6 +152,10 @@ namespace Slamby.TAU.ViewModel
                 case "SampleDocument":
                     var sampleDocValidationResult = new JsonValidationRule().Validate(SampleDocument, CultureInfo.CurrentCulture);
                     error = sampleDocValidationResult.IsValid ? null : sampleDocValidationResult.ErrorContent.ToString();
+                    break;
+                case "DocumentSchema":
+                    var docSchemaValidationResult = new JsonValidationRule().Validate(DocumentSchema, CultureInfo.CurrentCulture);
+                    error = docSchemaValidationResult.IsValid ? null : docSchemaValidationResult.ErrorContent.ToString();
                     break;
                 default:
                     error = null;

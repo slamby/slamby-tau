@@ -580,7 +580,7 @@ namespace Slamby.TAU.ViewModel
             {
                 Header = "Add Document",
                 Buttons = ButtonsEnum.OkCancel,
-                Content = new JContent(_currentDataSet.SampleDocument)
+                Content = new JContent(_currentDataSet.SampleDocument ?? new object())
             };
             var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
             if ((CommonDialogResult)result == CommonDialogResult.Ok)

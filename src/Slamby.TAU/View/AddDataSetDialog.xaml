@@ -8,6 +8,7 @@
              xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converter="clr-namespace:Slamby.TAU.Converter"
              xmlns:helper="clr-namespace:Slamby.TAU.Helper"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -29,6 +30,8 @@
         <ScrollViewer MaxHeight="800" MaxWidth="1200" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
             <Grid Margin="16" MinWidth="400">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -70,9 +73,16 @@
                 <TextBox wpf:TextFieldAssist.Hint="InterpretedFields" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
                  Margin="0 8 0 0" Text="{Binding Path=InterpretedFields, Converter={StaticResource StringListToStringConverter}}"
                  FontSize="16" Grid.Row="5"/>
+                <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0 8 0 0">
+                    <RadioButton IsChecked="{Binding SampleDocumentChecked}" Content="SampleDocument" GroupName="SampleOrSchema" x:Name="SampleRadioButton"/>
+                    <RadioButton Content="DocumentSchema" GroupName="SampleOrSchema" x:Name="SchemaRadioButton"/>
+                </StackPanel>
+                <Button Command="{Binding HelpCommand}" Grid.Row="7" HorizontalAlignment="Left"  ToolTip="How can I create my own schema?" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <fa:ImageAwesome Icon="Question" Height="15" Width="15" Margin="10,0"/>
+                </Button>
                 <TextBox wpf:TextFieldAssist.Hint="SampleDocument" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True"
-                 FontSize="12" Grid.Row="6">
+                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SampleRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
                     <TextBox.Text>
                         <Binding Path="SampleDocument" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
@@ -81,7 +91,17 @@
                         </Binding>
                     </TextBox.Text>
                 </TextBox>
-
+                <TextBox wpf:TextFieldAssist.Hint="DocumentSchema" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
+                    <TextBox.Text>
+                        <Binding Path="DocumentSchema" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
             </Grid>
         </ScrollViewer>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="20">
