@@ -52,7 +52,13 @@ namespace Slamby.TAU.ViewModel
             ImportTagCommand = new RelayCommand(ImportJson<Tag>);
             ImportDocumentCsvCommand = new RelayCommand(ImportCsv<object>);
             ImportTagCsvCommand = new RelayCommand(ImportCsv<Tag>);
-            DoubleClickCommand = new RelayCommand(() => Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab, new HeaderedItemViewModel(SelectedDataSet.Name + " -Data", new ManageData { DataContext = new ManageDataViewModel(SelectedDataSet, _dialogHandler) }, true))));
+            DoubleClickCommand = new RelayCommand(() =>
+                {
+                    if (SelectedDataSet != null)
+                        Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
+                          new HeaderedItemViewModel(SelectedDataSet.Name + " -Data",
+                              new ManageData { DataContext = new ManageDataViewModel(SelectedDataSet, _dialogHandler) }, true)));
+                });
             DeleteCommand = new RelayCommand(Delete);
             if (_loadedFirst)
             {
@@ -203,7 +209,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new TagBulkSettings();
                                         settings.Tags = importResult.Tokens.Select(t => t.ToObject<Tag>()).ToList();
-                                        response = await new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings);
+                                        response = await new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings);
                                         ResponseValidator.Validate(response);
                                     }
                                     catch (Exception ex)
@@ -236,7 +242,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
-                                        response = await new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings);
+                                        response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
                                         if (!ResponseValidator.Validate(response))
                                         {
                                             return;
@@ -326,7 +332,7 @@ namespace Slamby.TAU.ViewModel
                                 {
                                     var settings = new TagBulkSettings();
                                     settings.Tags = tokens.Select(t => t.ToObject<Tag>()).ToList();
-                                    response = new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
+                                    response = new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
                                     ResponseValidator.Validate(response);
                                 }
                                 catch (Exception ex)
@@ -360,7 +366,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(GlobalStore.BulkSize).Select(t => t.ToObject<object>()).ToList();
-                                        response = new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
                                     }
                                     catch (Exception ex)
                                     {
@@ -393,7 +399,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(remaining).Select(t => t.ToObject<object>()).ToList();
-                                        response = new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
                                     }
                                     catch (Exception ex)
                                     {

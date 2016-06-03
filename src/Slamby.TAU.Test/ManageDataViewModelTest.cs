@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using GalaSoft.MvvmLight.Messaging;
 using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Slamby.SDK.Net;
 using Slamby.SDK.Net.Managers;
 using Slamby.SDK.Net.Models;
 using Slamby.TAU.Enum;
@@ -19,7 +20,11 @@ namespace Slamby.TAU.Test
         public void TestInitialize()
         {
             GlobalStore.IsInTestMode = true;
-            GlobalStore.EndpointConfiguration.ApiBaseEndpoint=new Uri("http://tautest/");
+            GlobalStore.SelectedEndpoint = new ConfigurationWithId
+            {
+                ApiBaseEndpoint = new Uri("http://tautest/"),
+                ApiSecret = "s3cr3t"
+            };
         }
 
 

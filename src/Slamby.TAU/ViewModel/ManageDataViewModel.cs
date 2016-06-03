@@ -43,8 +43,8 @@ namespace Slamby.TAU.ViewModel
         public ManageDataViewModel(DataSet dataSet, DialogHandler dialogHandler)
         {
 
-            _documentManager = new DocumentManager(GlobalStore.EndpointConfiguration, dataSet.Name);
-            _tagManager = new TagManager(GlobalStore.EndpointConfiguration, dataSet.Name);
+            _documentManager = new DocumentManager(GlobalStore.SelectedEndpoint, dataSet.Name);
+            _tagManager = new TagManager(GlobalStore.SelectedEndpoint, dataSet.Name);
             _currentDataSet = dataSet;
             _dialogHandler = dialogHandler;
 

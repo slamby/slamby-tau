@@ -10,7 +10,11 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using Slamby.TAU.Enum;
+using Slamby.TAU.Helper;
 using Slamby.TAU.Logger;
+using Slamby.TAU.Model;
 using Slamby.TAU.Properties;
 using Squirrel;
 
@@ -44,19 +48,35 @@ namespace Slamby.TAU.ViewModel
             });
             LoadedCommand = new RelayCommand(() =>
             {
-                String content = "";
-                using (var client = new WebClient())
-                {
-                    Stream stream = client.OpenRead(Settings.Default.UpdateFeed + "RELEASES");
-                    using (var reader = new StreamReader(stream))
-                    {
-                        content = reader.ReadToEnd();
-                    }
-                }
-
-                AvailableReleases =
-                    new ObservableCollection<string>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries));
                 CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                UpdateFeed = GlobalStore.UpdateFeed;
+                AvailableReleases = new ObservableCollection<string>();
+                try
+                {
+                    String content = "";
+                    using (var client = new WebClient())
+                    {
+                        Stream stream = client.OpenRead(Settings.Default.UpdateFeed + "RELEASES");
+                        using (var reader = new StreamReader(stream))
+                        {
+                            content = reader.ReadToEnd();
+                        }
+                    }
+
+                    AvailableReleases =
+                        new ObservableCollection<string>(content.Split(new string[] { "\r\n", "\n" },
+                            StringSplitOptions.RemoveEmptyEntries));
+                }
+                catch (Exception exception)
+                {
+                    var exc = new Exception("Update feed is not available!", exception);
+                    Messenger.Default.Send(exc);
+                }
+            });
+            ApplyFeedCommand = new RelayCommand(() =>
+            {
+                GlobalStore.UpdateFeed = UpdateFeed;
+                LoadedCommand.Execute(null);
             });
         }
 
@@ -84,9 +104,19 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => SelectedRelease, ref _selectedRelease, value); }
         }
 
+        private string _updateFeed;
+
+        public string UpdateFeed
+        {
+            get { return _updateFeed; }
+            set { Set(() => UpdateFeed, ref _updateFeed, value); }
+        }
+
         public RelayCommand ApplyReleaseCommand { get; private set; }
 
         public RelayCommand LoadedCommand { get; private set; }
+
+        public RelayCommand ApplyFeedCommand { get; private set; }
 
     }
 }

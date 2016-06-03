@@ -31,6 +31,21 @@ namespace Slamby.TAU.ViewModel
             set { Set(() => Content, ref _content, value); }
         }
 
+        private string _errorMessage;
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            set { Set(() => ErrorMessage, ref _errorMessage, value); }
+        }
+
+        private bool _showError;
+
+        public bool ShowError
+        {
+            get { return _showError; }
+            set { Set(() => ShowError, ref _showError, value); }
+        }
 
         private bool _yesButtonIsVisible;
 

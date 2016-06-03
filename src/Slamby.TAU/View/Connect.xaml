@@ -1,0 +1,61 @@
+﻿<UserControl x:Class="Slamby.TAU.View.Connect"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Slamby.TAU.View"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:sdk="clr-namespace:Slamby.SDK.Net;assembly=Slamby.SDK.Net"
+             mc:Ignorable="d" 
+             DataContext="{StaticResource ConnectViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <materialDesign:DialogHost Identifier="ConnectDialog">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <ListView ItemsSource="{Binding Endpoints}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}" SelectionMode="Single">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDoubleClick">
+                        <i:InvokeCommandAction Command="{Binding SelectCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <ListView.Resources>
+                    <DataTemplate DataType="{x:Type sdk:Configuration}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding ApiBaseEndpoint, StringFormat=Uri:  {0}}" Margin="5" Grid.ColumnSpan="2"/>
+                            <TextBlock Margin="5" Grid.Row="1" Text="secret" ToolTip="{Binding ApiSecret}"/>
+                            <TextBlock Margin="5" Grid.Row="1" Grid.Column="1" Text="{Binding ParallelLimit, StringFormat=Paralell Limit:  {0}}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.Resources>
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Select" Command="{Binding SelectCommand}"/>
+                        <MenuItem Header="Edit" Command="{Binding EditCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+            </ListView>
+            <Grid Background="White" Grid.Row="1">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button Content="New" Command="{Binding NewCommand}" Margin="5"/>
+                    <Button Content="Delete" Command="{Binding DeleteCommand}" Margin="5"/>
+                    <Button Content="Edit" Command="{Binding EditCommand}" Margin="5"/>
+                    <Button Content="Select" Command="{Binding SelectCommand}" Margin="5"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </materialDesign:DialogHost>
+</UserControl>

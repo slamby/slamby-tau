@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Slamby.TAU.View"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" >
+             d:DesignHeight="300" d:DesignWidth="400" >
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
@@ -14,6 +14,7 @@
     </i:Interaction.Triggers>
     <Grid Background="White">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -28,5 +29,10 @@
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="10,20">
+            <TextBlock Text="UpdateFeed:" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+            <TextBox Text="{Binding UpdateFeed}" Width="Auto" MinWidth="200" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+            <Button Content="Apply" Command="{Binding ApplyFeedCommand}" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </UserControl>

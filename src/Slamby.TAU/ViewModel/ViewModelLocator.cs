@@ -39,7 +39,7 @@ namespace Slamby.TAU.ViewModel
         /// </summary>
         public ViewModelLocator()
         {
-            DispatcherHelper.Initialize();
+            SimpleIoc.Default.Reset();
             Messenger.Default.Register<UpdateMessage>(this, m =>
             {
                 switch (m.UpdateType)
@@ -72,12 +72,12 @@ namespace Slamby.TAU.ViewModel
                 else
                 {
                     SimpleIoc.Default.Register<DialogHandler>();
-                    SimpleIoc.Default.Register<IDataSetManager>(() => new DataSetManager(GlobalStore.EndpointConfiguration));
-                    SimpleIoc.Default.Register<IServiceManager>(() => new ServiceManager(GlobalStore.EndpointConfiguration));
-                    SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.EndpointConfiguration));
-                    SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.EndpointConfiguration));
-                    SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.EndpointConfiguration));
-                    SimpleIoc.Default.Register<StatusManager>(() => new StatusManager(GlobalStore.EndpointConfiguration));
+                    SimpleIoc.Default.Register<IDataSetManager>(() => new DataSetManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<IServiceManager>(() => new ServiceManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<StatusManager>(() => new StatusManager(GlobalStore.SelectedEndpoint));
                 }
             }
 

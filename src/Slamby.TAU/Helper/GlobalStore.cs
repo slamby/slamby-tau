@@ -13,26 +13,6 @@ namespace Slamby.TAU.Helper
 {
     public static class GlobalStore
     {
-        private static Configuration _endpointConfiguration = new Configuration
-        {
-            ApiBaseEndpoint = new Uri(Settings.Default["EndpointUri"].ToString()),
-            ApiSecret = Settings.Default["EndpointSecret"].ToString()
-        };
-        public static Configuration EndpointConfiguration
-        {
-            get
-            {
-                return _endpointConfiguration;
-            }
-            set
-            {
-                _endpointConfiguration = value;
-                Settings.Default["EndpointUri"] = value.ApiBaseEndpoint.ToString();
-                Settings.Default["EndpointSecret"] = value.ApiSecret.ToString();
-                if (!IsInTestMode)
-                    Settings.Default.Save();
-            }
-        }
 
         private static int _bulkSize = Int32.Parse(Settings.Default["BulkSize"].ToString());
 
@@ -97,6 +77,46 @@ namespace Slamby.TAU.Helper
                 settingsToSave = settingsDict;
             }
             GridSettingsDictionary = settingsToSave;
+        }
+
+
+        private static List<ConfigurationWithId> _endpoints = JArray.Parse(Settings.Default["Endpoints"].ToString()).ToObject<List<ConfigurationWithId>>();
+
+        public static List<ConfigurationWithId> Endpoints
+        {
+            get { return _endpoints; }
+            set
+            {
+                _endpoints = value;
+                Settings.Default["Endpoints"] = JArray.FromObject(value).ToString();
+                if (!IsInTestMode)
+                    Settings.Default.Save();
+            }
+        }
+
+        private static ConfigurationWithId _selectedEndpoint = JObject.Parse(Settings.Default["SelectedEndpoint"].ToString()).ToObject<ConfigurationWithId>();
+        public static ConfigurationWithId SelectedEndpoint {
+            get { return _selectedEndpoint; }
+            set
+            {
+                _selectedEndpoint = value;
+                Settings.Default["SelectedEndpoint"] = JObject.FromObject(value).ToString();
+                if (!IsInTestMode)
+                    Settings.Default.Save();
+            }
+        }
+
+        private static string _updateFeed = Settings.Default["UpdateFeed"].ToString();
+        public static string UpdateFeed
+        {
+            get { return _updateFeed; }
+            set
+            {
+                _updateFeed = value;
+                Settings.Default["UpdateFeed"] = value;
+                if (!IsInTestMode)
+                    Settings.Default.Save();
+            }
         }
 
         public static bool IsInTestMode { get; set; } = false;

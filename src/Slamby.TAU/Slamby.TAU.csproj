@@ -191,10 +191,12 @@
     <Compile Include="Helper\Commands.cs" />
     <Compile Include="Helper\DialogHandler.cs" />
     <Compile Include="Helper\InterTabClient.cs" />
+    <Compile Include="Model\ConfigurationWithId.cs" />
     <Compile Include="Model\DataGridSettings.cs" />
     <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />
+    <Compile Include="ViewModel\ConnectViewModel.cs" />
     <Compile Include="ViewModel\ManageProcessViewModel.cs" />
     <Compile Include="ViewModel\ResourcesMonitorViewModel.cs" />
     <Compile Include="ViewModel\VersionSettingsViewModel.cs" />
@@ -210,6 +212,12 @@
     <Compile Include="Control\CustomDataGrid.cs" />
     <Compile Include="Converter\IListToObservableConverter.cs" />
     <Compile Include="Converter\StringListToStringConverter.cs" />
+    <Compile Include="View\Connect.xaml.cs">
+      <DependentUpon>Connect.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ConnectWindow.xaml.cs">
+      <DependentUpon>ConnectWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\DataSetSelector.xaml.cs">
       <DependentUpon>DataSetSelector.xaml</DependentUpon>
     </Compile>
@@ -219,9 +227,6 @@
     <Compile Include="Design\DesignTagManager.cs" />
     <Compile Include="View\EmptyTabClient.xaml.cs">
       <DependentUpon>EmptyTabClient.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\EndPointSettings.xaml.cs">
-      <DependentUpon>EndPointSettings.xaml</DependentUpon>
     </Compile>
     <Compile Include="Enum\ActiveSourceEnum.cs" />
     <Compile Include="Enum\ButtonsEnum.cs" />
@@ -281,7 +286,6 @@
     <Compile Include="ViewModel\ErrorViewModel.cs" />
     <Compile Include="ViewModel\ManageServiceViewModel.cs" />
     <Compile Include="ViewModel\PaginatorViewModel.cs" />
-    <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="ViewModel\StatusDialogViewModel.cs" />
     <Compile Include="ViewModel\AddDataSetDialogViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
@@ -304,15 +308,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Connect.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ConnectWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\DataSetSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\EmptyTabClient.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\EndPointSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -240,7 +240,7 @@
                                 </ListBox.ItemTemplate>
                                 <models:MenuItem Name="Endpoint">
                                     <models:MenuItem.Content>
-                                        <view:EndPointSettings/>
+                                        <view:Connect HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                                     </models:MenuItem.Content>
                                 </models:MenuItem>
                                 <models:MenuItem Name="Version">
@@ -260,11 +260,7 @@
                             </ListBox>
                         </StackPanel>
 
-                        <ContentControl Content="{Binding ElementName=SettingsMenuItemsListBox, Path=SelectedItem.Content}" >
-                            <ContentControl.DataContext>
-                                <viewModels:SettingsViewModel/>
-                            </ContentControl.DataContext>
-                        </ContentControl>
+                        <ContentControl Content="{Binding ElementName=SettingsMenuItemsListBox, Path=SelectedItem.Content}" />
                     </DockPanel>
                 </Grid>
             </materialDesign:DialogHost>

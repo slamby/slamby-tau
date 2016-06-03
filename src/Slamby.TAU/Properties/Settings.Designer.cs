@@ -98,5 +98,33 @@ namespace Slamby.TAU.Properties {
                 this["GridSettingsDictionary"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(SlambySettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[{\"ApiBaseEndpoint\":\"https://api.slamby.com/demo-api/\",  \"ApiSecret\": \"s3cr3t\",  " +
+            " \"Timeout\": \"00:05:00\",   \"ParallelLimit\": 1000}]")]
+        public string Endpoints {
+            get {
+                return ((string)(this["Endpoints"]));
+            }
+            set {
+                this["Endpoints"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(SlambySettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"ApiBaseEndpoint\":\"https://api.slamby.com/demo-api/\",  \"ApiSecret\": \"s3cr3t\",   " +
+            "\"Timeout\": \"00:05:00\",   \"ParallelLimit\": 1000}")]
+        public string SelectedEndpoint {
+            get {
+                return ((string)(this["SelectedEndpoint"]));
+            }
+            set {
+                this["SelectedEndpoint"] = value;
+            }
+        }
     }
 }
