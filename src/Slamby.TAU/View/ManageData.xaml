@@ -55,7 +55,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All" RowHeight="50"
-                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True" GridSettings="{Binding DocumetsGridSettings}"
+                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True" GridSettings="{Binding DocumetsGridSettings, Mode=TwoWay}"
                                   CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedDocuments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}">
                                     <i:Interaction.Triggers>
                                         <i:EventTrigger EventName="MouseDoubleClick">

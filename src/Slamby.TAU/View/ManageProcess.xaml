@@ -25,7 +25,7 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Grid>
-        <control:CustomDataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True" GridSettings="{Binding ProcessesGridSettings}">
+        <control:CustomDataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True" GridSettings="{Binding ProcessesGridSettings, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Refresh">
                     <DataGridTemplateColumn.CellTemplate>
