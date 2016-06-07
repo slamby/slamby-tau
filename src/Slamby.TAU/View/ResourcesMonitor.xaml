@@ -29,6 +29,7 @@
                     <TextBlock Text="{Binding Status.TotalMemory, StringFormat={}{0} Mb}"/>
                 </StackPanel>
                 <TextBlock Margin="0,5"  Text="{Binding Status.AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}"/>
+                <TextBlock Margin="0,5"  Text="{Binding Status.ProcessorCount, StringFormat=Processor count: {0}}"/>
             </StackPanel>
         </materialDesign:Card>
         <StackPanel Grid.Row="1" Margin="20,0" Orientation="Horizontal">
