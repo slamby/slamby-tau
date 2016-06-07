@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace Slamby.TAU.View
 {
     /// <summary>
-    /// Interaction logic for EndPointSettings.xaml
+    /// Interaction logic for Connect.xaml
     /// </summary>
-    public partial class EndPointSettings : UserControl
+    public partial class Connect : UserControl
     {
-        public EndPointSettings()
+        public Connect()
         {
             InitializeComponent();
         }

@@ -13,7 +13,7 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json.Linq;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 using Slamby.SDK.Net.Models.Enums;
 using Slamby.SDK.Net.Models.Services;
@@ -50,6 +50,7 @@ namespace Slamby.TAU.ViewModel
             LoadedCommand = new RelayCommand(async () =>
                 {
                     Mouse.SetCursor(Cursors.Arrow);
+                    SetGridSettings();
                     if (_loadedFirst && _serviceManager != null)
                     {
                         _loadedFirst = false;
@@ -182,6 +183,55 @@ namespace Slamby.TAU.ViewModel
                     });
             }
         }
+
+        private bool _servicesGridSettingsLadedFromFile = false;
+        private DataGridSettings _servicesGridSettings;
+
+        public DataGridSettings ServicesGridSettings
+        {
+            get { return _servicesGridSettings; }
+            set
+            {
+                if (Set(() => ServicesGridSettings, ref _servicesGridSettings, value))
+                {
+                    if (value != null && !_servicesGridSettingsLadedFromFile)
+                    {
+                        GlobalStore.SaveGridSettings("ManageService_Services", "all", value);
+                    }
+                    _servicesGridSettingsLadedFromFile = false;
+                }
+            }
+        }
+
+        private void SetGridSettings()
+        {
+            var gridSettingsDict = GlobalStore.GridSettingsDictionary;
+            if (gridSettingsDict != null && gridSettingsDict.Any())
+            {
+                if (gridSettingsDict.ContainsKey("ManageService_Services"))
+                {
+                    var tagsSettings = gridSettingsDict["ManageService_Services"];
+                    if (tagsSettings.ContainsKey("all"))
+                    {
+                        _servicesGridSettingsLadedFromFile = true;
+                        ServicesGridSettings = tagsSettings["all"];
+                    }
+                    else
+                    {
+                        ServicesGridSettings = null;
+                    }
+                }
+                else
+                {
+                    ServicesGridSettings = null;
+                }
+            }
+            else
+            {
+                ServicesGridSettings = null;
+            }
+        }
+
 
         private async void ShowDetails()
         {

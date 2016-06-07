@@ -13,6 +13,9 @@
              xmlns:control="clr-namespace:Slamby.TAU.Control"
              xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:view="clr-namespace:Slamby.TAU.View"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:linq="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+             xmlns:helper="clr-namespace:Slamby.TAU.Helper"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1000">
     <i:Interaction.Triggers>
@@ -26,13 +29,13 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converter:IListToObservableConverter x:Key="IListToObservableConverter"/>
+            <converter:ObjectToStringConverter x:Key="ObjectToStringConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel>
         <dragablz:TabablzControl TextElement.Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=(TextElement.Foreground)}" 
                                  Background="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Path=Background}"
-                                 BorderThickness="0"
-                                 Margin="0,-1,0,1">
+                                 BorderThickness="0" Margin="0,-1,0,1">
             <TabItem Header="Documents">
                 <Grid Background="{DynamicResource PrimaryHueLightBrush}">
                     <Grid.RowDefinitions>
@@ -51,14 +54,19 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All"
-                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True"
+                                <control:CustomDataGrid ItemsSource="{Binding Documents}" CanUserAddRows="False" x:Name="DocumentDataGrid" HeadersVisibility="All" RowHeight="50"
+                              dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasItems}" IsIndexed="True" GridSettings="{Binding DocumetsGridSettings, Mode=TwoWay}"
                                   CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedDocuments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}">
                                     <i:Interaction.Triggers>
                                         <i:EventTrigger EventName="MouseDoubleClick">
                                             <i:InvokeCommandAction Command="{Binding ModifyDocumentCommand}"/>
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
                                     <DataGrid.ContextMenu>
                                         <ContextMenu x:Name="DocumentsContextMenu">
                                             <!--<ContextMenu.Template>
@@ -85,6 +93,13 @@
                                             <MenuItem Header="Move To" Click="ContextButtons_OnClick" Command="{Binding MoveToCommand}" Margin="2.5"/>
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
+                                    <!--<DataGrid.RowDetailsTemplate>
+                                        <DataTemplate>
+                                            <ScrollViewer VerticalAlignment="Bottom" MaxHeight="200" >
+                                                <TextBlock Text="{Binding Converter={StaticResource ObjectToStringConverter}}" TextWrapping="Wrap"/>
+                                            </ScrollViewer>
+                                        </DataTemplate>
+                                    </DataGrid.RowDetailsTemplate>-->
                                 </control:CustomDataGrid>
                                 <view:Paginator Grid.Row="2" HorizontalAlignment="Center" DataContext="{Binding DocumentPaginatorViewModel}" />
                             </Grid>
@@ -163,7 +178,19 @@
                         <RowDefinition Height="60"/>
                     </Grid.RowDefinitions>
                     <control:CustomDataGrid ItemsSource="{Binding Tags}" CanUserAddRows="False" dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="True" SelectionMode="Extended" IsIndexed="True" HeadersVisibility="All"
-                              CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}" AutoGenerateColumns="False">
+                              CanUserDeleteRows="False" IsReadOnly="True" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}"
+                                            AutoGenerateColumns="False" GridSettings="{Binding TagsGridSettings, Mode=TwoWay}">
+                        <!--<DataGrid.Resources>
+                            <ContextMenu x:Key="DataGridColumnHeaderContextMenu">
+                                <MenuItem Header="Add column"/>
+                                <MenuItem Header="Remove column" Command="{x:Static helper:Commands.RemoveColumnCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type control:CustomDataGrid}}, Path=CurrentColumn}"/>
+                            </ContextMenu>
+                        </DataGrid.Resources>
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ContextMenu"  Value="{StaticResource DataGridColumnHeaderContextMenu}" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>-->
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseDoubleClick">
                                 <i:InvokeCommandAction Command="{Binding ModifyTagTagCommand}"/>
@@ -180,7 +207,7 @@
                             <DataGridTextColumn Header="DocumentCount" Binding="{Binding Properties.DocumentCount}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="WordCount" Binding="{Binding Properties.WordCount}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Id" Binding="{Binding Id}" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentId}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ParentTagId" Binding="{Binding ParentId}" IsReadOnly="True" Width="*"/>
                         </DataGrid.Columns>
                     </control:CustomDataGrid>
                     <Grid Grid.Row="1">

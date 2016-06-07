@@ -8,14 +8,23 @@
     <Setting Name="BulkSize" Provider="SlambySettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1000</Value>
     </Setting>
-    <Setting Name="UpdateFeed" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://bulldozer:88/install/</Value>
-    </Setting>
     <Setting Name="EndpointUri" Provider="SlambySettingsProvider" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://tautest/</Value>
     </Setting>
     <Setting Name="UpdateSettings" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="UpdateFeed" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://tau.slamby.com/install/</Value>
+    </Setting>
+    <Setting Name="GridSettingsDictionary" Provider="SlambySettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{}</Value>
+    </Setting>
+    <Setting Name="Endpoints" Provider="SlambySettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">[{"ApiBaseEndpoint":"https://api.slamby.com/demo-api/",  "ApiSecret": "s3cr3t",   "Timeout": "00:05:00",   "ParallelLimit": 1000}]</Value>
+    </Setting>
+    <Setting Name="SelectedEndpoint" Provider="SlambySettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"ApiBaseEndpoint":"https://api.slamby.com/demo-api/",  "ApiSecret": "s3cr3t",   "Timeout": "00:05:00",   "ParallelLimit": 1000}</Value>
     </Setting>
   </Settings>
 </SettingsFile>

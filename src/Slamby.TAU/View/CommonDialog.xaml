@@ -11,66 +11,81 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
-        <ResourceDictionary>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        </ResourceDictionary>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <!--<RowDefinition Height="Auto"/>
+            <RowDefinition Height="2"/>-->
         </Grid.RowDefinitions>
-        <TextBlock Text="{Binding Header}" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="20"/>
-        <Separator Grid.Row="1" Background="{DynamicResource PrimaryHueLightBrush}"/>
-        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ContentControl Content="{Binding Content, Mode=TwoWay}" Margin="20,10">
-                <ContentControl.Resources>
-                    <ResourceDictionary>
-                        <DataTemplate DataType="{x:Type models:JContent}">
-                            <TextBox TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" MaxHeight="200" MaxWidth="700">
-                                <TextBox.Text>
-                                    <Binding Path="JString" UpdateSourceTrigger="PropertyChanged">
-                                        <Binding.ValidationRules>
-                                            <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
-                                        </Binding.ValidationRules>
-                                    </Binding>
-                                </TextBox.Text>
-                            </TextBox>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type models:CsvImportSettings}">
-                            <Grid MinWidth="100">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Label Content="Delimiter: " VerticalAlignment="Center"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Delimiter}" MinWidth="20" MaxWidth="50" VerticalAlignment="Center"/>
-                                <CheckBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Content="Force" IsChecked="{Binding Force}" Style="{StaticResource MaterialDesignCheckBox}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type models:Message}">
-                            <TextBox Text="{Binding Text}" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="20" MaxWidth="400" MaxHeight="500"/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type services:Service}">
-                            <StackPanel>
-                                <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <!--<ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="2"/>-->
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer MaxHeight="750" MaxWidth="750" VerticalScrollBarVisibility="Auto">
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Foreground="Red" HorizontalAlignment="Left" Margin="20" Visibility="{Binding ShowError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <TextBlock Grid.Row="1" Text="{Binding Header}" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="20"/>
+                <Separator Grid.Row="2" Background="{DynamicResource PrimaryHueLightBrush}"/>
+                <StackPanel Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <ContentControl Content="{Binding Content, Mode=TwoWay}" Margin="20,10" TabIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <ContentControl.Resources>
+                            <ResourceDictionary>
+                                <DataTemplate DataType="{x:Type models:JContent}">
+                                    <TextBox TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" VerticalScrollBarVisibility="Auto"  MaxHeight="600" MaxWidth="700">
+                                        <TextBox.Text>
+                                            <Binding Path="JString" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type models:CsvImportSettings}">
+                                    <Grid MinWidth="100">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Content="Delimiter: " VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Delimiter}" MinWidth="20" MaxWidth="50" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Content="Force" IsChecked="{Binding Force}" Style="{StaticResource MaterialDesignCheckBox}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type models:Message}">
+                                    <TextBox Text="{Binding Text}" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="20" MaxWidth="400" MaxHeight="500"/>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type services:Service}">
+                                    <StackPanel>
+                                        <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                                         Margin="0,6,0,0" FontSize="14" Text="{Binding Name}"/>
-                                <TextBox wpf:TextFieldAssist.Hint="Description" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
+                                        <TextBox wpf:TextFieldAssist.Hint="Description" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                                         Margin="0,10,0,0" FontSize="14" Text="{Binding Description}" MaxHeight="100" TextWrapping="Wrap"/>
-                                <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ResourceDictionary>
-                </ContentControl.Resources>
-            </ContentControl>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="20"
+                                        <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ResourceDictionary>
+                        </ContentControl.Resources>
+                    </ContentControl>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+        <StackPanel Orientation="Horizontal" Margin="20" Grid.Row="1"
                     HorizontalAlignment="Center">
             <Button IsDefault="True" Style="{DynamicResource MaterialDesignFlatButton}"
                     Command="{x:Static wpf:DialogHost.CloseDialogCommand}" Visibility="{Binding YesButtonIsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -86,7 +101,7 @@
                 </Button.CommandParameter>
                 NO
             </Button>
-            <Button IsCancel="True" Margin="8 0 0 0" Style="{DynamicResource MaterialDesignFlatButton}"
+            <Button IsDefault="True" Margin="8 0 0 0" Style="{DynamicResource MaterialDesignFlatButton}"
                     Command="{x:Static wpf:DialogHost.CloseDialogCommand}" Visibility="{Binding OkButtonIsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Button.CommandParameter>
                     <enum:CommonDialogResult>Ok</enum:CommonDialogResult>
@@ -101,5 +116,7 @@
                 CANCEL
             </Button>
         </StackPanel>
+        <!--<GridSplitter Grid.Row="3" Grid.ColumnSpan="3" Height="2" HorizontalAlignment="Stretch" Background="Black" ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent"/>
+        <GridSplitter Grid.Column="2" Grid.RowSpan="4" Width="2" VerticalAlignment="Stretch" Background="Black" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"/>-->
     </Grid>
 </UserControl>

@@ -24,6 +24,8 @@ using System.Threading;
 using GalaSoft.MvvmLight.Threading;
 using System.Windows.Input;
 using Dragablz;
+using Newtonsoft.Json;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.TAU.Properties;
 using Slamby.TAU.View;
 using CommonDialog = Slamby.TAU.View.CommonDialog;
@@ -50,7 +52,13 @@ namespace Slamby.TAU.ViewModel
             ImportTagCommand = new RelayCommand(ImportJson<Tag>);
             ImportDocumentCsvCommand = new RelayCommand(ImportCsv<object>);
             ImportTagCsvCommand = new RelayCommand(ImportCsv<Tag>);
-            DoubleClickCommand = new RelayCommand(() => Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab, new HeaderedItemViewModel(SelectedDataSet.Name + " -Data", new ManageData { DataContext = new ManageDataViewModel(SelectedDataSet, _dialogHandler) }, true))));
+            DoubleClickCommand = new RelayCommand(() =>
+                {
+                    if (SelectedDataSet != null)
+                        Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
+                          new HeaderedItemViewModel(SelectedDataSet.Name + " -Data",
+                              new ManageData { DataContext = new ManageDataViewModel(SelectedDataSet, _dialogHandler) }, true)));
+                });
             DeleteCommand = new RelayCommand(Delete);
             if (_loadedFirst)
             {
@@ -122,23 +130,25 @@ namespace Slamby.TAU.ViewModel
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
-                }
-            }
-                                : new DataSet
-                                {
-                                    NGramCount = SelectedDataSet.NGramCount,
-                                    IdField = SelectedDataSet.IdField,
-                                    TagField = SelectedDataSet.TagField,
-                                    InterpretedFields = SelectedDataSet.InterpretedFields,
-                                    SampleDocument = SelectedDataSet.SampleDocument
-                                };
+                },
+                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tag\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
+            } : new DataSet
+            {
+                NGramCount = SelectedDataSet.NGramCount,
+                IdField = SelectedDataSet.IdField,
+                TagField = SelectedDataSet.TagField,
+                InterpretedFields = SelectedDataSet.InterpretedFields,
+                SampleDocument = SelectedDataSet.SampleDocument,
+                Schema = selectedDataSet.Schema
+            };
             var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
             var isAccepted = await _dialogHandler.Show(view, "RootDialog");
             if ((bool)isAccepted)
             {
                 await _dialogHandler.ShowProgress(null, async () =>
                 {
-                    var response = await _dataSetManager.CreateDataSetAsync(newDataSet);
+
+                    var response = newDataSet.Schema == null ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
                     if (ResponseValidator.Validate(response))
                     {
                         var createdResponse = await _dataSetManager.GetDataSetAsync(newDataSet.Name);
@@ -199,7 +209,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new TagBulkSettings();
                                         settings.Tags = importResult.Tokens.Select(t => t.ToObject<Tag>()).ToList();
-                                        response = await new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings);
+                                        response = await new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings);
                                         ResponseValidator.Validate(response);
                                     }
                                     catch (Exception ex)
@@ -232,7 +242,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
-                                        response = await new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings);
+                                        response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
                                         if (!ResponseValidator.Validate(response))
                                         {
                                             return;
@@ -322,7 +332,7 @@ namespace Slamby.TAU.ViewModel
                                 {
                                     var settings = new TagBulkSettings();
                                     settings.Tags = tokens.Select(t => t.ToObject<Tag>()).ToList();
-                                    response = new TagManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
+                                    response = new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
                                     ResponseValidator.Validate(response);
                                 }
                                 catch (Exception ex)
@@ -356,7 +366,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(GlobalStore.BulkSize).Select(t => t.ToObject<object>()).ToList();
-                                        response = new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
                                     }
                                     catch (Exception ex)
                                     {
@@ -389,7 +399,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(remaining).Select(t => t.ToObject<object>()).ToList();
-                                        response = new DocumentManager(GlobalStore.EndpointConfiguration, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
                                     }
                                     catch (Exception ex)
                                     {
@@ -449,10 +459,11 @@ namespace Slamby.TAU.ViewModel
         private async void Delete()
         {
             Log.Info(LogMessages.ManageDataSetDeleteCommand);
+            if (SelectedDataSet == null) return;
             var context = new CommonDialogViewModel
             {
                 Content = new Message("Are you sure to remove the following data set: " + SelectedDataSet.Name),
-                Buttons = ButtonsEnum.YesNoCancel
+                Buttons = ButtonsEnum.YesNo
             };
             var view = new CommonDialog { DataContext = context };
             var result = await _dialogHandler.Show(view, "RootDialog");

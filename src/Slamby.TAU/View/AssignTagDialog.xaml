@@ -21,7 +21,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        <control:CustomDataGrid x:Name="TagDataGrid" HorizontalAlignment="Center" VerticalAlignment="Center" Height="400" MaxWidth="700" ItemsSource="{Binding Tags}"
+        <control:CustomDataGrid x:Name="TagDataGrid" HorizontalAlignment="Center" VerticalAlignment="Center" Height="400" MaxWidth="700" ItemsSource="{Binding Tags}" GridSettings="{Binding Settings, Mode=TwoWay}"
                                 CanUserAddRows="False" SelectedItemsList="{Binding SelectedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}"
                               dataGridExtensions:DataGridFilter.IsAutoFilterEnabled="True" IsIndexed="True" HeadersVisibility="All"
                               CanUserDeleteRows="False" IsReadOnly="True" AutoGenerateColumns="False">

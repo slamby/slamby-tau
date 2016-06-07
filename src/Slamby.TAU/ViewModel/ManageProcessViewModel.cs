@@ -6,7 +6,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
-using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Managers.Interfaces;
 using Slamby.SDK.Net.Models;
 using Slamby.SDK.Net.Models.Enums;
 using Slamby.TAU.Enum;
@@ -42,7 +42,9 @@ namespace Slamby.TAU.ViewModel
                         _loadedFirst = true;
                         break;
                     case UpdateType.NewProcessCreated:
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => Processes.Add((Process)message.Parameter));
+                        var processes = Processes.ToList();
+                        processes.Add((Process)message.Parameter);
+                        DispatcherHelper.CheckBeginInvokeOnUI(() => Processes = new ObservableCollection<Process>(processes.OrderByDescending(p => p.Start)));
                         break;
                 }
             });
@@ -50,6 +52,7 @@ namespace Slamby.TAU.ViewModel
             LoadedCommand = new RelayCommand(async () =>
             {
                 Mouse.SetCursor(Cursors.Arrow);
+                SetGridSettings();
                 if (_loadedFirst && _processManager != null)
                 {
                     _loadedFirst = false;
@@ -62,8 +65,12 @@ namespace Slamby.TAU.ViewModel
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() =>
                             {
-                                Processes = new ObservableCollection<Process>(response.ResponseObject);
-                                RaisePropertyChanged("Processes");
+                                if (response.ResponseObject.Any())
+                                {
+                                    var ordered = response.ResponseObject.OrderByDescending(p => p.Start);
+                                    Processes = new ObservableCollection<Process>(ordered);
+                                    RaisePropertyChanged("Processes");
+                                }
                             });
                         }
                     });
@@ -117,5 +124,53 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
 
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
+
+        private bool _processesGridSettingsLadedFromFile = false;
+        private DataGridSettings _processesGridSettings;
+
+        public DataGridSettings ProcessesGridSettings
+        {
+            get { return _processesGridSettings; }
+            set
+            {
+                if (Set(() => ProcessesGridSettings, ref _processesGridSettings, value))
+                {
+                    if (value != null && !_processesGridSettingsLadedFromFile)
+                    {
+                        GlobalStore.SaveGridSettings("ManageProcess_Processes", "all", value);
+                    }
+                    _processesGridSettingsLadedFromFile = false;
+                }
+            }
+        }
+
+        private void SetGridSettings()
+        {
+            var gridSettingsDict = GlobalStore.GridSettingsDictionary;
+            if (gridSettingsDict != null && gridSettingsDict.Any())
+            {
+                if (gridSettingsDict.ContainsKey("ManageProcess_Processes"))
+                {
+                    var tagsSettings = gridSettingsDict["ManageProcess_Processes"];
+                    if (tagsSettings.ContainsKey("all"))
+                    {
+                        _processesGridSettingsLadedFromFile = true;
+                        ProcessesGridSettings = tagsSettings["all"];
+                    }
+                    else
+                    {
+                        ProcessesGridSettings = null;
+                    }
+                }
+                else
+                {
+                    ProcessesGridSettings = null;
+                }
+            }
+            else
+            {
+                ProcessesGridSettings = null;
+            }
+        }
     }
 }

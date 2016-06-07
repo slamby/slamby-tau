@@ -7,6 +7,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:converter="clr-namespace:Slamby.TAU.Converter"
+             xmlns:control="clr-namespace:Slamby.TAU.Control"
              DataContext="{Binding ManageDataSet, Source={StaticResource Locator}}"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="700">
@@ -20,7 +21,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Card.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <converter:ObjectToStringConverter x:Key="ObjectToStringConverter"/>
+            <converter:DatasetToSapmleOrSchemaConverter x:Key="DatasetToSapmleOrSchemaConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel Background="White">
@@ -31,71 +32,39 @@
             </Grid.RowDefinitions>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <materialDesign:Card Margin="20">
-                    <StackPanel Margin="10">
-                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Data Sets"/>
-                        <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
-                        <ListBox ItemsSource="{Binding DataSets}" SelectedItem="{Binding SelectedDataSet}"  DisplayMemberPath="Name">
-                            <i:Interaction.Triggers>
-                                <i:EventTrigger EventName="MouseDoubleClick">
-                                    <i:InvokeCommandAction Command="{Binding DoubleClickCommand}"/>
-                                </i:EventTrigger>
-                            </i:Interaction.Triggers>
-                            <ListBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Select to work" Command="{Binding SeletcToWorkCommand}"/>
-                                    <MenuItem Header="Import document from json" Command="{Binding ImportDocumentCommand}" IsEnabled="true" />
-                                    <MenuItem Header="Import tag from json" Command="{Binding ImportTagCommand}" />
-                                    <MenuItem Header="Import document from csv" Command="{Binding ImportDocumentCsvCommand}" IsEnabled="true" />
-                                    <MenuItem Header="Import tag from csv" Command="{Binding ImportTagCsvCommand}" />
-                                    <Separator/>
-                                    <MenuItem Header="Clone dataset" Command="{Binding CloneDatasetCommand}" />
-                                    <Separator/>
-                                    <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
-                                </ContextMenu>
-                            </ListBox.ContextMenu>
-                        </ListBox>
-                    </StackPanel>
-                </materialDesign:Card>
-                <materialDesign:Card Margin="20" Grid.Column="1" DataContext="{Binding SelectedDataSet}">
-                    <StackPanel Margin="10">
-                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Properties"/>
-                        <Separator Background="{DynamicResource PrimaryHueLightBrush}" />
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Name"/>
-                            <Label Grid.Row="1" Content="NGramCount"/>
-                            <Label Grid.Row="2" Content="DocumentsCount"/>
-                            <Label Grid.Column="1" Content="{Binding Name}"/>
-                            <Label Grid.Row="1" Grid.Column="1" Content="{Binding NGramCount}"/>
-                            <Label Grid.Row="2" Grid.Column="1" Content="{Binding Statistics.DocumentsCount}"/>
-                        </Grid>
-                    </StackPanel>
-
-                </materialDesign:Card>
-                <materialDesign:Card Margin="20" Grid.Column="2" MaxWidth="400">
-                    <StackPanel Margin="10">
-                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="SampleDocument"/>
-                        <Separator Background="{DynamicResource PrimaryHueLightBrush}" />
-                        <TextBox MaxHeight="390" MaxWidth="320" Text="{Binding SelectedDataSet.SampleDocument, Mode=OneWay, Converter={StaticResource ObjectToStringConverter}}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                    </StackPanel>
-                </materialDesign:Card>
+                <TextBlock Margin="30,15,5,10" Grid.Column="1" FontSize="16" Text="Sample Document or Schema"/>
+                <control:CustomDataGrid Grid.RowSpan="2" Margin="30" ItemsSource="{Binding DataSets}" SelectedItem="{Binding SelectedDataSet}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDoubleClick">
+                            <i:InvokeCommandAction Command="{Binding DoubleClickCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Import document from json" Command="{Binding ImportDocumentCommand}" IsEnabled="true" />
+                            <MenuItem Header="Import tag from json" Command="{Binding ImportTagCommand}" />
+                            <MenuItem Header="Import document from csv" Command="{Binding ImportDocumentCsvCommand}" IsEnabled="true" />
+                            <MenuItem Header="Import tag from csv" Command="{Binding ImportTagCsvCommand}" />
+                            <Separator/>
+                            <MenuItem Header="Clone dataset" Command="{Binding CloneDatasetCommand}" />
+                            <Separator/>
+                            <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="NGramCount" Binding="{Binding NGramCount}"/>
+                        <DataGridTextColumn Header="DocumentsCount" Binding="{Binding Statistics.DocumentsCount}" Width="*"/>
+                    </DataGrid.Columns>
+                </control:CustomDataGrid>
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="30" Text="{Binding SelectedDataSet, Mode=OneWay, Converter={StaticResource DatasetToSapmleOrSchemaConverter}}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             </Grid>
             <Grid Grid.Row="1" Background="{DynamicResource PrimaryHueLightBrush}">
                 <Grid.ColumnDefinitions>

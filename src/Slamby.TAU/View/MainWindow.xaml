@@ -115,7 +115,7 @@
                                                 <ContentControl Content="{Binding Content}"/>
                                             </DataTemplate>
                                         </dockablz:Layout.Resources>
-                                        <dragablz:TabablzControl ConsolidateOrphanedItems="True" ClosingItemCallback="{Binding ClosingTabItemHandler}" ItemsSource="{Binding Tabs}" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" >
+                                        <dragablz:TabablzControl ConsolidateOrphanedItems="True" ClosingItemCallback="{Binding ClosingTabItemHandler}" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}" HeaderMemberPath="Header" ShowDefaultCloseButton="True" x:Name="InitialTabablzControl" >
                                             <dragablz:TabablzControl.InterTabController>
                                                 <dragablz:InterTabController InterTabClient="{Binding InterTabClient}" Partition="Partition" />
                                             </dragablz:TabablzControl.InterTabController>
@@ -240,7 +240,7 @@
                                 </ListBox.ItemTemplate>
                                 <models:MenuItem Name="Endpoint">
                                     <models:MenuItem.Content>
-                                        <view:EndPointSettings/>
+                                        <view:Connect HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                                     </models:MenuItem.Content>
                                 </models:MenuItem>
                                 <models:MenuItem Name="Version">
@@ -260,11 +260,7 @@
                             </ListBox>
                         </StackPanel>
 
-                        <ContentControl Content="{Binding ElementName=SettingsMenuItemsListBox, Path=SelectedItem.Content}" >
-                            <ContentControl.DataContext>
-                                <viewModels:SettingsViewModel/>
-                            </ContentControl.DataContext>
-                        </ContentControl>
+                        <ContentControl Content="{Binding ElementName=SettingsMenuItemsListBox, Path=SelectedItem.Content}" />
                     </DockPanel>
                 </Grid>
             </materialDesign:DialogHost>
@@ -272,25 +268,29 @@
 
 
         <DockPanel Grid.Row="1" Height="20" Background="{DynamicResource SecondaryAccentBrush}">
-            <ContentPresenter Content="{Binding Path=ResourcesMonitor.Status, Source={StaticResource Locator}}" DockPanel.Dock="Left" Height="20" Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Left">
-                <ContentPresenter.Resources>
-                    <DataTemplate DataType="{x:Type sdk:Status}">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="{Binding CpuUsage, StringFormat=CPU: {0}}" VerticalAlignment="Center"/>
-                            <TextBlock Margin="10,0,0,0" Text="{Binding FreeMemory, StringFormat=Memory: {0}/}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalMemory, StringFormat={}{0} Mb}" VerticalAlignment="Center"/>
-                            <TextBlock Margin="10,0,0,0" Text="{Binding AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}" VerticalAlignment="Center"/>
-                            <Button Margin="10,0" Command="{Binding ExpandStatusCommand}" Height="10" Width="10" DataContext="{Binding Path=Main, Source={StaticResource Locator}}" VerticalAlignment="Center">
-                                <Button.Template>
-                                    <ControlTemplate>
-                                        <fa:ImageAwesome Icon="Expand" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </StackPanel>
-                    </DataTemplate>
-                </ContentPresenter.Resources>
-            </ContentPresenter>
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Height="20" Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <ContentPresenter Content="{Binding Path=ResourcesMonitor.Status, Source={StaticResource Locator}}" >
+                    <ContentPresenter.Resources>
+                        <DataTemplate DataType="{x:Type sdk:Status}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock Text="{Binding CpuUsage, StringFormat=CPU: {0}}" VerticalAlignment="Center"/>
+                                <TextBlock Margin="10,0,0,0" Text="{Binding FreeMemory, StringFormat=Memory: {0}/}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalMemory, StringFormat={}{0} Mb}" VerticalAlignment="Center"/>
+                                <TextBlock Margin="10,0,0,0" Text="{Binding AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}" VerticalAlignment="Center"/>
+                                <Button Margin="10,0" Command="{Binding ExpandStatusCommand}" Height="10" Width="10" DataContext="{Binding Path=Main, Source={StaticResource Locator}}" VerticalAlignment="Center">
+                                    <Button.Template>
+                                        <ControlTemplate>
+                                            <fa:ImageAwesome Icon="Expand" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ContentPresenter.Resources>
+                </ContentPresenter>
+                <fa:ImageAwesome Icon="ExclamationTriangle" Height="18" Width="18" Margin="10,0" ToolTip="Communication error!" Visibility="{Binding Path=ResourcesMonitor.IsFailed, Source={StaticResource Locator}, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </StackPanel>
+
             <ToggleButton DockPanel.Dock="Right" x:Name="LogToggleButton" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="{Binding LogWindowIsOpen}" Margin="0,1,10,0"/>
             <Popup IsOpen="{Binding ElementName=LogToggleButton, Path=IsChecked}">
                 <Border BorderThickness="3" BorderBrush="{DynamicResource SecondaryAccentBrush}">

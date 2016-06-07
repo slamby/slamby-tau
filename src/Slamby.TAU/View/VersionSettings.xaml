@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Slamby.TAU.View"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" >
+             d:DesignHeight="300" d:DesignWidth="400" >
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
@@ -16,21 +16,23 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock Text="{Binding CurrentVersion, StringFormat=Current version: {0}}" HorizontalAlignment="Left" FontWeight="Bold" Margin="15,10,15,15"/>
         <TextBlock Grid.Row="1" Margin="10,0" Text="AvailableReleases:"/>
-        <DataGrid Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" SelectionMode="Single" AutoGenerateColumns="False">
-            <DataGrid.ContextMenu>
+        <ListView Grid.Row="2" ItemsSource="{Binding AvailableReleases}" SelectedItem="{Binding SelectedRelease}" Width="Auto">
+            <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Apply" Command="{Binding ApplyReleaseCommand}"/>
                 </ContextMenu>
-            </DataGrid.ContextMenu>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Major" Binding="{Binding Major}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Minor" Binding="{Binding Minor}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Build" Binding="{Binding Build}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            </ListView.ContextMenu>
+        </ListView>
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="10,20">
+            <TextBlock Text="UpdateFeed:" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+            <TextBox Text="{Binding UpdateFeed}" Width="Auto" MinWidth="200" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+            <Button Content="Apply" Command="{Binding ApplyFeedCommand}" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </UserControl>

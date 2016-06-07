@@ -10,7 +10,11 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using Slamby.TAU.Enum;
+using Slamby.TAU.Helper;
 using Slamby.TAU.Logger;
+using Slamby.TAU.Model;
 using Slamby.TAU.Properties;
 using Squirrel;
 
@@ -31,61 +35,88 @@ namespace Slamby.TAU.ViewModel
         {
             ApplyReleaseCommand = new RelayCommand(async () =>
             {
-                var selectedVersion = $"{SelectedRelease.Major}.{SelectedRelease.Minor}.{SelectedRelease.Build}";
+                if (string.IsNullOrEmpty(SelectedRelease)) return;
                 Uri baseUri = new Uri(Settings.Default.UpdateFeed);
-                Uri uri = new Uri(baseUri, selectedVersion);
+                Uri uri = new Uri(baseUri, SelectedRelease);
                 using (var mgr = new UpdateManager(uri.ToString(), "SlambyTau"))
                 {
-                    Directory.Delete(Path.Combine(mgr.RootAppDirectory, "packages"), true);
+                    if (Directory.Exists(Path.Combine(mgr.RootAppDirectory, "packages")))
+                        Directory.Delete(Path.Combine(mgr.RootAppDirectory, "packages"), true);
                     await mgr.FullInstall();
                 }
                 Application.Current.Shutdown();
             });
             LoadedCommand = new RelayCommand(() =>
             {
-                String content = "";
-                using (var client = new WebClient())
+                CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                UpdateFeed = GlobalStore.UpdateFeed;
+                AvailableReleases = new ObservableCollection<string>();
+                try
                 {
-                    Stream stream = client.OpenRead(Settings.Default.UpdateFeed + "RELEASES");
-                    using (var reader = new StreamReader(stream))
+                    String content = "";
+                    using (var client = new WebClient())
                     {
-                        content = reader.ReadToEnd();
+                        Stream stream = client.OpenRead(Settings.Default.UpdateFeed + "RELEASES");
+                        using (var reader = new StreamReader(stream))
+                        {
+                            content = reader.ReadToEnd();
+                        }
                     }
-                }
 
-                AvailableReleases =
-                    new ObservableCollection<Version>(content.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Select(v => new Version(v)));
-                CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                    AvailableReleases =
+                        new ObservableCollection<string>(content.Split(new string[] { "\r\n", "\n" },
+                            StringSplitOptions.RemoveEmptyEntries));
+                }
+                catch (Exception exception)
+                {
+                    var exc = new Exception("Update feed is not available!", exception);
+                    Messenger.Default.Send(exc);
+                }
+            });
+            ApplyFeedCommand = new RelayCommand(() =>
+            {
+                GlobalStore.UpdateFeed = UpdateFeed;
+                LoadedCommand.Execute(null);
             });
         }
 
-        private ObservableCollection<Version> _availableReleases = new ObservableCollection<Version>();
+        private ObservableCollection<string> _availableReleases = new ObservableCollection<string>();
 
-        public ObservableCollection<Version> AvailableReleases
+        public ObservableCollection<string> AvailableReleases
         {
             get { return _availableReleases; }
             set { Set(() => AvailableReleases, ref _availableReleases, value); }
         }
 
-        private Version _currentVersion;
+        private string _currentVersion;
 
-        public Version CurrentVersion
+        public string CurrentVersion
         {
             get { return _currentVersion; }
             set { Set(() => CurrentVersion, ref _currentVersion, value); }
         }
 
-        private Version _selectedRelease;
+        private string _selectedRelease;
 
-        public Version SelectedRelease
+        public string SelectedRelease
         {
             get { return _selectedRelease; }
             set { Set(() => SelectedRelease, ref _selectedRelease, value); }
         }
 
+        private string _updateFeed;
+
+        public string UpdateFeed
+        {
+            get { return _updateFeed; }
+            set { Set(() => UpdateFeed, ref _updateFeed, value); }
+        }
+
         public RelayCommand ApplyReleaseCommand { get; private set; }
 
         public RelayCommand LoadedCommand { get; private set; }
+
+        public RelayCommand ApplyFeedCommand { get; private set; }
 
     }
 }

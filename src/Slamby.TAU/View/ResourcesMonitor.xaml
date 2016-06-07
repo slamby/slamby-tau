@@ -33,7 +33,7 @@
         </materialDesign:Card>
         <StackPanel Grid.Row="1" Margin="20,0" Orientation="Horizontal">
             <TextBlock Text="Refresh interval (sec): " VerticalAlignment="Center"/>
-            <TextBox HorizontalAlignment="Left" VerticalAlignment="Center" Width="100" materialDesign:TextFieldAssist.Hint="RefreshInterval" Text="{Binding RefreshInterval, UpdateSourceTrigger=Default}"/>
+            <TextBox HorizontalAlignment="Left" TabIndex="0" VerticalAlignment="Center" Width="100" materialDesign:TextFieldAssist.Hint="RefreshInterval" Text="{Binding RefreshInterval, UpdateSourceTrigger=Default}"/>
             <Button Content="Apply" Command="{Binding ApplyIntervalSettingsCommand}" Margin="10,0" Height="25" Width="70"/>
         </StackPanel>
     </Grid>

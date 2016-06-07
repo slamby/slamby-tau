@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Slamby.SDK.Net.Models;
+using Slamby.TAU.Helper;
+using Slamby.TAU.Model;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -21,10 +23,11 @@ namespace Slamby.TAU.ViewModel
         /// <summary>
         /// Initializes a new instance of the AssignTagDialogViewModel class.
         /// </summary>
-        public AssignTagDialogViewModel(ObservableCollection<Tag> tags, ObservableCollection<Tag> selectedTags)
+        public AssignTagDialogViewModel(ObservableCollection<Tag> tags, ObservableCollection<Tag> selectedTags, DataGridSettings settings)
         {
             Tags = tags;
             SelectedTags = selectedTags;
+            Settings = settings;
         }
 
         private ObservableCollection<Tag> _tags;
@@ -44,6 +47,14 @@ namespace Slamby.TAU.ViewModel
             {
                 Set(() => SelectedTags, ref _selectedTags, value);
             }
+        }
+
+        private DataGridSettings _settings;
+
+        public DataGridSettings Settings
+        {
+            get { return _settings; }
+            set { Set(() => Settings, ref _settings, value); }
         }
 
     }

@@ -8,69 +8,103 @@
              xmlns:wpf="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converter="clr-namespace:Slamby.TAU.Converter"
              xmlns:helper="clr-namespace:Slamby.TAU.Helper"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <converter:StringListToStringConverter x:Key="StringListToStringConverter"/>
     </UserControl.Resources>
-    <Grid Margin="16" MinWidth="400">
-
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="60" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!--<RowDefinition Height="Auto"/>
+            <RowDefinition Height="2"/>-->
         </Grid.RowDefinitions>
-        <TextBlock>New data set:</TextBlock>
-        <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <!--<ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="2"/>-->
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer MaxHeight="800" MaxWidth="1200" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
+            <Grid Margin="16" MinWidth="400">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="60" />
+                </Grid.RowDefinitions>
+                <TextBlock>New data set:</TextBlock>
+                <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                  Margin="0 6 0 0"
                  FontSize="18" Grid.Row="1">
-            <TextBox.Text>
-                <Binding Path="Name" UpdateSourceTrigger="PropertyChanged">
-                    <Binding.ValidationRules>
-                        <helper:DatasetNameValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
-                    </Binding.ValidationRules>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
-        <TextBox wpf:TextFieldAssist.Hint="NgramCount" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                    <TextBox.Text>
+                        <Binding Path="Name" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <helper:DatasetNameValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox wpf:TextFieldAssist.Hint="NgramCount" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
                  Margin="0 8 0 0"
                  FontSize="16" Grid.Row="2">
-            <TextBox.Text>
-                <Binding Path="NGramCount" UpdateSourceTrigger="PropertyChanged">
-                    <Binding.ValidationRules>
-                        <helper:NgramCountValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
-                    </Binding.ValidationRules>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
-        <TextBox Grid.Row="3" wpf:TextFieldAssist.Hint="IdField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                    <TextBox.Text>
+                        <Binding Path="NGramCount" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <helper:NgramCountValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox Grid.Row="3" wpf:TextFieldAssist.Hint="IdField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
                  Margin="0 8 0 0" Text="{Binding Path=DataSet.IdField}"
                  FontSize="16" />
-        <TextBox Grid.Row="4" wpf:TextFieldAssist.Hint="TagField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                <TextBox Grid.Row="4" wpf:TextFieldAssist.Hint="TagField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
                  Margin="0 8 0 0" Text="{Binding Path=DataSet.TagField}"
                  FontSize="16" />
-        <TextBox wpf:TextFieldAssist.Hint="InterpretedFields" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                <TextBox wpf:TextFieldAssist.Hint="InterpretedFields" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
                  Margin="0 8 0 0" Text="{Binding Path=InterpretedFields, Converter={StaticResource StringListToStringConverter}}"
                  FontSize="16" Grid.Row="5"/>
-        <TextBox wpf:TextFieldAssist.Hint="SampleDocument" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" MaxWidth="500"
-                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True"
-                 FontSize="12" Grid.Row="6" MaxHeight="100">
-            <TextBox.Text>
-                <Binding Path="SampleDocument" UpdateSourceTrigger="PropertyChanged">
-                    <Binding.ValidationRules>
-                        <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
-                    </Binding.ValidationRules>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
-        <StackPanel Orientation="Horizontal" Grid.Row="8" HorizontalAlignment="Center"
-                    Margin="0 16 0 0">
+                <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0 8 0 0">
+                    <RadioButton IsChecked="{Binding SampleDocumentChecked}" Content="SampleDocument" GroupName="SampleOrSchema" x:Name="SampleRadioButton"/>
+                    <RadioButton Content="DocumentSchema" GroupName="SampleOrSchema" x:Name="SchemaRadioButton"/>
+                </StackPanel>
+                <Button Command="{Binding HelpCommand}" Grid.Row="7" HorizontalAlignment="Left"  ToolTip="How can I create my own schema?" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <fa:ImageAwesome Icon="Question" Height="15" Width="15" Margin="10,0"/>
+                </Button>
+                <TextBox wpf:TextFieldAssist.Hint="SampleDocument" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SampleRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
+                    <TextBox.Text>
+                        <Binding Path="SampleDocument" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox wpf:TextFieldAssist.Hint="DocumentSchema" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
+                    <TextBox.Text>
+                        <Binding Path="DocumentSchema" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+            </Grid>
+        </ScrollViewer>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="20">
             <Button Style="{DynamicResource MaterialDesignFlatButton}"
                     Command="{Binding AcceptCommand}" CommandParameter="{Binding DataSet}">
                 ACCEPT
@@ -83,7 +117,7 @@
                 CANCEL
             </Button>
         </StackPanel>
-
-
+        <!--<GridSplitter Grid.Row="3" Grid.ColumnSpan="3" Height="2" HorizontalAlignment="Stretch" Background="Black" ResizeDirection="Rows" ResizeBehavior="PreviousAndCurrent"/>
+        <GridSplitter Grid.Column="2" Grid.RowSpan="4" Width="2" VerticalAlignment="Stretch" Background="Black" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"/>-->
     </Grid>
 </UserControl>
