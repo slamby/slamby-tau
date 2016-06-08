@@ -55,6 +55,7 @@
                             <Separator/>
                             <MenuItem Header="Clone dataset" Command="{Binding CloneDatasetCommand}" />
                             <Separator/>
+                            <MenuItem Header="Rename" Command="{Binding RenameCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
@@ -73,6 +74,7 @@
                 </Grid.ColumnDefinitions>
                 <Button Content="Add" Command="{Binding AddCommand}" Margin="5"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Rename" Command="{Binding RenameCommand}" Margin="2.5,0,5,0"/>
                     <Button Content="Delete" Command="{Binding DeleteCommand}" Margin="2.5,0,5,0"/>
                 </StackPanel>
             </Grid>

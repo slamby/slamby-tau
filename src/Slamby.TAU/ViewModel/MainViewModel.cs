@@ -84,6 +84,14 @@ namespace Slamby.TAU.ViewModel
                         Tabs.Add(newTab);
                         SelectedTab = newTab;
                         break;
+                    case UpdateType.DatasetRename:
+                        var oldName = message.Parameter.ToString();
+                        var tabsToClose = Tabs.Where(t => t.Header.ToString() == oldName + " -Data").ToList();
+                        foreach (var tab in tabsToClose)
+                        {
+                            Tabs.Remove(tab);
+                        }
+                        break;
                 }
             });
             Messenger.Default.Register<ClientResponse>(this, async response => await ErrorHandler(response));

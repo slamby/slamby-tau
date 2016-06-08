@@ -10,6 +10,7 @@ namespace Slamby.TAU.Enum
     {
         EndPointUpdate,
         NewProcessCreated,
-        OpenNewTab
+        OpenNewTab,
+        DatasetRename
     }
 }

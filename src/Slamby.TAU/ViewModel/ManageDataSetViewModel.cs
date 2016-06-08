@@ -60,6 +60,7 @@ namespace Slamby.TAU.ViewModel
                               new ManageData { DataContext = new ManageDataViewModel(SelectedDataSet, _dialogHandler) }, true)));
                 });
             DeleteCommand = new RelayCommand(Delete);
+            RenameCommand = new RelayCommand(Rename);
             if (_loadedFirst)
             {
                 DataSets.Clear();
@@ -109,6 +110,7 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand AddCommand { get; private set; }
         public RelayCommand CloneDatasetCommand { get; private set; }
         public RelayCommand DoubleClickCommand { get; private set; }
+        public RelayCommand RenameCommand { get; private set; }
         public RelayCommand DeleteCommand { get; private set; }
         public RelayCommand ImportDocumentCommand { get; private set; }
         public RelayCommand ImportTagCommand { get; private set; }
@@ -454,6 +456,62 @@ namespace Slamby.TAU.ViewModel
                     status.OperationIsFinished = true;
                 }
             });
+        }
+
+        private async void Rename()
+        {
+            Log.Info(LogMessages.ManageDataSetRenameCommand);
+            if (SelectedDataSet == null) return;
+            var originalName = SelectedDataSet.Name;
+            var context = new CommonDialogViewModel
+            {
+                Header = "Rename Dataset",
+                Content = new JContent(originalName),
+                Buttons = ButtonsEnum.OkCancel
+            };
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            await _dialogHandler.Show(view, "RootDialog", async (object s, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessFul = true;
+                        var errorMessage = "";
+                        var newName = "";
+                        try
+                        {
+                            newName = ((JContent)context.Content).GetJToken().ToString();
+                            var response = await _dataSetManager.UpdateDataSetAsync(originalName, new DataSetUpdate { Name = newName });
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessFul = false;
+                            errorMessage = exception.Message;
+                        }
+                        finally
+                        {
+                            if (!isSuccessFul)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                var selectedIndex = DataSets.IndexOf(SelectedDataSet);
+                                DataSets[selectedIndex].Name = newName;
+                                DataSets = new ObservableCollection<DataSet>(DataSets);
+                                Messenger.Default.Send(new UpdateMessage(UpdateType.DatasetRename, originalName));
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+
+                });
         }
 
         private async void Delete()
