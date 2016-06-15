@@ -15,6 +15,8 @@ using Slamby.TAU.Helper;
 using Slamby.TAU.Model;
 using System;
 using System.Drawing.Text;
+using System.Net;
+using System.Threading;
 using Slamby.TAU.Logger;
 using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
@@ -417,29 +419,33 @@ namespace Slamby.TAU.ViewModel
             if (_activeSource == ActiveSourceEnum.Filter)
             {
                 var response = await _documentManager.GetFilteredDocumentsAsync(_filterSettings);
-                if (ResponseValidator.Validate(response))
+                try
                 {
+                    ResponseValidator.Validate(response, false);
                     _filterSettings.Pagination = response.ResponseObject.Count == 0 ? new Pagination { Limit = 50 } : response.ResponseObject.Pagination;
                     DocumentPaginatorViewModel.PaginatedList = response.ResponseObject.Count == 0 ? new PaginatedList<object> { Pagination = new Pagination { Limit = 50 } } : response.ResponseObject;
                     Documents = new ObservableCollection<object>(response.ResponseObject.Items);
                 }
-                else
+                catch (Exception)
                 {
                     DocumentPaginatorViewModel.PaginatedList = new PaginatedList<object> { Pagination = new Pagination { Limit = 50 } };
+                    throw;
                 }
             }
             else if (_activeSource == ActiveSourceEnum.Sample)
             {
                 var response = await _documentManager.GetSampleDocumentsAsync(_sampleSettings);
-                if (ResponseValidator.Validate(response))
+                try
                 {
+                    ResponseValidator.Validate(response);
                     _sampleSettings.Pagination = response.ResponseObject.Count == 0 ? new Pagination { Limit = 50 } : response.ResponseObject.Pagination;
                     DocumentPaginatorViewModel.PaginatedList = response.ResponseObject.Count == 0 ? new PaginatedList<object> { Pagination = new Pagination { Limit = 50 } } : response.ResponseObject;
                     Documents = new ObservableCollection<object>(response.ResponseObject.Items);
                 }
-                else
+                catch (Exception)
                 {
                     DocumentPaginatorViewModel.PaginatedList = new PaginatedList<object> { Pagination = new Pagination { Limit = 50 } };
+                    throw;
                 }
             }
         }
@@ -459,80 +465,192 @@ namespace Slamby.TAU.ViewModel
         public async Task AddTag()
         {
             Log.Info(LogMessages.ManageDataTagAdd);
+
             var context = new CommonDialogViewModel
             {
                 Header = "Add Tag",
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(new Tag { Properties = new TagProperties() })
             };
-            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            ClientResponseWithObject<Tag> response = null;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
+                        {
+                            var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
+                            response = await _tagManager.CreateTagAsync(newTag);
+                            isSuccessful = response.IsSuccessFul;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+                });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
-                var response = await _tagManager.CreateTagAsync(newTag);
-                if (ResponseValidator.Validate(response))
-                {
-                    Tags.Add(response.ResponseObject);
-                }
+                Tags.Add(response.ResponseObject);
             }
         }
 
         private async void ModifyTag()
         {
-
             Log.Info(LogMessages.ManageDataTagModify);
             if (SelectedTags != null && SelectedTags.Any())
             {
                 var selectedTag = SelectedTags.First();
                 var id = selectedTag.Id;
+
                 var context = new CommonDialogViewModel
                 {
                     Header = "Modify Tag",
                     Buttons = ButtonsEnum.OkCancel,
                     Content = new JContent(selectedTag)
                 };
-                var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+                var view = new CommonDialog { DataContext = context };
+                var canClose = false;
+                ClientResponse response = null;
+                Tag newTag = null;
+                var result = await _dialogHandler.Show(view, "RootDialog",
+                    async (object sender, DialogClosingEventArgs args) =>
+                    {
+                        if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                        {
+                            args.Cancel();
+                            args.Session.UpdateContent(new ProgressDialog());
+                            var isSuccessful = false;
+                            var errorMessage = "";
+                            try
+                            {
+                                newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
+                                response = await _tagManager.UpdateTagAsync(id, newTag);
+                                isSuccessful = response.IsSuccessFul;
+                                ResponseValidator.Validate(response, false);
+                            }
+                            catch (Exception exception)
+                            {
+                                isSuccessful = false;
+                                errorMessage = exception.Message;
+
+                            }
+                            finally
+                            {
+                                if (!isSuccessful)
+                                {
+                                    context.ErrorMessage = errorMessage;
+                                    context.ShowError = true;
+                                    args.Session.UpdateContent(view);
+                                }
+                                else
+                                {
+                                    canClose = true;
+                                    args.Session.Close((CommonDialogResult)args.Parameter);
+                                }
+                            }
+                        }
+                    });
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
-                    var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
-                    var response = await _tagManager.UpdateTagAsync(id, newTag);
-                    if (ResponseValidator.Validate(response))
-                    {
-                        var selectedList = SelectedTags.ToList();
-                        Tags[Tags.IndexOf(selectedTag)] = newTag;
-                        SelectedTags = new ObservableCollection<Tag>(selectedList);
-                    }
+                    var selectedList = SelectedTags.ToList();
+                    Tags[Tags.IndexOf(selectedTag)] = newTag;
+                    SelectedTags = new ObservableCollection<Tag>(selectedList);
                 }
             }
         }
 
         private async void RemoveTag()
         {
-
             Log.Info(LogMessages.ManageDataTagRemove);
             if (SelectedTags != null && SelectedTags.Any())
             {
+                var tagsToRemove = SelectedTags.ToList();
                 var context = new CommonDialogViewModel
                 {
-                    Content = new Model.Message("Would you like to clean the related documents tag list?"),
+                    Content = new Message("Would you like to clean the related documents tag list?"),
                     Buttons = ButtonsEnum.YesNoCancel
                 };
                 var view = new CommonDialog { DataContext = context };
                 var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result != CommonDialogResult.Cancel)
                 {
-                    await _dialogHandler.ShowProgress(null,
-                        async () =>
+                    var cancellationToken = new CancellationTokenSource();
+                    var status = new StatusDialogViewModel { Title = "Remove Tags", CancellationTokenSource = cancellationToken };
+                    await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
+                    {
+                        try
                         {
-                            foreach (var selectedTag in SelectedTags)
+                            var all = tagsToRemove.Count;
+                            await Task.Run(() =>
                             {
-                                var response = await _tagManager.DeleteTagAsync(selectedTag.Id, true, (CommonDialogResult)result == CommonDialogResult.Yes);
-                                if (ResponseValidator.Validate(response))
+                                try
                                 {
-                                    DispatcherHelper.CheckBeginInvokeOnUI(() => Tags.Remove(selectedTag));
+                                    for (var done = 0; done < all && !cancellationToken.IsCancellationRequested;)
+                                    {
+                                        try
+                                        {
+                                            var response = _tagManager.DeleteTagAsync(tagsToRemove[done].Id, true, (CommonDialogResult)result == CommonDialogResult.Yes).Result;
+                                            if (ResponseValidator.Validate(response, false))
+                                            {
+                                                var currentTag = tagsToRemove[done];
+                                                DispatcherHelper.CheckBeginInvokeOnUI(() => Tags.Remove(currentTag));
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Messenger.Default.Send(new Exception(string.Format("Error during remove tag: name: {0} id: {1}", tagsToRemove[done].Name, tagsToRemove[done].Id), ex));
+                                            status.ErrorCount++;
+                                        }
+                                        finally
+                                        {
+                                            done++;
+                                            status.DoneCount = done;
+                                            status.ProgressValue = (done / (double)all) * 100;
+                                        }
+                                    }
+
                                 }
-                            }
-                        });
+                                catch (OperationCanceledException)
+                                {
+                                    Log.Info(LogMessages.OperationCancelled);
+                                }
+                            });
+
+                        }
+                        catch (Exception exception)
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                        }
+                        finally
+                        {
+                            status.OperationIsFinished = true;
+                        }
+                    });
+
                 }
             }
         }
@@ -540,21 +658,57 @@ namespace Slamby.TAU.ViewModel
         public async Task ExportWords()
         {
             Log.Info(LogMessages.ManageDataTagExportWords);
+
             var context = new CommonDialogViewModel
             {
                 Header = "Export Words",
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(new TagsExportWordsSettings { TagIdList = SelectedTags.Select(t => t.Id).ToList() })
             };
-            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            ClientResponseWithObject<Process> response = null;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
+                        {
+                            var settings = ((JContent)context.Content).GetJToken().ToObject<TagsExportWordsSettings>();
+                            response = await _tagManager.WordsExportAsync(settings);
+                            isSuccessful = response.IsSuccessFul;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+                });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                var settings = ((JContent)context.Content).GetJToken().ToObject<TagsExportWordsSettings>();
-                var response = await _tagManager.WordsExportAsync(settings);
-                if (ResponseValidator.Validate(response))
-                {
-                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, response.ResponseObject));
-                }
+                Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, response.ResponseObject));
             }
         }
 
@@ -576,24 +730,57 @@ namespace Slamby.TAU.ViewModel
         public async Task AddDocument()
         {
             Log.Info(LogMessages.ManageDataDocumentAdd);
+
             var context = new CommonDialogViewModel
             {
                 Header = "Add Document",
                 Buttons = ButtonsEnum.OkCancel,
                 Content = new JContent(_currentDataSet.SampleDocument ?? new object())
             };
-            var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            object newDocument = null;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
+                        {
+                            newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
+                            var response = await _documentManager.CreateDocumentAsync(newDocument);
+                            isSuccessful = response.IsSuccessFul;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+                });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                await _dialogHandler.ShowProgress(null, async () =>
-                 {
-                     var newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
-                     var response = await _documentManager.CreateDocumentAsync(newDocument);
-                     if (ResponseValidator.Validate(response))
-                     {
-                         DispatcherHelper.CheckBeginInvokeOnUI(() => Documents.Add(newDocument));
-                     }
-                 });
+                Documents.Add(newDocument);
             }
 
         }
@@ -613,20 +800,56 @@ namespace Slamby.TAU.ViewModel
                     Buttons = ButtonsEnum.OkCancel,
                     Content = new JContent(selectedDocument)
                 };
-                var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "RootDialog");
+
+                var view = new CommonDialog { DataContext = context };
+                var canClose = false;
+                object modified = null;
+                var result = await _dialogHandler.Show(view, "RootDialog",
+                    async (object sender, DialogClosingEventArgs args) =>
+                    {
+                        if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                        {
+                            args.Cancel();
+                            args.Session.UpdateContent(new ProgressDialog());
+                            var isSuccessful = false;
+                            var errorMessage = "";
+                            try
+                            {
+                                modified = ((JContent)context.Content).GetJToken().ToObject<object>();
+                                var response = await _documentManager.UpdateDocumentAsync(docId, modified);
+                                isSuccessful = response.IsSuccessFul;
+                                ResponseValidator.Validate(response, false);
+                            }
+                            catch (Exception exception)
+                            {
+                                isSuccessful = false;
+                                errorMessage = exception.Message;
+
+                            }
+                            finally
+                            {
+                                if (!isSuccessful)
+                                {
+                                    context.ErrorMessage = errorMessage;
+                                    context.ShowError = true;
+                                    args.Session.UpdateContent(view);
+                                }
+                                else
+                                {
+                                    canClose = true;
+                                    args.Session.Close((CommonDialogResult)args.Parameter);
+                                }
+                            }
+                        }
+                    });
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
-                    var newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
-                    var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                    if (ResponseValidator.Validate(response))
-                    {
-                        var selectedList = SelectedDocuments.ToList();
-                        Documents[Documents.IndexOf(selectedDocument)] = newDocument;
-                        selectedList.Remove(selectedDocument);
-                        selectedList.Add(newDocument);
-                        SelectedDocuments = new ObservableCollection<object>(selectedList);
-                        Documents = new ObservableCollection<object>(Documents);
-                    }
+                    var selectedList = SelectedDocuments.ToList();
+                    Documents[Documents.IndexOf(selectedDocument)] = modified;
+                    selectedList.Remove(selectedDocument);
+                    selectedList.Add(modified);
+                    SelectedDocuments = new ObservableCollection<object>(selectedList);
+                    Documents = new ObservableCollection<object>(Documents);
                 }
             }
         }
@@ -636,36 +859,72 @@ namespace Slamby.TAU.ViewModel
             Log.Info(LogMessages.ManageDataDocumentRemove);
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
+                var documentsToRemove = SelectedDocuments.ToList();
                 var context = new CommonDialogViewModel
                 {
                     Content = new Message(string.Format("Are you sure to delete {0} documents", SelectedDocuments.Count)),
                     Buttons = ButtonsEnum.YesNoCancel
                 };
+
                 var view = new CommonDialog { DataContext = context };
                 var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Yes)
                 {
-                    await _dialogHandler.ShowProgress(null,
-                        async () =>
+                    var cancellationToken = new CancellationTokenSource();
+                    var status = new StatusDialogViewModel { Title = "Remove Documents", CancellationTokenSource = cancellationToken };
+                    await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
+                    {
+                        try
                         {
-                            var deletedDocs = new List<object>();
-                            foreach (var selectedDocument in SelectedDocuments)
+                            var all = documentsToRemove.Count;
+                            await Task.Run(() =>
                             {
-                                var docId = ((JObject)selectedDocument)[_currentDataSet.IdField].ToString();
-                                var response = await _documentManager.DeleteDocumentAsync(docId);
-                                if (ResponseValidator.Validate(response))
+                                try
                                 {
-                                    deletedDocs.Add(selectedDocument);
+                                    for (var done = 0; done < all && !cancellationToken.IsCancellationRequested;)
+                                    {
+                                        var docId = string.Empty;
+                                        try
+                                        {
+                                            docId = ((JObject)documentsToRemove[done])[_currentDataSet.IdField].ToString();
+                                            var response = _documentManager.DeleteDocumentAsync(docId).Result;
+                                            if (ResponseValidator.Validate(response, false))
+                                            {
+                                                var currentDocument = documentsToRemove[done];
+                                                DispatcherHelper.CheckBeginInvokeOnUI(() => Documents.Remove(currentDocument));
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Messenger.Default.Send(new Exception(string.Format("Error during remove document with id: {0}", docId), ex));
+                                            status.ErrorCount++;
+                                        }
+                                        finally
+                                        {
+                                            done++;
+                                            status.DoneCount = done;
+                                            status.ProgressValue = (done / (double)all) * 100;
+                                        }
+                                    }
+
                                 }
-                            }
-                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                deletedDocs.ForEach(dd =>
+                                catch (OperationCanceledException)
                                 {
-                                    SelectedDocuments.Remove(dd);
-                                    Documents.Remove(dd);
-                                })
-                            );
-                        });
+                                    Log.Info(LogMessages.OperationCancelled);
+                                }
+                            });
+
+                        }
+                        catch (Exception exception)
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                        }
+                        finally
+                        {
+                            status.OperationIsFinished = true;
+                        }
+                    });
+
                 }
             }
         }
@@ -679,42 +938,87 @@ namespace Slamby.TAU.ViewModel
                 var view = new AssignTagDialog { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
-                    if (!(((JObject)SelectedDocuments.First())[_currentDataSet.TagField] is JArray) &&
-                        context.SelectedTags.Count > 1)
+                    if (context.SelectedTags.Count > 1)
                     {
-                        await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "Warning", Content = new Message("Category field is not array"), Buttons = ButtonsEnum.Ok } }, "RootDialog");
-                        return;
-                    }
-                    SelectedDocuments.ToList().ForEach(async d =>
-                    {
-                        var docObject = (JObject)d;
-                        var docId = docObject[_currentDataSet.IdField].ToString();
-                        if (docObject[_currentDataSet.TagField] is JArray)
+                        if (!SelectedDocuments.All(d => ((JObject)d)[_currentDataSet.TagField] is JArray))
                         {
-                            var tags = (JArray)docObject[_currentDataSet.TagField];
-                            context.SelectedTags.ToList().ForEach(t =>
-                            {
-                                if (!tags.Any(j => j.ToString().Equals(t.Id.ToString())))
-                                    tags.Add(t.Id);
-                            });
-                            var newDocument = JObject.Parse(d.ToString()).ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
-                            {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
+                            await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "Warning", Content = new Message("Category field is not array"), Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                            return;
                         }
-                        else
+                    }
+
+
+                    var selectedDocs = SelectedDocuments.ToList();
+                    var cancellationToken = new CancellationTokenSource();
+                    var status = new StatusDialogViewModel { Title = "Assign tags", CancellationTokenSource = cancellationToken };
+                    await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
+                    {
+                        try
                         {
-                            docObject[_currentDataSet.TagField] = context.SelectedTags.First().Id;
-                            var newDocument = docObject.ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
+                            var all = selectedDocs.Count;
+                            await Task.Run(() =>
                             {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
+                                try
+                                {
+                                    for (var done = 0; done < all && !cancellationToken.IsCancellationRequested;)
+                                    {
+                                        var docObject = (JObject)selectedDocs[done];
+                                        var docId = docObject[_currentDataSet.IdField].ToString();
+                                        object modified = null;
+                                        try
+                                        {
+                                            if (docObject[_currentDataSet.TagField] is JArray)
+                                            {
+                                                var tags = (JArray)docObject[_currentDataSet.TagField];
+                                                context.SelectedTags.ToList().ForEach(t =>
+                                                {
+                                                    if (!tags.Any(j => j.ToString().Equals(t.Id.ToString())))
+                                                        tags.Add(t.Id);
+                                                });
+                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
+                                                ResponseValidator.Validate(response, false);
+                                            }
+                                            else
+                                            {
+                                                docObject[_currentDataSet.TagField] = context.SelectedTags.First().Id;
+                                                var newDocument = docObject.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                ResponseValidator.Validate(response, false);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Messenger.Default.Send(new Exception(string.Format("Error during modify document with id: {0}", docId), ex));
+                                            status.ErrorCount++;
+                                        }
+                                        finally
+                                        {
+                                            done++;
+                                            status.DoneCount = done;
+                                            status.ProgressValue = (done / (double)all) * 100;
+                                        }
+                                    }
+
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    Log.Info(LogMessages.OperationCancelled);
+                                }
+                            });
+
+                        }
+                        catch (Exception exception)
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                        }
+                        finally
+                        {
+                            Documents = new ObservableCollection<object>(Documents);
+                            status.OperationIsFinished = true;
                         }
                     });
+
                 }
             }
         }
@@ -725,62 +1029,122 @@ namespace Slamby.TAU.ViewModel
             if (SelectedDocuments != null && SelectedDocuments.Any())
             {
                 var commonTags = new HashSet<string>();
-                SelectedDocuments.ToList().ForEach(d =>
+                var firstDoc = SelectedDocuments.First();
+                if (((JObject)firstDoc)[_currentDataSet.TagField] is JArray)
+                {
+                    var tags = (JArray)(((JObject)firstDoc)[_currentDataSet.TagField]);
+                    tags.ToList().ForEach(t => commonTags.Add(t.ToObject<string>()));
+                }
+                else
+                {
+                    commonTags.Add(((JObject)firstDoc)[_currentDataSet.TagField].ToObject<string>());
+                }
+                foreach (var d in SelectedDocuments)
                 {
                     if (((JObject)d)[_currentDataSet.TagField] is JArray)
                     {
                         var tags = (JArray)(((JObject)d)[_currentDataSet.TagField]);
-                        tags.ToList().ForEach(t => commonTags.Add(t.ToObject<string>()));
+                        commonTags = new HashSet<string>(tags.Select(t => t.ToString()).Intersect(commonTags));
                     }
                     else
                     {
-                        commonTags.Add(((JObject)d)[_currentDataSet.TagField].ToObject<string>());
+                        var tag = ((JObject)d)[_currentDataSet.TagField].ToObject<string>();
+                        if (string.IsNullOrEmpty(tag))
+                        {
+                            commonTags = new HashSet<string>();
+                            break;
+                        }
+                        if (!commonTags.Contains(tag))
+                        {
+                            commonTags = new HashSet<string>();
+                            break;
+                        }
                     }
-                });
+                }
+
                 var context = new AssignTagDialogViewModel(new ObservableCollection<Tag>(Tags.Where(t => commonTags.Contains(t.Id))), new ObservableCollection<Tag>(), TagsGridSettings);
                 var view = new AssignTagDialog { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog") && context.SelectedTags != null && context.SelectedTags.Any())
                 {
-                    SelectedDocuments.ToList().ForEach(async d =>
+                    var selectedDocs = SelectedDocuments.ToList();
+                    var cancellationToken = new CancellationTokenSource();
+                    var status = new StatusDialogViewModel { Title = "Remove Tags", CancellationTokenSource = cancellationToken };
+                    await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
                     {
-                        var docObject = (JObject)d;
-                        var docId = docObject[_currentDataSet.IdField].ToString();
-                        if (docObject[_currentDataSet.TagField] is JArray)
+                        try
                         {
-                            var tags = (JArray)docObject[_currentDataSet.TagField];
-                            var originalTags = tags.ToObject<JArray>();
-                            context.SelectedTags.ToList().ForEach(t =>
+                            var all = selectedDocs.Count;
+                            await Task.Run(() =>
                             {
-                                var match = tags.FirstOrDefault(j => j.ToString().Equals(t.Id));
-                                if (match != null)
-                                    tags.Remove(match);
+                                try
+                                {
+                                    for (var done = 0; done < all && !cancellationToken.IsCancellationRequested;)
+                                    {
+                                        var docObject = (JObject)selectedDocs[done];
+                                        var docId = docObject[_currentDataSet.IdField].ToString();
+                                        object modified = null;
+                                        try
+                                        {
+                                            if (docObject[_currentDataSet.TagField] is JArray)
+                                            {
+                                                var tags = (JArray)docObject[_currentDataSet.TagField];
+                                                var originalTags = tags.ToObject<JArray>();
+                                                context.SelectedTags.ToList().ForEach(t =>
+                                                {
+                                                    var match = tags.FirstOrDefault(j => j.ToString().Equals(t.Id));
+                                                    if (match != null)
+                                                        tags.Remove(match);
+                                                });
+                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
+                                                if (!response.IsSuccessFul)
+                                                {
+                                                    tags = originalTags;
+                                                    ResponseValidator.Validate(response, false);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                docObject[_currentDataSet.TagField] = "";
+                                                var newDocument = docObject.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                ResponseValidator.Validate(response, false);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Messenger.Default.Send(new Exception(string.Format("Error during modify document with id: {0}", docId), ex));
+                                            status.ErrorCount++;
+                                        }
+                                        finally
+                                        {
+                                            done++;
+                                            status.DoneCount = done;
+                                            status.ProgressValue = (done / (double)all) * 100;
+                                        }
+                                    }
+
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    Log.Info(LogMessages.OperationCancelled);
+                                }
                             });
-                            var newDocument = JObject.Parse(d.ToString()).ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
-                            {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
-                            else
-                            {
-                                tags = originalTags;
-                            }
+
                         }
-                        else
+                        catch (Exception exception)
                         {
-                            docObject[_currentDataSet.TagField] = "";
-                            var newDocument = docObject.ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
-                            {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                        }
+                        finally
+                        {
+                            Documents = new ObservableCollection<object>(Documents);
+                            status.OperationIsFinished = true;
                         }
                     });
                 }
             }
         }
-
 
         private async void ClearTags()
         {
@@ -796,36 +1160,75 @@ namespace Slamby.TAU.ViewModel
                 var result = await _dialogHandler.Show(view, "RootDialog");
                 if ((CommonDialogResult)result == CommonDialogResult.Yes)
                 {
-                    var selectedList = SelectedDocuments.ToList();
-                    SelectedDocuments.ToList().ForEach(async d =>
+                    var selectedDocs = SelectedDocuments.ToList();
+                    var cancellationToken = new CancellationTokenSource();
+                    var status = new StatusDialogViewModel { Title = "Clear Tags", CancellationTokenSource = cancellationToken };
+                    await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
                     {
-                        var docObject = (JObject)d;
-                        var docId = docObject[_currentDataSet.IdField].ToString();
-                        if (docObject[_currentDataSet.TagField] is JArray)
+                        try
                         {
-                            var tags = (JArray)docObject[_currentDataSet.TagField];
-                            var originalTags = tags.ToObject<JArray>();
-                            tags.RemoveAll();
-                            var newDocument = JObject.Parse(d.ToString()).ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
+                            var all = selectedDocs.Count;
+                            await Task.Run(() =>
                             {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
-                            else
-                            {
-                                tags = originalTags;
-                            }
+                                try
+                                {
+                                    for (var done = 0; done < all && !cancellationToken.IsCancellationRequested;)
+                                    {
+                                        var docObject = (JObject)selectedDocs[done];
+                                        var docId = docObject[_currentDataSet.IdField].ToString();
+                                        object modified = null;
+                                        try
+                                        {
+                                            if (docObject[_currentDataSet.TagField] is JArray)
+                                            {
+                                                var tags = (JArray)docObject[_currentDataSet.TagField];
+                                                var originalTags = tags.ToObject<JArray>();
+                                                tags.RemoveAll();
+                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
+                                                if (!response.IsSuccessFul)
+                                                {
+                                                    tags = originalTags;
+                                                    ResponseValidator.Validate(response, false);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                docObject[_currentDataSet.TagField] = "";
+                                                var newDocument = docObject.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                ResponseValidator.Validate(response, false);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Messenger.Default.Send(new Exception(string.Format("Error during modify document with id: {0}", docId), ex));
+                                            status.ErrorCount++;
+                                        }
+                                        finally
+                                        {
+                                            done++;
+                                            status.DoneCount = done;
+                                            status.ProgressValue = (done / (double)all) * 100;
+                                        }
+                                    }
+
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    Log.Info(LogMessages.OperationCancelled);
+                                }
+                            });
+
                         }
-                        else
+                        catch (Exception exception)
                         {
-                            docObject[_currentDataSet.TagField] = "";
-                            var newDocument = docObject.ToObject<object>();
-                            var response = await _documentManager.UpdateDocumentAsync(docId, newDocument);
-                            if (ResponseValidator.Validate(response))
-                            {
-                                Documents = new ObservableCollection<object>(Documents);
-                            }
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                        }
+                        finally
+                        {
+                            Documents = new ObservableCollection<object>(Documents);
+                            status.OperationIsFinished = true;
                         }
                     });
                 }
@@ -843,7 +1246,10 @@ namespace Slamby.TAU.ViewModel
                 var view = new DataSetSelector { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog"))
                 {
-                    await CopyDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
+                    await _dialogHandler.ShowProgress(null, async () =>
+                    {
+                        await CopyDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
+                    });
                 }
             }
         }
@@ -859,7 +1265,10 @@ namespace Slamby.TAU.ViewModel
                 var view = new DataSetSelector { DataContext = context };
                 if ((bool)await _dialogHandler.Show(view, "RootDialog"))
                 {
-                    await MoveDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
+                    await _dialogHandler.ShowProgress(null, async () =>
+                    {
+                        await MoveDocuments(SelectedDocuments.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList(), context.SelectedDataSet.Name);
+                    });
                 }
             }
         }
@@ -874,8 +1283,11 @@ namespace Slamby.TAU.ViewModel
             var view = new DataSetSelector { DataContext = context };
             if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
-                var documentIds = await GetAllDocumentIdsByCurrentSettings();
-                await CopyDocuments(documentIds, context.SelectedDataSet.Name);
+                await _dialogHandler.ShowProgress(null, async () =>
+                {
+                    var documentIds = await GetAllDocumentIdsByCurrentSettings();
+                    await CopyDocuments(documentIds, context.SelectedDataSet.Name);
+                });
             }
         }
 
@@ -887,8 +1299,11 @@ namespace Slamby.TAU.ViewModel
             var view = new DataSetSelector { DataContext = context };
             if ((bool)await _dialogHandler.Show(view, "RootDialog"))
             {
-                var documentIds = await GetAllDocumentIdsByCurrentSettings();
-                await MoveDocuments(documentIds, context.SelectedDataSet.Name);
+                await _dialogHandler.ShowProgress(null, async () =>
+                {
+                    var documentIds = await GetAllDocumentIdsByCurrentSettings();
+                    await MoveDocuments(documentIds, context.SelectedDataSet.Name);
+                });
             }
         }
 
@@ -896,80 +1311,66 @@ namespace Slamby.TAU.ViewModel
         {
             //get documents
             var documentIds = new List<string>();
-            await _dialogHandler.ShowProgress(null, async () =>
+
+            ClientResponseWithObject<PaginatedList<object>> response = null;
+            if (_activeSource == ActiveSourceEnum.Filter)
             {
-                ClientResponseWithObject<PaginatedList<object>> response = null;
-                if (_activeSource == ActiveSourceEnum.Filter)
+                var allFilterSettings = new DocumentFilterSettings()
                 {
-                    var allFilterSettings = new DocumentFilterSettings()
+                    Pagination = new Pagination
                     {
-                        Pagination = new Pagination
-                        {
-                            Limit = -1,
-                            Offset = 0,
-                            OrderByField = _currentDataSet.IdField
-                        },
-                        Filter = _filterSettings.Filter,
-                        IdsOnly = true
-                    };
-                    response = await _documentManager.GetFilteredDocumentsAsync(allFilterSettings);
-                }
-                else if (_activeSource == ActiveSourceEnum.Sample)
+                        Limit = -1,
+                        Offset = 0,
+                        OrderByField = _currentDataSet.IdField
+                    },
+                    Filter = _filterSettings.Filter,
+                    IdsOnly = true
+                };
+                response = await _documentManager.GetFilteredDocumentsAsync(allFilterSettings);
+            }
+            else if (_activeSource == ActiveSourceEnum.Sample)
+            {
+                var allSampleSettings = new DocumentSampleSettings()
                 {
-                    var allSampleSettings = new DocumentSampleSettings()
+                    Pagination = new Pagination
                     {
-                        Pagination = new Pagination
-                        {
-                            Limit = -1,
-                            Offset = 0,
-                            OrderByField = _currentDataSet.IdField
-                        },
-                        TagIds = _sampleSettings.TagIds,
-                        Id = _sampleSettings.Id,
-                        IsStratified = _sampleSettings.IsStratified,
-                        Percent = _sampleSettings.Percent,
-                        Size = _sampleSettings.Size,
-                        IdsOnly = true
-                    };
-                    response = await _documentManager.GetSampleDocumentsAsync(allSampleSettings);
-                }
-                if (ResponseValidator.Validate(response))
-                {
-                    documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
-                }
-            });
+                        Limit = -1,
+                        Offset = 0,
+                        OrderByField = _currentDataSet.IdField
+                    },
+                    TagIds = _sampleSettings.TagIds,
+                    Id = _sampleSettings.Id,
+                    IsStratified = _sampleSettings.IsStratified,
+                    Percent = _sampleSettings.Percent,
+                    Size = _sampleSettings.Size,
+                    IdsOnly = true
+                };
+                response = await _documentManager.GetSampleDocumentsAsync(allSampleSettings);
+            }
+            ResponseValidator.Validate(response, false);
+            documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
             return documentIds;
         }
 
         private async Task CopyDocuments(List<string> docIdList, string targetDataSetName)
         {
-            await _dialogHandler.ShowProgress(null,
-                    async () =>
-                    {
-                        var response = await _documentManager.CopyDocumentsToAsync(new DocumentCopySettings
-                        {
-                            Ids = docIdList,
-                            TargetDataSetName = targetDataSetName
-                        });
-                        ResponseValidator.Validate(response);
-                    });
+            var response = await _documentManager.CopyDocumentsToAsync(new DocumentCopySettings
+            {
+                Ids = docIdList,
+                TargetDataSetName = targetDataSetName
+            });
+            ResponseValidator.Validate(response, false);
         }
 
         private async Task MoveDocuments(List<string> docIdList, string targetDataSetName)
         {
-            await _dialogHandler.ShowProgress(null,
-                        async () =>
-                        {
-                            var response = await _documentManager.MoveDocumentsToAsync(new DocumentMoveSettings
-                            {
-                                Ids = docIdList,
-                                TargetDataSetName = targetDataSetName
-                            });
-                            if (ResponseValidator.Validate(response))
-                            {
-                                await LoadDocuments();
-                            }
-                        });
+            var response = await _documentManager.MoveDocumentsToAsync(new DocumentMoveSettings
+            {
+                Ids = docIdList,
+                TargetDataSetName = targetDataSetName
+            });
+            ResponseValidator.Validate(response, false);
+            await LoadDocuments();
         }
 
         private async void SelectSampleTags()

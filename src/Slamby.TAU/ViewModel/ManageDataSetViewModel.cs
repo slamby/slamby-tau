@@ -165,9 +165,11 @@ namespace Slamby.TAU.ViewModel
 
         private async void ImportCsv<T>()
         {
-            var ofd = new OpenFileDialog();
-            ofd.Multiselect = false;
-            ofd.Filter = "CSV|*.csv";
+            var ofd = new OpenFileDialog
+            {
+                Multiselect = false,
+                Filter = "CSV|*.csv"
+            };
             if (ofd.ShowDialog() == true)
             {
                 var importSettings = new CsvImportSettings { Delimiter = ",", Force = true };
@@ -188,7 +190,7 @@ namespace Slamby.TAU.ViewModel
                 var errors = new ConcurrentBag<string>();
                 var cancellationToken = new CancellationTokenSource();
                 var status = new StatusDialogViewModel { ProgressValue = 0, Title = "Importing documents", CancellationTokenSource = cancellationToken };
-                await DialogHost.Show(new StatusDialog { DataContext = status }, "RootDialog",
+                await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog",
                     async (object sender, DialogOpenedEventArgs oa) =>
                     {
                         FileStream stream = null;
@@ -252,7 +254,7 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     catch (Exception ex)
                                     {
-                                        errors.Add(string.Format("Error during bulk process:{0}{1}", Environment.NewLine, ex.Message));
+                                        Messenger.Default.Send(ex);
                                         status.ErrorCount += GlobalStore.BulkSize;
                                     }
                                     finally
@@ -287,10 +289,7 @@ namespace Slamby.TAU.ViewModel
                     });
 
                 if (invalidRows.Any())
-                    await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more invalid row found", Content = $"Invalid rows:{Environment.NewLine}{string.Join(", ", invalidRows)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
-                if (errors.Any())
-                    await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "One or more error occured", Content = $"Errors:{Environment.NewLine}{string.Join(", ", errors)}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
-
+                    Messenger.Default.Send(new Exception($"Invalid rows:{Environment.NewLine}{string.Join(", ", invalidRows)}"));
             }
         }
 
@@ -316,8 +315,7 @@ namespace Slamby.TAU.ViewModel
         {
             var cancellationToken = new CancellationTokenSource();
             var status = new StatusDialogViewModel { Title = "Importing documents", CancellationTokenSource = cancellationToken };
-            var errors = new ConcurrentBag<string>();
-            await DialogHost.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
+            await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
             {
                 try
                 {
@@ -335,11 +333,11 @@ namespace Slamby.TAU.ViewModel
                                     var settings = new TagBulkSettings();
                                     settings.Tags = tokens.Select(t => t.ToObject<Tag>()).ToList();
                                     response = new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings).Result;
-                                    ResponseValidator.Validate(response);
+                                    ResponseValidator.Validate(response, false);
                                 }
                                 catch (Exception ex)
                                 {
-                                    errors.Add(string.Format("Error during bulk process:{0}{1}", Environment.NewLine, ex.Message));
+                                    Messenger.Default.Send(ex);
                                     status.ErrorCount += tokens.Count;
                                 }
                                 finally
@@ -349,7 +347,7 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         foreach (var error in bulkErrors)
                                         {
-                                            errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
+                                            Messenger.Default.Send(new Exception(string.Format("Id: {0}, error: {1}", error.Id, error.Error)));
                                             status.ErrorCount++;
                                         }
 
@@ -369,10 +367,11 @@ namespace Slamby.TAU.ViewModel
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(GlobalStore.BulkSize).Select(t => t.ToObject<object>()).ToList();
                                         response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
-                                        errors.Add(string.Format("Error during bulk process at range [{0}-{1}]{2}{3}", done, done + GlobalStore.BulkSize, Environment.NewLine, ex.Message));
+                                        Messenger.Default.Send(new Exception(string.Format("Error during bulk process at range [{0}-{1}]", done, done + remaining), ex));
                                         status.ErrorCount += GlobalStore.BulkSize;
                                     }
                                     finally
@@ -382,7 +381,7 @@ namespace Slamby.TAU.ViewModel
                                         {
                                             foreach (var error in bulkErrors)
                                             {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
+                                                Messenger.Default.Send(new Exception(string.Format("Id: {0}, error: {1}", error.Id, error.Error)));
                                                 status.ErrorCount++;
                                             }
 
@@ -402,10 +401,11 @@ namespace Slamby.TAU.ViewModel
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = tokens.Take(remaining).Select(t => t.ToObject<object>()).ToList();
                                         response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
+                                        ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
-                                        errors.Add(string.Format("Error during bulk process at range [{0}-{1}]{2}{3}", done, done + remaining, Environment.NewLine, ex.Message));
+                                        Messenger.Default.Send(new Exception(string.Format("Error during bulk process at range [{0}-{1}]", done, done + remaining), ex));
                                         status.ErrorCount += remaining;
                                     }
                                     finally
@@ -415,7 +415,7 @@ namespace Slamby.TAU.ViewModel
                                         {
                                             foreach (var error in bulkErrors)
                                             {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
+                                                Messenger.Default.Send(new Exception(string.Format("Id: {0}, error: {1}", error.Id, error.Error)));
                                                 status.ErrorCount++;
                                             }
 
@@ -432,12 +432,6 @@ namespace Slamby.TAU.ViewModel
                         catch (OperationCanceledException)
                         {
                             Log.Info(LogMessages.OperationCancelled);
-                            if (errors.Any())
-                            {
-                                var errorResponse = new ClientResponse() { IsSuccessFul = false, HttpStatusCode = System.Net.HttpStatusCode.InternalServerError, Errors = new ErrorsModel { Errors = errors }, ServerMessage = "One or more error occurred during import." };
-                                errors = new ConcurrentBag<string>();
-                                ResponseValidator.Validate(errorResponse);
-                            }
                         }
                     });
 
@@ -448,11 +442,6 @@ namespace Slamby.TAU.ViewModel
                 }
                 finally
                 {
-                    if (errors.Any())
-                    {
-                        var errorResponse = new ClientResponse() { IsSuccessFul = false, HttpStatusCode = System.Net.HttpStatusCode.InternalServerError, Errors = new ErrorsModel { Errors = errors }, ServerMessage = "One or more error occurred during import." };
-                        ResponseValidator.Validate(errorResponse);
-                    }
                     status.OperationIsFinished = true;
                 }
             });
@@ -520,32 +509,51 @@ namespace Slamby.TAU.ViewModel
             if (SelectedDataSet == null) return;
             var context = new CommonDialogViewModel
             {
-                Content = new Message("Are you sure to remove the following data set: " + SelectedDataSet.Name),
-                Buttons = ButtonsEnum.YesNo
+                Buttons = ButtonsEnum.YesNo,
+                Header = "Delete dataset",
+                Content = new JContent("Are you sure to remove the following data set: " + SelectedDataSet.Name)
             };
             var view = new CommonDialog { DataContext = context };
-            var result = await _dialogHandler.Show(view, "RootDialog");
-            if ((CommonDialogResult)result == CommonDialogResult.Yes)
-            {
-                await DialogHost.Show(new ProgressDialog(), "RootDialog", async (object s, DialogOpenedEventArgs oa) =>
+            var canClose = false;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
                 {
-                    try
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Yes)
                     {
-                        var response = await _dataSetManager.DeleteDataSetAsync(SelectedDataSet.Name);
-                        if (ResponseValidator.Validate(response))
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
                         {
-                            DataSets.Remove(SelectedDataSet);
+                            var response = await _dataSetManager.DeleteDataSetAsync(SelectedDataSet.Name);
+                            isSuccessful = response.IsSuccessFul;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
                         }
                     }
-                    catch (Exception exception)
-                    {
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
-                    }
-                    finally
-                    {
-                        oa.Session.Close();
-                    }
                 });
+            if ((CommonDialogResult)result == CommonDialogResult.Yes)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Remove(SelectedDataSet));
             }
         }
 

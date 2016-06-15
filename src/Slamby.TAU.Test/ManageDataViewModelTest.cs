@@ -22,22 +22,22 @@ namespace Slamby.TAU.Test
             GlobalStore.IsInTestMode = true;
             GlobalStore.SelectedEndpoint = new ConfigurationWithId
             {
-                ApiBaseEndpoint = new Uri("http://tautest/"),
+                ApiBaseEndpoint = new Uri("https://europe.slamby.com/tautest/"),
                 ApiSecret = "s3cr3t"
             };
         }
 
 
-        [TestMethod]
-        public async Task AddTagTest()
-        {
-            var dialogHandler = new TestDialogHandler();
-            dialogHandler.SetTestResult(CommonDialogResult.Ok);
-            var guid = Guid.NewGuid().ToString();
-            dialogHandler.SetTestInput(new JContent(new Tag { Id = guid, Name = guid, ParentId = null }));
-            var vm = new ManageDataViewModel(new DataSet { Name = "unit_test" }, dialogHandler);
-            await vm.AddTag();
-        }
+        //[TestMethod]
+        //public async Task AddTagTest()
+        //{
+        //    var dialogHandler = new TestDialogHandler();
+        //    dialogHandler.SetTestResult(CommonDialogResult.Ok);
+        //    var guid = Guid.NewGuid().ToString();
+        //    dialogHandler.SetTestInput(new JContent(new Tag { Id = guid, Name = guid, ParentId = null }));
+        //    var vm = new ManageDataViewModel(new DataSet { Name = "unit_test" }, dialogHandler);
+        //    await vm.AddTag();
+        //}
 
         //[TestMethod]
         //public async Task AddDocumentTest()

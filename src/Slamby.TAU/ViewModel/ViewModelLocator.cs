@@ -14,11 +14,10 @@
 
 using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
-using GalaSoft.MvvmLight.Threading;
 using Microsoft.Practices.ServiceLocation;
 using Slamby.SDK.Net.Managers;
 using Slamby.SDK.Net.Managers.Interfaces;
@@ -44,17 +43,22 @@ namespace Slamby.TAU.ViewModel
             {
                 switch (m.UpdateType)
                 {
-                    case UpdateType.EndPointUpdate:
-                        if (SimpleIoc.Default.IsRegistered<ResourcesMonitorViewModel>())
-                            SimpleIoc.Default.GetInstance<ResourcesMonitorViewModel>().Dispose();
-                        SimpleIoc.Default.Reset();
-                        Initialize();
-                        break;
                     case UpdateType.NewProcessCreated:
                         break;
                 }
             });
             Initialize();
+        }
+
+        public async Task EndpointUpdate()
+        {
+            if (SimpleIoc.Default.IsRegistered<ResourcesMonitorViewModel>())
+                SimpleIoc.Default.GetInstance<ResourcesMonitorViewModel>().Dispose();
+            if (SimpleIoc.Default.IsRegistered<ManageServiceViewModel>())
+                SimpleIoc.Default.GetInstance<ManageServiceViewModel>().Dispose();
+            SimpleIoc.Default.Reset();
+            Initialize();
+            await Task.Delay(500);
         }
 
         private void Initialize()
@@ -77,7 +81,7 @@ namespace Slamby.TAU.ViewModel
                     SimpleIoc.Default.Register<IClassifierServiceManager>(() => new ClassifierServiceManager(GlobalStore.SelectedEndpoint));
                     SimpleIoc.Default.Register<IPrcServiceManager>(() => new PrcServiceManager(GlobalStore.SelectedEndpoint));
                     SimpleIoc.Default.Register<IProcessManager>(() => new ProcessManager(GlobalStore.SelectedEndpoint));
-                    SimpleIoc.Default.Register<StatusManager>(() => new StatusManager(GlobalStore.SelectedEndpoint));
+                    SimpleIoc.Default.Register<IStatusManager>(() => new StatusManager(GlobalStore.SelectedEndpoint));
                 }
             }
 

@@ -184,6 +184,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converter\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converter\DatasetToSapmleOrSchemaConverter.cs" />
     <Compile Include="Converter\ObjectToStringConverter.cs" />
     <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
@@ -193,6 +194,8 @@
     <Compile Include="Helper\InterTabClient.cs" />
     <Compile Include="Model\ConfigurationWithId.cs" />
     <Compile Include="Model\DataGridSettings.cs" />
+    <Compile Include="Model\EndPointStatus.cs" />
+    <Compile Include="Model\Error.cs" />
     <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />

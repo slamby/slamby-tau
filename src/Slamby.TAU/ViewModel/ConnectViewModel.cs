@@ -30,6 +30,7 @@ namespace Slamby.TAU.ViewModel
         /// </summary>
         public ConnectViewModel()
         {
+            _dialogHandler = new DialogHandler();
             Endpoints = new ObservableCollection<ConfigurationWithId>(GlobalStore.Endpoints);
             SelectedIndex = Endpoints.IndexOf(Endpoints.FirstOrDefault(ep => ep.Equals(GlobalStore.SelectedEndpoint)));
             SelectCommand = new RelayCommand(async () =>
@@ -38,7 +39,7 @@ namespace Slamby.TAU.ViewModel
 
                 bool IsSuccessFul = false;
                 await
-                    DialogHost.Show(new ProgressDialog(), "ConnectDialog",
+                    _dialogHandler.Show(new ProgressDialog(), "ConnectDialog",
                         async (object s, DialogOpenedEventArgs arg) =>
                         {
                             try
@@ -47,7 +48,7 @@ namespace Slamby.TAU.ViewModel
                                 var response = await statusManager.GetStatusAsync();
                                 IsSuccessFul = response.IsSuccessFul;
                             }
-                            catch (Exception)
+                            catch (Exception exception)
                             {
                                 IsSuccessFul = false;
                             }
@@ -61,17 +62,17 @@ namespace Slamby.TAU.ViewModel
                 if (IsSuccessFul)
                 {
                     GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
+                    await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
                     var mainVindow = new MainWindow();
                     var connectWindow = App.Current.MainWindow;
                     App.Current.MainWindow = mainVindow;
                     mainVindow.Show();
-                    Messenger.Default.Send(new UpdateMessage(UpdateType.EndPointUpdate));
                     connectWindow.Close();
                 }
                 else
                 {
                     await
-                        DialogHost.Show(
+                        _dialogHandler.Show(
                             new CommonDialog
                             {
                                 DataContext =
@@ -94,7 +95,7 @@ namespace Slamby.TAU.ViewModel
                   };
                   var view = new CommonDialog { DataContext = context };
                   var canClose = false;
-                  var result = await DialogHost.Show(view, "ConnectDialog",
+                  var result = await _dialogHandler.Show(view, "ConnectDialog",
                       async (object sender, DialogClosingEventArgs args) =>
                       {
                           if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
@@ -149,7 +150,7 @@ namespace Slamby.TAU.ViewModel
                 };
                 var view = new CommonDialog { DataContext = context };
                 var canClose = false;
-                var result = await DialogHost.Show(view, "ConnectDialog",
+                var result = await _dialogHandler.Show(view, "ConnectDialog",
                     async (object sender, DialogClosingEventArgs args) =>
                     {
                         if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
@@ -159,8 +160,7 @@ namespace Slamby.TAU.ViewModel
                             var IsSuccessFul = false;
                             try
                             {
-                                var statusManager =
-                                    new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
+                                var statusManager = new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
                                 var response = await statusManager.GetStatusAsync();
                                 IsSuccessFul = response.IsSuccessFul;
                             }
@@ -195,7 +195,7 @@ namespace Slamby.TAU.ViewModel
                     if (isSelectedInUse)
                     {
                         GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
-                        Messenger.Default.Send(new UpdateMessage(UpdateType.EndPointUpdate));
+                        await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
                     }
                 }
             });
@@ -208,7 +208,7 @@ namespace Slamby.TAU.ViewModel
                      Header = "Delete endpoint",
                      Content = new Message("Are you sure to delete the selected endpoint?")
                  };
-                 var result = await DialogHost.Show(new CommonDialog { DataContext = context }, "ConnectDialog");
+                 var result = await _dialogHandler.Show(new CommonDialog { DataContext = context }, "ConnectDialog");
                  if ((CommonDialogResult)result == CommonDialogResult.Yes)
                  {
                      Endpoints.RemoveAt(SelectedIndex);
@@ -217,6 +217,8 @@ namespace Slamby.TAU.ViewModel
                  }
              });
         }
+
+        private DialogHandler _dialogHandler;
 
         private ObservableCollection<ConfigurationWithId> _endpoints;
 

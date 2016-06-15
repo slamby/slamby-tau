@@ -8,7 +8,6 @@ namespace Slamby.TAU.Enum
 {
     public enum UpdateType
     {
-        EndPointUpdate,
         NewProcessCreated,
         OpenNewTab,
         DatasetRename
