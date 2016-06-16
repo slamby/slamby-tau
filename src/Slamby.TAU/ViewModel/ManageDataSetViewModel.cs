@@ -255,7 +255,7 @@ namespace Slamby.TAU.ViewModel
                                     catch (Exception ex)
                                     {
                                         Messenger.Default.Send(ex);
-                                        status.ErrorCount += GlobalStore.BulkSize;
+                                        status.ErrorCount += GlobalStore.SelectedEndpoint.BulkSize;
                                     }
                                     finally
                                     {
@@ -359,20 +359,20 @@ namespace Slamby.TAU.ViewModel
                             else
                             {
                                 var remaining = tokens.Count;
-                                while ((remaining - GlobalStore.BulkSize) > 0 && !cancellationToken.IsCancellationRequested)
+                                while ((remaining - GlobalStore.SelectedEndpoint.BulkSize) > 0 && !cancellationToken.IsCancellationRequested)
                                 {
                                     var response = new ClientResponseWithObject<BulkResults>();
                                     try
                                     {
                                         var settings = new DocumentBulkSettings();
-                                        settings.Documents = tokens.Take(GlobalStore.BulkSize).Select(t => t.ToObject<object>()).ToList();
+                                        settings.Documents = tokens.Take(GlobalStore.SelectedEndpoint.BulkSize).Select(t => t.ToObject<object>()).ToList();
                                         response = new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings).Result;
                                         ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
                                         Messenger.Default.Send(new Exception(string.Format("Error during bulk process at range [{0}-{1}]", done, done + remaining), ex));
-                                        status.ErrorCount += GlobalStore.BulkSize;
+                                        status.ErrorCount += GlobalStore.SelectedEndpoint.BulkSize;
                                     }
                                     finally
                                     {
@@ -386,11 +386,11 @@ namespace Slamby.TAU.ViewModel
                                             }
 
                                         }
-                                        done += GlobalStore.BulkSize;
+                                        done += GlobalStore.SelectedEndpoint.BulkSize;
                                         status.DoneCount = done;
                                         status.ProgressValue = (done / (double)all) * 100;
-                                        remaining -= GlobalStore.BulkSize;
-                                        tokens = tokens.Skip(GlobalStore.BulkSize).ToList();
+                                        remaining -= GlobalStore.SelectedEndpoint.BulkSize;
+                                        tokens = tokens.Skip(GlobalStore.SelectedEndpoint.BulkSize).ToList();
                                     }
                                 }
                                 if (remaining > 0 && !cancellationToken.IsCancellationRequested)

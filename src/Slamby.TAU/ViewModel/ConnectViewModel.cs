@@ -91,7 +91,7 @@ namespace Slamby.TAU.ViewModel
                   {
                       Buttons = ButtonsEnum.OkCancel,
                       Header = "Create new endpoint",
-                      Content = new JContent(new Configuration())
+                      Content = new JContent(new { ApiBaseEndpoint = new Uri("https://europe.slamby.com/"), ApiSecret = "", ParallelLimit = 0, BulkSize = 1000 })
                   };
                   var view = new CommonDialog { DataContext = context };
                   var canClose = false;
@@ -133,8 +133,8 @@ namespace Slamby.TAU.ViewModel
                       });
                   if ((CommonDialogResult)result == CommonDialogResult.Ok)
                   {
-                      var newEndpoint = ((JContent)context.Content).GetJToken().ToObject<Configuration>();
-                      Endpoints.Add(new ConfigurationWithId(newEndpoint));
+                      var newEndpoint = ((JContent)context.Content).GetJToken().ToObject<ConfigurationWithId>();
+                      Endpoints.Add(newEndpoint);
                       GlobalStore.Endpoints = Endpoints.ToList();
                   }
               });
@@ -146,7 +146,7 @@ namespace Slamby.TAU.ViewModel
                 {
                     Buttons = ButtonsEnum.OkCancel,
                     Header = "Create new endpoint",
-                    Content = new JContent(new Configuration { ApiBaseEndpoint = Endpoints[SelectedIndex].ApiBaseEndpoint, ApiSecret = Endpoints[SelectedIndex].ApiSecret, Timeout = Endpoints[SelectedIndex].Timeout, ParallelLimit = Endpoints[SelectedIndex].ParallelLimit })
+                    Content = new JContent(new { Endpoints[SelectedIndex].ApiBaseEndpoint, Endpoints[SelectedIndex].ApiSecret, Endpoints[SelectedIndex].ParallelLimit, Endpoints[SelectedIndex].BulkSize })
                 };
                 var view = new CommonDialog { DataContext = context };
                 var canClose = false;
@@ -186,11 +186,11 @@ namespace Slamby.TAU.ViewModel
                     });
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
-                    var modifiedEndpoint = ((JContent)context.Content).GetJToken().ToObject<Configuration>();
-                    var modifiedEndpointWithId = new ConfigurationWithId(modifiedEndpoint) { Id = Endpoints[SelectedIndex].Id };
-                    Endpoints[SelectedIndex] = modifiedEndpointWithId;
+                    var modifiedEndpoint = ((JContent)context.Content).GetJToken().ToObject<ConfigurationWithId>();
+                    modifiedEndpoint.Id = Endpoints[SelectedIndex].Id;
+                    Endpoints[SelectedIndex] = modifiedEndpoint;
                     Endpoints = new ObservableCollection<ConfigurationWithId>(Endpoints);
-                    SelectedIndex = Endpoints.IndexOf(modifiedEndpointWithId);
+                    SelectedIndex = Endpoints.IndexOf(modifiedEndpoint);
                     GlobalStore.Endpoints = Endpoints.ToList();
                     if (isSelectedInUse)
                     {
