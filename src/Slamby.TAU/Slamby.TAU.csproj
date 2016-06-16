@@ -186,6 +186,7 @@
     </ApplicationDefinition>
     <Compile Include="Converter\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converter\DatasetToSapmleOrSchemaConverter.cs" />
+    <Compile Include="Converter\ErrorCountToBackgrounColorConverter.cs" />
     <Compile Include="Converter\ObjectToStringConverter.cs" />
     <Compile Include="Converter\ProcessStatusToBoolConverter.cs" />
     <Compile Include="Converter\StringToCellTemplateConverter.cs" />

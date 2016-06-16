@@ -41,6 +41,7 @@
             <converter:StringToCellTemplateConverter x:Key="StringToCellTemplateConverter"/>
             <converter:ProcessStatusToBoolConverter x:Key="ProcessStatusToBoolConverter"/>
             <converter:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converter:ErrorCountToBackgrounColorConverter x:Key="ErrorCountToBackgrounColorConverter"/>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -268,76 +269,78 @@
         </materialDesign:DialogHost>
 
 
-        <DockPanel Grid.Row="1" Height="30" Background="{DynamicResource SecondaryAccentBrush}">
-            <StackPanel DataContext="{Binding Path=ResourcesMonitor, Source={StaticResource Locator}}" Orientation="Horizontal" DockPanel.Dock="Left" Height="20" Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Left">
+        <Grid Grid.Row="1" Height="30" Background="{DynamicResource SecondaryAccentBrush}">
+            <DockPanel Height="30" Background="{Binding Path=ResourcesMonitor.ErrorCount, Source={StaticResource Locator}, Converter={StaticResource ErrorCountToBackgrounColorConverter}}">
+                <StackPanel DataContext="{Binding Path=ResourcesMonitor, Source={StaticResource Locator}}" Orientation="Horizontal" DockPanel.Dock="Left" Height="20" Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Left">
 
-                <ContentPresenter Content="{Binding Path=EndPointStatus}" >
-                    <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type models:EndPointStatus}">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock Text="{Binding Status.CpuUsage, StringFormat=CPU: {0}}" VerticalAlignment="Center"/>
-                                <TextBlock Margin="10,0,0,0" Text="{Binding Status.FreeMemory, StringFormat=Memory: {0}/}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Status.TotalMemory, StringFormat={}{0} Mb}" VerticalAlignment="Center"/>
-                                <TextBlock Margin="10,0,0,0" Text="{Binding Status.AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}" VerticalAlignment="Center"/>
-                                <Button Margin="10,0" Command="{Binding ExpandStatusCommand}" Height="10" Width="10" DataContext="{Binding Path=Main, Source={StaticResource Locator}}" VerticalAlignment="Center">
-                                    <Button.Template>
-                                        <ControlTemplate>
-                                            <fa:ImageAwesome Icon="Expand" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                                <fa:ImageAwesome Icon="ExclamationTriangle" Height="18" Width="18" Margin="10,0" ToolTip="Communication error!" Visibility="{Binding Path=IsAlive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ContentPresenter.Resources>
-                </ContentPresenter>
-                <ToggleButton x:Name="ErrorsToggleButton" VerticalAlignment="Center" Margin="0,1,10,0" Tag="Errors">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="Checked" >
-                            <i:InvokeCommandAction Command="{Binding ErrorCountResetCommand}" />
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="Unchecked" >
-                            <i:InvokeCommandAction Command="{Binding ErrorCountResetCommand}" />
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                    <ToggleButton.Template>
-                        <ControlTemplate>
-                            <Grid>
-                                <Border BorderBrush="Red" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="3" CornerRadius="2" Padding="2"/>
-                                <Label Content="{Binding ErrorCount}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="-2"/>
-                            </Grid>
-                        </ControlTemplate>
-                    </ToggleButton.Template>
-                </ToggleButton>
+                    <ContentPresenter Content="{Binding Path=EndPointStatus}" >
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type models:EndPointStatus}">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Status.CpuUsage, StringFormat=CPU: {0}}" VerticalAlignment="Center"/>
+                                    <TextBlock Margin="10,0,0,0" Text="{Binding Status.FreeMemory, StringFormat=Memory: {0}/}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Status.TotalMemory, StringFormat={}{0} Mb}" VerticalAlignment="Center"/>
+                                    <TextBlock Margin="10,0,0,0" Text="{Binding Status.AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}" VerticalAlignment="Center"/>
+                                    <Button Margin="10,0" Command="{Binding ExpandStatusCommand}" Height="10" Width="10" DataContext="{Binding Path=Main, Source={StaticResource Locator}}" VerticalAlignment="Center">
+                                        <Button.Template>
+                                            <ControlTemplate>
+                                                <fa:ImageAwesome Icon="Expand" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <fa:ImageAwesome Icon="ExclamationTriangle" Height="18" Width="18" Margin="10,0" ToolTip="Communication error!" Visibility="{Binding Path=IsAlive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                    <ToggleButton x:Name="ErrorsToggleButton" VerticalAlignment="Center" Margin="0,1,10,0" Tag="Errors">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Checked" >
+                                <i:InvokeCommandAction Command="{Binding ErrorCountResetCommand}" />
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="Unchecked" >
+                                <i:InvokeCommandAction Command="{Binding ErrorCountResetCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <ToggleButton.Template>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Border BorderBrush="Red" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="3" CornerRadius="2" Padding="2"/>
+                                    <Label Content="{Binding ErrorCount}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="-2"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
 
-                <Popup IsOpen="{Binding ElementName=ErrorsToggleButton, Path=IsChecked}">
+                    <Popup IsOpen="{Binding ElementName=ErrorsToggleButton, Path=IsChecked}">
+                        <Border BorderThickness="3" BorderBrush="{DynamicResource SecondaryAccentBrush}">
+                            <ListView ItemsSource="{Binding Errors, Mode=OneWay}" Width="300"  Height="300" Background="White">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" ToolTip="{Binding Details}"/>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+
+                <ToggleButton DockPanel.Dock="Right" x:Name="LogToggleButton" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="{Binding LogWindowIsOpen}" Margin="0,1,10,0"/>
+                <Popup IsOpen="{Binding ElementName=LogToggleButton, Path=IsChecked}">
                     <Border BorderThickness="3" BorderBrush="{DynamicResource SecondaryAccentBrush}">
-                        <ListView ItemsSource="{Binding Errors, Mode=OneWay}" Width="300"  Height="300" Background="White">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Message}" ToolTip="{Binding Details}"/>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                        <StackPanel Background="White">
+                            <ScrollViewer Width="300"  Height="300">
+                                <TextBox  Text="{Binding Messages}" TextWrapping="Wrap" IsHitTestVisible="True">
+                                    <TextBox.DataContext>
+                                        <models:MessageReciever/>
+                                    </TextBox.DataContext>
+                                </TextBox>
+                            </ScrollViewer>
+                        </StackPanel>
                     </Border>
                 </Popup>
-            </StackPanel>
-
-            <ToggleButton DockPanel.Dock="Right" x:Name="LogToggleButton" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="{Binding LogWindowIsOpen}" Margin="0,1,10,0"/>
-            <Popup IsOpen="{Binding ElementName=LogToggleButton, Path=IsChecked}">
-                <Border BorderThickness="3" BorderBrush="{DynamicResource SecondaryAccentBrush}">
-                    <StackPanel Background="White">
-                        <ScrollViewer Width="300"  Height="300">
-                            <TextBox  Text="{Binding Messages}" TextWrapping="Wrap" IsHitTestVisible="True">
-                                <TextBox.DataContext>
-                                    <models:MessageReciever/>
-                                </TextBox.DataContext>
-                            </TextBox>
-                        </ScrollViewer>
-                    </StackPanel>
-                </Border>
-            </Popup>
         </DockPanel>
+            </Grid>
     </Grid>
 </Window>
 
