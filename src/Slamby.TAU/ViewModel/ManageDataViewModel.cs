@@ -16,6 +16,7 @@ using Slamby.TAU.Model;
 using System;
 using System.Drawing.Text;
 using System.Net;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using Slamby.TAU.Logger;
 using Slamby.TAU.Resources;
@@ -100,7 +101,7 @@ namespace Slamby.TAU.ViewModel
             AddTagCommand = new RelayCommand(async () => await AddTag());
             RemoveTagCommand = new RelayCommand(RemoveTag);
             ModifyTagTagCommand = new RelayCommand(ModifyTag);
-            ExportWordsCommand = new RelayCommand(async () => await ExportWords());
+            ExportWordsCommand = new RelayCommand(async () => await ExportWords(), () => SelectedTags != null && SelectedTags.Any());
 
             AddDocumentCommand = new RelayCommand(async () => await AddDocument());
             DeleteDocumentCommand = new RelayCommand(DeleteDocument);
@@ -265,7 +266,10 @@ namespace Slamby.TAU.ViewModel
             get { return _selectedTags; }
             set
             {
-                Set(() => SelectedTags, ref _selectedTags, value);
+                if (Set(() => SelectedTags, ref _selectedTags, value))
+                {
+                    ExportWordsCommand.RaiseCanExecuteChanged();
+                }
             }
         }
 
