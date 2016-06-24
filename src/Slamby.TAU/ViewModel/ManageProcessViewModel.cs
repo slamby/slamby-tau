@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Windows.Input;
@@ -37,10 +38,6 @@ namespace Slamby.TAU.ViewModel
             {
                 switch (message.UpdateType)
                 {
-                    case UpdateType.EndPointUpdate:
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => Processes.Clear());
-                        _loadedFirst = true;
-                        break;
                     case UpdateType.NewProcessCreated:
                         var processes = Processes.ToList();
                         processes.Add((Process)message.Parameter);
@@ -51,58 +48,82 @@ namespace Slamby.TAU.ViewModel
 
             LoadedCommand = new RelayCommand(async () =>
             {
-                Mouse.SetCursor(Cursors.Arrow);
-                SetGridSettings();
-                if (_loadedFirst && _processManager != null)
+                try
                 {
-                    _loadedFirst = false;
-                    await _dialogHandler.ShowProgress(null, async () =>
+                    Mouse.SetCursor(Cursors.Arrow);
+                    SetGridSettings();
+                    if (_loadedFirst && _processManager != null)
                     {
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => Processes.Clear());
-                        Log.Info(LogMessages.ManageProcessLoadProcesses);
-                        var response = await _processManager.GetProcessesAsync(true);
-                        if (ResponseValidator.Validate(response))
+                        _loadedFirst = false;
+                        await _dialogHandler.ShowProgress(null, async () =>
                         {
-                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => Processes.Clear());
+                            Log.Info(LogMessages.ManageProcessLoadProcesses);
+                            var response = await _processManager.GetProcessesAsync(true);
+                            if (ResponseValidator.Validate(response, false))
                             {
-                                if (response.ResponseObject.Any())
+                                DispatcherHelper.CheckBeginInvokeOnUI(() =>
                                 {
-                                    var ordered = response.ResponseObject.OrderByDescending(p => p.Start);
-                                    Processes = new ObservableCollection<Process>(ordered);
-                                    RaisePropertyChanged("Processes");
-                                }
-                            });
-                        }
-                    });
+                                    if (response.ResponseObject.Any())
+                                    {
+                                        var ordered = response.ResponseObject.OrderByDescending(p => p.Start);
+                                        Processes = new ObservableCollection<Process>(ordered);
+                                        RaisePropertyChanged("Processes");
+                                    }
+                                });
+                            }
+                        });
+                    }
                 }
+                catch (Exception exception)
+                {
+                    Messenger.Default.Send(exception);
+                }
+
             });
 
             RefreshProcessCommand = new RelayCommand<string>(async id =>
             {
-                var processResponse = await _processManager.GetProcessAsync(id);
-                if (ResponseValidator.Validate(processResponse))
+                try
                 {
-                    var selectedItem = Processes.FirstOrDefault(p => p.Id == id);
-                    if (selectedItem != null)
+                    var processResponse = await _processManager.GetProcessAsync(id);
+                    if (ResponseValidator.Validate(processResponse, false))
                     {
-                        Processes[Processes.IndexOf(selectedItem)] = processResponse.ResponseObject;
-                        Processes = new ObservableCollection<Process>(Processes);
+                        var selectedItem = Processes.FirstOrDefault(p => p.Id == id);
+                        if (selectedItem != null)
+                        {
+                            Processes[Processes.IndexOf(selectedItem)] = processResponse.ResponseObject;
+                            Processes = new ObservableCollection<Process>(Processes);
+                        }
                     }
                 }
+                catch (Exception exception)
+                {
+                    Messenger.Default.Send(exception);
+                }
+
             });
 
             CancelProcessCommand = new RelayCommand<Process>(async process =>
             {
-                var processResponse = await _processManager.CancelProcessAsync(process.Id);
-                if (ResponseValidator.Validate(processResponse))
+                try
                 {
-                    var selectedItem = Processes.FirstOrDefault(p => p.Id == process.Id);
-                    if (selectedItem != null)
+                    var processResponse = await _processManager.CancelProcessAsync(process.Id);
+                    if (ResponseValidator.Validate(processResponse, false))
                     {
-                        selectedItem.Status = ProcessStatusEnum.Cancelled;
-                        Processes = new ObservableCollection<Process>(Processes);
+                        var selectedItem = Processes.FirstOrDefault(p => p.Id == process.Id);
+                        if (selectedItem != null)
+                        {
+                            selectedItem.Status = ProcessStatusEnum.Cancelled;
+                            Processes = new ObservableCollection<Process>(Processes);
+                        }
                     }
                 }
+                catch (Exception exception)
+                {
+                    Messenger.Default.Send(exception);
+                }
+
             });
 
         }

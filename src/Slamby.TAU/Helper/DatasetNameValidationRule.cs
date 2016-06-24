@@ -20,14 +20,14 @@ namespace Slamby.TAU.Helper
             {
                 return new ValidationResult(false, "Field is required.");
             }
-            else if ((stringValue ?? "").Length < 3)
-            {
-                return new ValidationResult(false, "Name did not contain at least 3 character");
-            }
-            else if ((stringValue ?? "") != (stringValue ?? "").ToLower() || illegalCharacters.Intersect(stringValue ?? "").Any())
-            {
-                return new ValidationResult(false, string.Format("Name cannot contain:{0} - upper alpha characters{0} - any of the following characters: {1}", Environment.NewLine, string.Join(" ", illegalCharacters)));
-            }
+            //else if ((stringValue ?? "").Length < 3)
+            //{
+            //    return new ValidationResult(false, "Name did not contain at least 3 character");
+            //}
+            //else if ((stringValue ?? "") != (stringValue ?? "").ToLower() || illegalCharacters.Intersect(stringValue ?? "").Any())
+            //{
+            //    return new ValidationResult(false, string.Format("Name cannot contain:{0} - upper alpha characters{0} - any of the following characters: {1}", Environment.NewLine, string.Join(" ", illegalCharacters)));
+            //}
             return ValidationResult.ValidResult;
         }
 

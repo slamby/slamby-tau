@@ -14,23 +14,6 @@ namespace Slamby.TAU.Helper
     public static class GlobalStore
     {
 
-        private static int _bulkSize = Int32.Parse(Settings.Default["BulkSize"].ToString());
-
-        public static int BulkSize
-        {
-            get
-            {
-                return _bulkSize;
-            }
-            set
-            {
-                _bulkSize = value;
-                Settings.Default["BulkSize"] = value;
-                if (!IsInTestMode)
-                    Settings.Default.Save();
-            }
-        }
-
         private static Dictionary<string, Dictionary<string, DataGridSettings>> _gridSettingsDictionary = JObject.Parse(Settings.Default["GridSettingsDictionary"].ToString()).ToObject<Dictionary<string, Dictionary<string, DataGridSettings>>>();
 
         public static Dictionary<string, Dictionary<string, DataGridSettings>> GridSettingsDictionary
@@ -122,5 +105,7 @@ namespace Slamby.TAU.Helper
         public static bool IsInTestMode { get; set; } = false;
 
         public static bool DialogIsOpen { get; set; } = false;
+
+        public static bool EndPointIsAlive { get; set; } = true;
     }
 }

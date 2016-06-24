@@ -18,7 +18,7 @@ namespace Slamby.TAU.Helper
             {
                 var result = new CsvImportResult();
 
-                while (result.CanContinue && (unlimied || result.Tokens.Count + result.InvalidRows.Count < GlobalStore.BulkSize))
+                while (result.CanContinue && (unlimied || result.Tokens.Count + result.InvalidRows.Count < GlobalStore.SelectedEndpoint.BulkSize))
                 {
                     try
                     {

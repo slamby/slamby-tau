@@ -6,7 +6,9 @@ namespace Slamby.TAU.Model
     public class ConfigurationWithId : Configuration
     {
         public ConfigurationWithId()
-        { }
+        {
+            Id = Guid.NewGuid();
+        }
 
         public ConfigurationWithId(Configuration configuration)
         {
@@ -18,6 +20,15 @@ namespace Slamby.TAU.Model
         }
 
         public Guid Id { get; set; }
+
+        private int _bulkSize = 1000;
+        public int BulkSize
+        {
+            get { return _bulkSize; }
+            set {
+                _bulkSize = value < 1 ? 1 : value;
+            }
+        }
 
         public override bool Equals(object obj)
         {

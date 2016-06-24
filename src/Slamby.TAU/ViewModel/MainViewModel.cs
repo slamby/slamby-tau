@@ -84,16 +84,22 @@ namespace Slamby.TAU.ViewModel
                         Tabs.Add(newTab);
                         SelectedTab = newTab;
                         break;
+                    case UpdateType.DatasetRename:
+                        var oldName = message.Parameter.ToString();
+                        var tabsToClose = Tabs.Where(t => t.Header.ToString() == oldName + " -Data").ToList();
+                        foreach (var tab in tabsToClose)
+                        {
+                            Tabs.Remove(tab);
+                        }
+                        break;
                 }
             });
-            Messenger.Default.Register<ClientResponse>(this, async response => await ErrorHandler(response));
-            Messenger.Default.Register<Exception>(this, async exception => await ErrorHandler(exception));
             IsInSettingsMode = false;
             ChangeSettingsModeCommand = new RelayCommand(() => IsInSettingsMode = !IsInSettingsMode);
-            RefreshCommand = new RelayCommand(() =>
+            RefreshCommand = new RelayCommand(async () =>
             {
                 Log.Info(LogMessages.MainRefreshCommand);
-                Messenger.Default.Send(new UpdateMessage(UpdateType.EndPointUpdate));
+                await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
             });
             AboutCommand = new RelayCommand(async () =>
             {
@@ -288,35 +294,9 @@ namespace Slamby.TAU.ViewModel
             });
         }
 
-        private async Task ErrorHandler(object errorObject)
-        {
-            if (errorObject is ClientResponse || errorObject is Exception)
-                _errors.Enqueue(errorObject);
-            if (_errors.Count == 1)
-            {
-                while (_errors.Any())
-                {
-                    var context = errorObject is ClientResponse ? new ErrorViewModel((ClientResponse)_errors.First()) : new ErrorViewModel((Exception)_errors.First());
-                    try
-                    {
-                        await _dialogHandler.Show(new ErrorDialog { DataContext = context }, "ErrorDialog");
-                        object current;
-                        while (!_errors.TryDequeue(out current)) ;
-
-                    }
-                    catch (Exception)
-                    {
-                        Log.Debug("Show error failed!");
-                    }
-                }
-            }
-        }
-
         private IProcessManager _processManager;
         private IDataSetManager _dataSetManager;
         private DialogHandler _dialogHandler;
-
-        private static ConcurrentQueue<object> _errors = new ConcurrentQueue<object>();
 
         private ObservableCollection<MenuItem> _menuItems;
 

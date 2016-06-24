@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Slamby.TAU.View"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-             xmlns:sdk="clr-namespace:Slamby.SDK.Net;assembly=Slamby.SDK.Net"
+             xmlns:model="clr-namespace:Slamby.TAU.Model"
              mc:Ignorable="d" 
              DataContext="{StaticResource ConnectViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">
@@ -23,19 +23,23 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
                 <ListView.Resources>
-                    <DataTemplate DataType="{x:Type sdk:Configuration}">
+                    <DataTemplate DataType="{x:Type model:ConfigurationWithId}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding ApiBaseEndpoint, StringFormat=Uri:  {0}}" Margin="5" Grid.ColumnSpan="2"/>
-                            <TextBlock Margin="5" Grid.Row="1" Text="secret" ToolTip="{Binding ApiSecret}"/>
-                            <TextBlock Margin="5" Grid.Row="1" Grid.Column="1" Text="{Binding ParallelLimit, StringFormat=Paralell Limit:  {0}}"/>
+                            <TextBlock Text="{Binding ApiBaseEndpoint, StringFormat=Uri:  {0}}" Margin="5"/>
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Margin="5" Text="secret" ToolTip="{Binding ApiSecret}"/>
+                                <TextBlock Margin="5" Grid.Column="1" Text="{Binding ParallelLimit, StringFormat=Paralell Limit:  {0}}"/>
+                                <TextBlock Margin="5" Grid.Column="2" Text="{Binding BulkSize, StringFormat=Bulk size:  {0}}"/>
+                            </Grid>
                         </Grid>
                     </DataTemplate>
                 </ListView.Resources>

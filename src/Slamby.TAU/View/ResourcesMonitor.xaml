@@ -23,12 +23,13 @@
         </Grid.RowDefinitions>
         <materialDesign:Card Margin="10" HorizontalAlignment="Left" >
             <StackPanel Margin="10" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Vertical">
-                <TextBlock Margin="0,5" Text="{Binding Status.CpuUsage, StringFormat=CPU: {0}}" HorizontalAlignment="Left"/>
+                <TextBlock Margin="0,5" Text="{Binding EndPointStatus.Status.CpuUsage, StringFormat=CPU: {0}}" HorizontalAlignment="Left"/>
                 <StackPanel Margin="0,5"  HorizontalAlignment="Left" Orientation="Horizontal">
-                    <TextBlock Text="{Binding Status.FreeMemory, StringFormat=Memory: {0}/}"/>
-                    <TextBlock Text="{Binding Status.TotalMemory, StringFormat={}{0} Mb}"/>
+                    <TextBlock Text="{Binding EndPointStatus.Status.FreeMemory, StringFormat=Memory: {0}/}"/>
+                    <TextBlock Text="{Binding EndPointStatus.Status.TotalMemory, StringFormat={}{0} Mb}"/>
                 </StackPanel>
-                <TextBlock Margin="0,5"  Text="{Binding Status.AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}"/>
+                <TextBlock Margin="0,5"  Text="{Binding EndPointStatus.Status.AvailableFreeSpace, StringFormat=Free space on disk: {0} Mb}"/>
+                <TextBlock Margin="0,5"  Text="{Binding EndPointStatus.Status.ProcessorCount, StringFormat=Processor count: {0}}"/>
             </StackPanel>
         </materialDesign:Card>
         <StackPanel Grid.Row="1" Margin="20,0" Orientation="Horizontal">

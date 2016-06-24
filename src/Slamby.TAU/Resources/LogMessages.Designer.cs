@@ -259,6 +259,15 @@ namespace Slamby.TAU.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename dataset.
+        /// </summary>
+        internal static string ManageDataSetRenameCommand {
+            get {
+                return ResourceManager.GetString("ManageDataSetRenameCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add tag button clicked.
         /// </summary>
         internal static string ManageDataTagAdd {
