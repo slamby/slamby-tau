@@ -28,6 +28,7 @@ using Slamby.TAU.Resources;
 using GalaSoft.MvvmLight.Threading;
 using Slamby.TAU.View;
 using FontAwesome.WPF;
+using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
 using Slamby.SDK.Net.Helpers;
 using Slamby.SDK.Net.Managers.Interfaces;
@@ -77,7 +78,7 @@ namespace Slamby.TAU.ViewModel
                 switch (message.UpdateType)
                 {
                     case UpdateType.NewProcessCreated:
-                        var currentProcess = (Process) message.Parameter;
+                        var currentProcess = (Process)message.Parameter;
                         currentProcess.Start = currentProcess.Start.ToLocalTime();
                         currentProcess.End = currentProcess.End.ToLocalTime();
                         DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add(currentProcess));
@@ -108,7 +109,8 @@ namespace Slamby.TAU.ViewModel
             {
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
                 var sdkVersion = Assembly.LoadFrom("Slamby.SDK.Net.dll").GetName().Version;
-                await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "About", Content = $"Tau version: {version.Major}.{version.Minor}.{version.Build}{Environment.NewLine}SDK version: {sdkVersion.Major}.{sdkVersion.Minor}.{sdkVersion.Build}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
+                var apiVersion = Version.Parse(SimpleIoc.Default.GetInstance<ResourcesMonitorViewModel>().EndPointStatus.Status.ApiVersion);
+                await _dialogHandler.Show(new CommonDialog { DataContext = new CommonDialogViewModel { Header = "About", Content = $"Tau version: {version.Major}.{version.Minor}.{version.Build}{Environment.NewLine}SDK version: {sdkVersion.Major}.{sdkVersion.Minor}.{sdkVersion.Build}{Environment.NewLine}Api version: {apiVersion.Major}.{apiVersion.Minor}.{apiVersion.Build}", Buttons = ButtonsEnum.Ok } }, "RootDialog");
             });
             HelpCommand = new RelayCommand(() =>
             {
