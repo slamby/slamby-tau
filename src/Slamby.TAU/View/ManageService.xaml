@@ -43,6 +43,7 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <DataGrid.Columns>
+                        <DataGridTextColumn Header="Alias" Binding="{Binding Alias}"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
                         <DataGridTextColumn Header="Id" Binding="{Binding Id}"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding Description}"/>
@@ -135,6 +136,11 @@
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Width="*"/>
                     </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Modify Alias" Command="{Binding ModifyAliasCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                 </control:CustomDataGrid>
                 <!--<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0 12 0 0">
                     <ItemsControl ItemsSource="{Binding Services}">
