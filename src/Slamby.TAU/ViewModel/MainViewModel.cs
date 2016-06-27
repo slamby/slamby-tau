@@ -77,7 +77,10 @@ namespace Slamby.TAU.ViewModel
                 switch (message.UpdateType)
                 {
                     case UpdateType.NewProcessCreated:
-                        DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add((Process)message.Parameter));
+                        var currentProcess = (Process) message.Parameter;
+                        currentProcess.Start = currentProcess.Start.ToLocalTime();
+                        currentProcess.End = currentProcess.End.ToLocalTime();
+                        DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveProcessesList.Add(currentProcess));
                         break;
                     case UpdateType.OpenNewTab:
                         var newTab = (HeaderedItemViewModel)message.Parameter;
