@@ -101,7 +101,7 @@
                                         </DataTemplate>
                                     </DataGrid.RowDetailsTemplate>-->
                                 </control:CustomDataGrid>
-                                <view:Paginator Grid.Row="2" HorizontalAlignment="Center" DataContext="{Binding DocumentPaginatorViewModel}" />
+                                <Button Grid.Row="1" Content="..." Command="{Binding LoadMoreCommand}"/>
                             </Grid>
                         </materialDesign:Card>
                         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
@@ -143,6 +143,12 @@
                                         </StackPanel>
                                         <TextBox wpf:TextFieldAssist.Hint="FilterQuery" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" ToolTip="e.g.: workplace:(city1 OR city2)"
                                          TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" MaxHeight="200" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <StackPanel Margin="0,10">
+                                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                                <TextBlock Text="Scroll Size: " VerticalAlignment="Center"/>
+                                                <TextBox Text="{Binding ScrollSize}" Margin="5,0,5,0" Width="100" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
                                         <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,40,0,10" Command="{Binding ApplyFilterCommand}" />
                                     </StackPanel>
                                 </materialDesign:Card>

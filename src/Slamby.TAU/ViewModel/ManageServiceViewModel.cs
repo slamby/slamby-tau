@@ -635,7 +635,7 @@ namespace Slamby.TAU.ViewModel
 
             var view = new CommonDialog { DataContext = context };
             var canClose = false;
-            ClientResponse clientResponse = null;
+            ClientResponseWithObject<Process> clientResponse = null;
             var result = await _dialogHandler.Show(view, "RootDialog",
                 async (object sender, DialogClosingEventArgs args) =>
                 {
@@ -691,7 +691,9 @@ namespace Slamby.TAU.ViewModel
             {
                 DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
-                    selected.Status = ServiceStatusEnum.Active;
+                    selected.Status = ServiceStatusEnum.Busy;
+                    _busyServiceIds.Add(selected.Id);
+                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
                     Services = new ObservableCollection<Service>(Services);
                 });
             }
