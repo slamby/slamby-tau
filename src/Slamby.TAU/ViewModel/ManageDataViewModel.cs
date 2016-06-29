@@ -60,9 +60,9 @@ namespace Slamby.TAU.ViewModel
             {
                 await _dialogHandler.ShowProgress(null, async () =>
                 {
-                    await ScrollDocuments(_filterScrollId);
+                    await ScrollDocuments();
                 });
-            });
+            }, () => !string.IsNullOrEmpty(_filterScrollId));
             LoadedCommand = new RelayCommand(async () =>
             {
                 Mouse.SetCursor(Cursors.Arrow);
@@ -327,7 +327,7 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand GetSampleCommand { get; private set; }
 
 
-        private string _filterScrollId;
+        private string _filterScrollId = null;
 
 
         private int _scrollSize = 50;
@@ -390,6 +390,8 @@ namespace Slamby.TAU.ViewModel
             await _dialogHandler.ShowProgress(null, async () =>
             {
                 _activeSource = ActiveSourceEnum.Sample;
+                _filterScrollId = null;
+                DispatcherHelper.CheckBeginInvokeOnUI(() => LoadMoreCommand.RaiseCanExecuteChanged());
                 _sampleSettingsId = Guid.NewGuid().ToString();
                 var sampleSettings = new DocumentSampleSettings
                 {
@@ -404,14 +406,15 @@ namespace Slamby.TAU.ViewModel
             });
         }
 
-        private async Task ScrollDocuments(string scrollId)
+        private async Task ScrollDocuments()
         {
             Log.Info(LogMessages.ManageDataLoadDocuments);
-            var response = await _documentManager.GetFilteredDocumentsAsync(null, scrollId);
+            var response = await _documentManager.GetFilteredDocumentsAsync(null, _filterScrollId);
             try
             {
                 ResponseValidator.Validate(response, false);
                 _filterScrollId = response.ResponseObject.Count == 0 ? null : response.ResponseObject.ScrollId;
+                DispatcherHelper.CheckBeginInvokeOnUI(() => LoadMoreCommand.RaiseCanExecuteChanged());
                 DispatcherHelper.CheckBeginInvokeOnUI(() => Documents.AddRange(response.ResponseObject.Items));
             }
             catch (Exception exception)
@@ -429,6 +432,7 @@ namespace Slamby.TAU.ViewModel
             {
                 ResponseValidator.Validate(response, false);
                 _filterScrollId = response.ResponseObject.Count == 0 ? null : response.ResponseObject.ScrollId;
+                DispatcherHelper.CheckBeginInvokeOnUI(() => LoadMoreCommand.RaiseCanExecuteChanged());
                 DispatcherHelper.CheckBeginInvokeOnUI(() => Documents = new ObservableCollection<object>(response.ResponseObject.Items));
             }
             catch (Exception exception)
