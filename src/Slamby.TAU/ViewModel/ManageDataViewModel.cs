@@ -407,7 +407,7 @@ namespace Slamby.TAU.ViewModel
                 };
                 filterSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
-                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o=>o.ToString()).ToList();
+                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).ToList();
                 await LoadDocuments(filterSettings);
             });
         }
@@ -832,6 +832,12 @@ namespace Slamby.TAU.ViewModel
             {
                 var selectedDocument = SelectedDocuments.First();
                 var docId = ((JObject)selectedDocument)[_currentDataSet.IdField].ToString();
+                await _dialogHandler.ShowProgress(null, async () =>
+                {
+                    var getFullDocumentResponse = await _documentManager.GetDocumentAsync(docId);
+                    ResponseValidator.Validate(getFullDocumentResponse, false);
+                    selectedDocument = getFullDocumentResponse.ResponseObject;
+                });
                 var context = new CommonDialogViewModel
                 {
                     Header = "Modify Document",
@@ -841,7 +847,7 @@ namespace Slamby.TAU.ViewModel
 
                 var view = new CommonDialog { DataContext = context };
                 var canClose = false;
-                object modified = null;
+                ClientResponseWithObject<object> response = null;
                 var result = await _dialogHandler.Show(view, "RootDialog",
                     async (object sender, DialogClosingEventArgs args) =>
                     {
@@ -853,8 +859,8 @@ namespace Slamby.TAU.ViewModel
                             var errorMessage = "";
                             try
                             {
-                                modified = ((JContent)context.Content).GetJToken().ToObject<object>();
-                                var response = await _documentManager.UpdateDocumentAsync(docId, modified);
+                                var modified = ((JContent)context.Content).GetJToken().ToObject<object>();
+                                response = (ClientResponseWithObject<object>)await _documentManager.UpdateDocumentAsync(docId, modified);
                                 isSuccessful = response.IsSuccessFul;
                                 ResponseValidator.Validate(response, false);
                             }
@@ -862,7 +868,6 @@ namespace Slamby.TAU.ViewModel
                             {
                                 isSuccessful = false;
                                 errorMessage = exception.Message;
-
                             }
                             finally
                             {
@@ -883,9 +888,9 @@ namespace Slamby.TAU.ViewModel
                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
                 {
                     var selectedList = SelectedDocuments.ToList();
-                    Documents[Documents.IndexOf(selectedDocument)] = modified;
+                    Documents[Documents.IndexOf(selectedDocument)] = response.ResponseObject;
                     selectedList.Remove(selectedDocument);
-                    selectedList.Add(modified);
+                    selectedList.Add(response.ResponseObject);
                     SelectedDocuments = new ObservableCollection<object>(selectedList);
                     Documents = new ObservableCollection<object>(Documents);
                 }
@@ -1002,27 +1007,35 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var docObject = (JObject)selectedDocs[done];
                                         var docId = docObject[_currentDataSet.IdField].ToString();
-                                        object modified = null;
                                         try
                                         {
                                             if (docObject[_currentDataSet.TagField] is JArray)
                                             {
                                                 var tags = (JArray)docObject[_currentDataSet.TagField];
+                                                var originalTags = tags.ToObject<JArray>();
                                                 context.SelectedTags.ToList().ForEach(t =>
                                                 {
                                                     if (!tags.Any(j => j.ToString().Equals(t.Id.ToString())))
                                                         tags.Add(t.Id);
                                                 });
-                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, tags);
+                                                var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
-                                                ResponseValidator.Validate(response, false);
+                                                if (!response.IsSuccessFul)
+                                                {
+                                                    tags = originalTags;
+                                                    ResponseValidator.Validate(response, false);
+                                                }
                                             }
                                             else
                                             {
-                                                docObject[_currentDataSet.TagField] = context.SelectedTags.First().Id;
-                                                var newDocument = docObject.ToObject<object>();
-                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, context.SelectedTags.First().Id);
+                                                var modified = modifiedTags.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
                                                 ResponseValidator.Validate(response, false);
+                                                docObject[_currentDataSet.TagField] = context.SelectedTags.First().Id;
                                             }
                                         }
                                         catch (Exception ex)
@@ -1120,7 +1133,6 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var docObject = (JObject)selectedDocs[done];
                                         var docId = docObject[_currentDataSet.IdField].ToString();
-                                        object modified = null;
                                         try
                                         {
                                             if (docObject[_currentDataSet.TagField] is JArray)
@@ -1133,7 +1145,9 @@ namespace Slamby.TAU.ViewModel
                                                     if (match != null)
                                                         tags.Remove(match);
                                                 });
-                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, tags);
+                                                var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
                                                 if (!response.IsSuccessFul)
                                                 {
@@ -1143,10 +1157,12 @@ namespace Slamby.TAU.ViewModel
                                             }
                                             else
                                             {
-                                                docObject[_currentDataSet.TagField] = "";
-                                                var newDocument = docObject.ToObject<object>();
-                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, "");
+                                                var modified = modifiedTags.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
                                                 ResponseValidator.Validate(response, false);
+                                                docObject[_currentDataSet.TagField] = "";
                                             }
                                         }
                                         catch (Exception ex)
@@ -1214,7 +1230,6 @@ namespace Slamby.TAU.ViewModel
                                     {
                                         var docObject = (JObject)selectedDocs[done];
                                         var docId = docObject[_currentDataSet.IdField].ToString();
-                                        object modified = null;
                                         try
                                         {
                                             if (docObject[_currentDataSet.TagField] is JArray)
@@ -1222,7 +1237,9 @@ namespace Slamby.TAU.ViewModel
                                                 var tags = (JArray)docObject[_currentDataSet.TagField];
                                                 var originalTags = tags.ToObject<JArray>();
                                                 tags.RemoveAll();
-                                                modified = JObject.Parse(selectedDocs[done].ToString()).ToObject<object>();
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, tags);
+                                                var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
                                                 if (!response.IsSuccessFul)
                                                 {
@@ -1232,10 +1249,12 @@ namespace Slamby.TAU.ViewModel
                                             }
                                             else
                                             {
-                                                docObject[_currentDataSet.TagField] = "";
-                                                var newDocument = docObject.ToObject<object>();
-                                                var response = _documentManager.UpdateDocumentAsync(docId, newDocument).Result;
+                                                var modifiedTags = new JObject();
+                                                modifiedTags.Add(_currentDataSet.TagField, "");
+                                                var modified = modifiedTags.ToObject<object>();
+                                                var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
                                                 ResponseValidator.Validate(response, false);
+                                                docObject[_currentDataSet.TagField] = "";
                                             }
                                         }
                                         catch (Exception ex)
