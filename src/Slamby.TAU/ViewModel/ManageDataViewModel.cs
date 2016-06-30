@@ -79,6 +79,8 @@ namespace Slamby.TAU.ViewModel
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() => Tags = new ObservableCollection<Tag>(response.ResponseObject));
                         }
+                        DocumentProperties = new ObservableCollection<string>(_currentDataSet.SampleDocument != null ? ((JObject)_currentDataSet.SampleDocument).Properties().ToList().Select(p => p.Name) :
+                            ((JObject)((JObject)_currentDataSet.Schema)["properties"]).Properties().ToList().Select(p => p.Name));
                         _activeSource = ActiveSourceEnum.Filter;
                         var filterSettings = new DocumentFilterSettings
                         {
@@ -118,6 +120,13 @@ namespace Slamby.TAU.ViewModel
             GetSampleCommand = new RelayCommand(GetSample);
             SelectTagsForFilterCommand = new RelayCommand(SelectFilterTags);
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
+            ApplyFieldsCommand = new RelayCommand(() =>
+              {
+                  if (_activeSource == ActiveSourceEnum.Filter)
+                      ApplyFilter();
+                  else
+                      GetSample();
+              });
         }
 
         #region GridSettings
@@ -280,6 +289,22 @@ namespace Slamby.TAU.ViewModel
 
         #region Document filtering and sampling
 
+        private ObservableCollection<object> _selectedDocumentProperties = new ObservableCollection<object>();
+
+        public ObservableCollection<object> SelectedDocumentProperties
+        {
+            get { return _selectedDocumentProperties; }
+            set { Set(() => SelectedDocumentProperties, ref _selectedDocumentProperties, value); }
+        }
+
+        private ObservableCollection<string> _documentProperties;
+
+        public ObservableCollection<string> DocumentProperties
+        {
+            get { return _documentProperties; }
+            set { Set(() => DocumentProperties, ref _documentProperties, value); }
+        }
+
         private ActiveSourceEnum _activeSource = ActiveSourceEnum.Filter;
 
         private ObservableCollection<Tag> _selectedTagsForSample = new ObservableCollection<Tag>();
@@ -325,6 +350,7 @@ namespace Slamby.TAU.ViewModel
 
         public RelayCommand SelectTagsForSampleCommand { get; private set; }
         public RelayCommand GetSampleCommand { get; private set; }
+        public RelayCommand ApplyFieldsCommand { get; private set; }
 
 
         private string _filterScrollId = null;
@@ -378,8 +404,10 @@ namespace Slamby.TAU.ViewModel
                     },
                     Pagination = new Pagination { Limit = ScrollSize },
                     Order = new Order { OrderByField = _currentDataSet.IdField, OrderDirection = OrderDirectionEnum.Asc }
-                    //TODO fields
                 };
+                filterSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
+                    ? new List<string> { "*" }
+                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o=>o.ToString()).ToList();
                 await LoadDocuments(filterSettings);
             });
         }
@@ -400,8 +428,10 @@ namespace Slamby.TAU.ViewModel
                     Percent = IsFixSizeSample ? 0 : SizeText,
                     Size = IsFixSizeSample ? SizeText : 0,
                     IsStratified = Stratified
-                    //TODO Fields
                 };
+                sampleSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
+                    ? new List<string> { "*" }
+                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).ToList();
                 await LoadDocuments(sampleSettings);
             });
         }
@@ -1382,7 +1412,6 @@ namespace Slamby.TAU.ViewModel
                     },
                     Pagination = new Pagination { Limit = ScrollSize },
                     Order = new Order { OrderByField = _currentDataSet.IdField, OrderDirection = OrderDirectionEnum.Asc }
-                    //TODO fields
                 };
                 await LoadDocuments(filterSettings);
             }

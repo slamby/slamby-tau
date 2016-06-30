@@ -109,12 +109,21 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <materialDesign:Card Margin="10,5,10,10">
+                                <materialDesign:Card Margin="10,2">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Fields"/>
+                                        <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
+                                        <control:CustomListView ItemsSource="{Binding DocumentProperties}" SelectedItemsList="{Binding SelectedDocumentProperties, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}" MaxHeight="80"/>
+                                        <Button Content="Apply" HorizontalAlignment="Right" Margin="0,10" Command="{Binding ApplyFieldsCommand}"/>
+                                    </StackPanel>
+                                </materialDesign:Card>
+                                <materialDesign:Card Grid.Row="1" Margin="10,5">
                                     <StackPanel Margin="10">
                                         <TextBlock Margin="5,5,5,10" FontSize="16" Text="Sample"/>
                                         <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
-                                        <StackPanel Margin="0,10">
+                                        <StackPanel Margin="0,5">
                                             <StackPanel Orientation="Horizontal" Margin="0,5">
                                                 <TextBlock Text="{Binding SelectedLabelForSample}" VerticalAlignment="Center"/>
                                                 <TextBlock Text=" tag(s) selected" Margin="0,0,5,0" VerticalAlignment="Center"/>
@@ -130,7 +139,7 @@
                                         <Button Content="Get Sample" HorizontalAlignment="Right" Margin="0,10" Command="{Binding GetSampleCommand}"/>
                                     </StackPanel>
                                 </materialDesign:Card>
-                                <materialDesign:Card Grid.Row="1" Margin="10">
+                                <materialDesign:Card Grid.Row="2" Margin="10,5">
                                     <StackPanel Margin="10">
                                         <TextBlock Margin="5,5,5,10" FontSize="16" Text="Filter"/>
                                         <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
@@ -149,7 +158,7 @@
                                                 <TextBox Text="{Binding ScrollSize}" Margin="5,0,5,0" Width="100" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </StackPanel>
-                                        <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,40,0,10" Command="{Binding ApplyFilterCommand}" />
+                                        <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,10,0,10" Command="{Binding ApplyFilterCommand}" />
                                     </StackPanel>
                                 </materialDesign:Card>
                             </Grid>

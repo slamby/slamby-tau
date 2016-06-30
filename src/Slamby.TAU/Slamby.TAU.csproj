@@ -184,6 +184,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Control\CustomListView.cs" />
     <Compile Include="Converter\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converter\DatasetToSapmleOrSchemaConverter.cs" />
     <Compile Include="Converter\ErrorCountToBackgrounColorConverter.cs" />
