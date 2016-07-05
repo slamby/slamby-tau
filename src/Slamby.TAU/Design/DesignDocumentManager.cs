@@ -30,7 +30,7 @@ namespace Slamby.TAU.Design
             throw new NotImplementedException();
         }
 
-        public Task<ClientResponse> UpdateDocumentAsync(string documentId, object document)
+        public Task<ClientResponseWithObject<object>> UpdateDocumentAsync(string documentId, object document)
         {
             throw new NotImplementedException();
         }

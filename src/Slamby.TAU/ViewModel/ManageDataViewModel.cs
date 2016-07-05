@@ -407,7 +407,7 @@ namespace Slamby.TAU.ViewModel
                 };
                 filterSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
-                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).ToList();
+                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).Union(new List<string> { _currentDataSet.IdField }).Distinct().ToList();
                 await LoadDocuments(filterSettings);
             });
         }
@@ -431,7 +431,7 @@ namespace Slamby.TAU.ViewModel
                 };
                 sampleSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
-                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).ToList();
+                    : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).Union(new List<string> { _currentDataSet.IdField }).Distinct().ToList();
                 await LoadDocuments(sampleSettings);
             });
         }
@@ -832,17 +832,18 @@ namespace Slamby.TAU.ViewModel
             {
                 var selectedDocument = SelectedDocuments.First();
                 var docId = ((JObject)selectedDocument)[_currentDataSet.IdField].ToString();
+                object fullDocument = null;
                 await _dialogHandler.ShowProgress(null, async () =>
                 {
                     var getFullDocumentResponse = await _documentManager.GetDocumentAsync(docId);
                     ResponseValidator.Validate(getFullDocumentResponse, false);
-                    selectedDocument = getFullDocumentResponse.ResponseObject;
+                    fullDocument = getFullDocumentResponse.ResponseObject;
                 });
                 var context = new CommonDialogViewModel
                 {
                     Header = "Modify Document",
                     Buttons = ButtonsEnum.OkCancel,
-                    Content = new JContent(selectedDocument)
+                    Content = new JContent(fullDocument)
                 };
 
                 var view = new CommonDialog { DataContext = context };
@@ -860,7 +861,7 @@ namespace Slamby.TAU.ViewModel
                             try
                             {
                                 var modified = ((JContent)context.Content).GetJToken().ToObject<object>();
-                                response = (ClientResponseWithObject<object>)await _documentManager.UpdateDocumentAsync(docId, modified);
+                                response = await _documentManager.UpdateDocumentAsync(docId, modified);
                                 isSuccessful = response.IsSuccessFul;
                                 ResponseValidator.Validate(response, false);
                             }

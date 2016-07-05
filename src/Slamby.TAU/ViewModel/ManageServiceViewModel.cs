@@ -410,7 +410,7 @@ namespace Slamby.TAU.ViewModel
                 {
                     var selectedServices = SelectedServices.ToList();
                     var cancellationToken = new CancellationTokenSource();
-                    var status = new StatusDialogViewModel { Title = "Clear Tags", CancellationTokenSource = cancellationToken };
+                    var status = new StatusDialogViewModel { Title = "Delete services", CancellationTokenSource = cancellationToken };
                     var deletedServices = new List<Service>();
                     await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
                     {
@@ -692,6 +692,7 @@ namespace Slamby.TAU.ViewModel
                 DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
                     selected.Status = ServiceStatusEnum.Busy;
+                    selected.ActualProcessId = clientResponse.ResponseObject.Id;
                     _busyServiceIds.Add(selected.Id);
                     Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
                     Services = new ObservableCollection<Service>(Services);
@@ -786,9 +787,8 @@ namespace Slamby.TAU.ViewModel
                 {
                     DispatcherHelper.CheckBeginInvokeOnUI(() =>
                     {
-                        selected.Status = ServiceStatusEnum.New;
+                        selected.Status = null;
                         var removed = selected.Id;
-                        _busyServiceIds.TryTake(out removed);
                         Services = new ObservableCollection<Service>(Services);
                     });
                 }
