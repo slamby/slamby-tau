@@ -34,10 +34,10 @@ namespace Slamby.TAU.Helper
                     var tokenString = "";
                     try
                     {
-                        tokenString = "{" + string.Join(",", importSettings.CsvReader.FieldHeaders.Select(h => $"\"{h}\":\"{(importSettings.CsvReader[h] == "NULL" ? "" : importSettings.CsvReader[h])}\"")) + "}";
+                        tokenString = "{" + string.Join(",", importSettings.CsvReader.FieldHeaders.Select(h => $"\"{h}\":\"{(importSettings.CsvReader[h] == "NULL" ? "" : importSettings.CsvReader[h].Replace("\"","\\\""))}\"")) + "}";
                         result.Tokens.Add(JToken.Parse(tokenString));
                     }
-                    catch (Exception)
+                    catch (Exception exception)
                     {
                         result.InvalidRows.Add(((CsvParser)importSettings.CsvReader.Parser).RawRow);
                         if (!importSettings.Force)
@@ -85,7 +85,7 @@ namespace Slamby.TAU.Helper
                         {
                             var tokenString = "{" +
                                               string.Join(",",
-                                                  csvReader.FieldHeaders.Select(h => $"\"{h}\":\"{csvReader[h]}\"")) +
+                                                  csvReader.FieldHeaders.Select(h => $"\"{h}\":\"{csvReader[h].Replace("\"", "\\\"")}\"")) +
                                               "}";
                             JToken.Parse(tokenString);
                         }

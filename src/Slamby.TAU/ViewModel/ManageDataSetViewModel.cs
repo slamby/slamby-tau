@@ -214,24 +214,30 @@ namespace Slamby.TAU.ViewModel
                                         var settings = new TagBulkSettings();
                                         settings.Tags = importResult.Tokens.Select(t => t.ToObject<Tag>()).ToList();
                                         response = await new TagManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkTagsAsync(settings);
-                                        ResponseValidator.Validate(response);
+                                        ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
-                                        errors.Add(string.Format("Error during bulk process:{0}{1}", Environment.NewLine, ex.Message));
+                                        errors.Add(string.Format("Error during bulk process:{0}{1}: {2}", Environment.NewLine, ex.Message, string.Join(", ", response.Errors)));
                                         status.ErrorCount += importResult.Tokens.Count;
                                     }
                                     finally
                                     {
-                                        var bulkErrors = response.ResponseObject.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
-                                        if (bulkErrors.Any())
+                                        if (response.IsSuccessFul)
                                         {
-                                            foreach (var error in bulkErrors)
+                                            var bulkErrors =
+                                                response.ResponseObject.Results.Where(
+                                                    br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
+                                            if (bulkErrors.Any())
                                             {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
-                                                status.ErrorCount++;
-                                            }
+                                                foreach (var error in bulkErrors)
+                                                {
+                                                    errors.Add(string.Format("Id: {0}, error: {1}", error.Id,
+                                                        error.Error));
+                                                    status.ErrorCount++;
+                                                }
 
+                                            }
                                         }
                                         status.DoneCount += (importResult.Tokens.Count + importResult.InvalidRows.Count);
                                         status.ProgressValue = (stream.Position / (double)stream.Length) * 100;
@@ -289,7 +295,9 @@ namespace Slamby.TAU.ViewModel
                     });
 
                 if (invalidRows.Any())
-                    Messenger.Default.Send(new Exception($"Invalid rows:{Environment.NewLine}{string.Join(", ", invalidRows)}"));
+                    Messenger.Default.Send(new Exception($"Invalid rows:{Environment.NewLine}{string.Join(Environment.NewLine, invalidRows)}"));
+                if (errors.Any())
+                    Messenger.Default.Send(new Exception($"Errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}"));
             }
         }
 

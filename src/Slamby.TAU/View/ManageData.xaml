@@ -101,7 +101,7 @@
                                         </DataTemplate>
                                     </DataGrid.RowDetailsTemplate>-->
                                 </control:CustomDataGrid>
-                                <view:Paginator Grid.Row="2" HorizontalAlignment="Center" DataContext="{Binding DocumentPaginatorViewModel}" />
+                                <Button Grid.Row="1" Content="..." Command="{Binding LoadMoreCommand}"/>
                             </Grid>
                         </materialDesign:Card>
                         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
@@ -109,12 +109,21 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <materialDesign:Card Margin="10,5,10,10">
+                                <materialDesign:Card Margin="10,2">
+                                    <StackPanel Margin="10">
+                                        <TextBlock Margin="5,5,5,10" FontSize="16" Text="Fields"/>
+                                        <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
+                                        <control:CustomListView ItemsSource="{Binding DocumentProperties}" SelectedItemsList="{Binding SelectedDocumentProperties, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IListToObservableConverter}}" MaxHeight="80"/>
+                                        <Button Content="Apply" HorizontalAlignment="Right" Margin="0,10" Command="{Binding ApplyFieldsCommand}"/>
+                                    </StackPanel>
+                                </materialDesign:Card>
+                                <materialDesign:Card Grid.Row="1" Margin="10,5">
                                     <StackPanel Margin="10">
                                         <TextBlock Margin="5,5,5,10" FontSize="16" Text="Sample"/>
                                         <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
-                                        <StackPanel Margin="0,10">
+                                        <StackPanel Margin="0,5">
                                             <StackPanel Orientation="Horizontal" Margin="0,5">
                                                 <TextBlock Text="{Binding SelectedLabelForSample}" VerticalAlignment="Center"/>
                                                 <TextBlock Text=" tag(s) selected" Margin="0,0,5,0" VerticalAlignment="Center"/>
@@ -130,7 +139,7 @@
                                         <Button Content="Get Sample" HorizontalAlignment="Right" Margin="0,10" Command="{Binding GetSampleCommand}"/>
                                     </StackPanel>
                                 </materialDesign:Card>
-                                <materialDesign:Card Grid.Row="1" Margin="10">
+                                <materialDesign:Card Grid.Row="2" Margin="10,5">
                                     <StackPanel Margin="10">
                                         <TextBlock Margin="5,5,5,10" FontSize="16" Text="Filter"/>
                                         <Separator Background="{DynamicResource PrimaryHueLightBrush}"/>
@@ -143,7 +152,13 @@
                                         </StackPanel>
                                         <TextBox wpf:TextFieldAssist.Hint="FilterQuery" Style="{DynamicResource MaterialDesignFloatingHintTextBox}" ToolTip="e.g.: workplace:(city1 OR city2)"
                                          TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" MaxHeight="200" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
-                                        <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,40,0,10" Command="{Binding ApplyFilterCommand}" />
+                                        <StackPanel Margin="0,10">
+                                            <StackPanel Orientation="Horizontal" Margin="0,5">
+                                                <TextBlock Text="Scroll Size: " VerticalAlignment="Center"/>
+                                                <TextBox Text="{Binding ScrollSize}" Margin="5,0,5,0" Width="100" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Content="Apply Filter" HorizontalAlignment="Right" Margin="0,10,0,10" Command="{Binding ApplyFilterCommand}" />
                                     </StackPanel>
                                 </materialDesign:Card>
                             </Grid>

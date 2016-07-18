@@ -40,7 +40,10 @@ namespace Slamby.TAU.ViewModel
                 {
                     case UpdateType.NewProcessCreated:
                         var processes = Processes.ToList();
-                        processes.Add((Process)message.Parameter);
+                        var currentProcess = (Process)message.Parameter;
+                        currentProcess.Start = currentProcess.Start.ToLocalTime();
+                        currentProcess.End = currentProcess.End.ToLocalTime();
+                        processes.Add(currentProcess);
                         DispatcherHelper.CheckBeginInvokeOnUI(() => Processes = new ObservableCollection<Process>(processes.OrderByDescending(p => p.Start)));
                         break;
                 }
@@ -67,7 +70,12 @@ namespace Slamby.TAU.ViewModel
                                     if (response.ResponseObject.Any())
                                     {
                                         var ordered = response.ResponseObject.OrderByDescending(p => p.Start);
-                                        Processes = new ObservableCollection<Process>(ordered);
+                                        Processes = new ObservableCollection<Process>(ordered.Select(p =>
+                                        {
+                                            p.Start = p.Start.ToLocalTime();
+                                            p.End = p.End.ToLocalTime();
+                                            return p;
+                                        }));
                                         RaisePropertyChanged("Processes");
                                     }
                                 });

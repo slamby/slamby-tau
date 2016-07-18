@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -10,6 +11,7 @@ using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json;
 using Slamby.SDK.Net;
 using Slamby.SDK.Net.Managers;
+using Slamby.SDK.Net.Models;
 using Slamby.TAU.Enum;
 using Slamby.TAU.Helper;
 using Slamby.TAU.Model;
@@ -36,7 +38,7 @@ namespace Slamby.TAU.ViewModel
             SelectCommand = new RelayCommand(async () =>
             {
                 if (SelectedIndex < 0) return;
-
+                ClientResponseWithObject<Status> response = null;
                 bool IsSuccessFul = false;
                 await
                     _dialogHandler.Show(new ProgressDialog(), "ConnectDialog",
@@ -45,7 +47,7 @@ namespace Slamby.TAU.ViewModel
                             try
                             {
                                 var statusManager = new StatusManager(Endpoints[SelectedIndex]);
-                                var response = await statusManager.GetStatusAsync();
+                                response = await statusManager.GetStatusAsync();
                                 IsSuccessFul = response.IsSuccessFul;
                             }
                             catch (Exception exception)
@@ -61,13 +63,33 @@ namespace Slamby.TAU.ViewModel
 
                 if (IsSuccessFul)
                 {
-                    GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
-                    await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
-                    var mainVindow = new MainWindow();
-                    var connectWindow = App.Current.MainWindow;
-                    App.Current.MainWindow = mainVindow;
-                    mainVindow.Show();
-                    connectWindow.Close();
+                    var tauVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                    var apiVersion = Version.Parse(response.ApiVersion);
+                    var isVersionMismatch = tauVersion.Major != apiVersion.Major || tauVersion.Minor != apiVersion.Minor;
+                    object result = null;
+                    if (isVersionMismatch)
+                    {
+                        result = await _dialogHandler.Show(new CommonDialog
+                        {
+                            DataContext =
+                                    new CommonDialogViewModel
+                                    {
+                                        Buttons = ButtonsEnum.YesNo,
+                                        Header = "Warning! Version mismatch.",
+                                        Content = new Message($"Api version: {apiVersion}{Environment.NewLine}Tau version:{tauVersion}.{Environment.NewLine}Would you like to continue?")
+                                    }
+                        }, "ConnectDialog");
+                    }
+                    if (!isVersionMismatch || (CommonDialogResult)result == CommonDialogResult.Yes)
+                    {
+                        GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
+                        await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
+                        var mainVindow = new MainWindow();
+                        var connectWindow = App.Current.MainWindow;
+                        App.Current.MainWindow = mainVindow;
+                        mainVindow.Show();
+                        connectWindow.Close();
+                    }
                 }
                 else
                 {

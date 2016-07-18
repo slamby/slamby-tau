@@ -17,6 +17,7 @@ namespace Slamby.TAU.Converter
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return value;
+            if(((IList) value).Count == 0) return Activator.CreateInstance(targetType);
             if (value.GetType() == typeof(ObservableCollection<Tag>))
                 return new ObservableCollection<object>((ObservableCollection<Tag>)value);
             if (value.GetType() == typeof(ObservableCollection<Service>))
@@ -27,6 +28,7 @@ namespace Slamby.TAU.Converter
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return value;
+            if (((IList)value).Count == 0) return Activator.CreateInstance(targetType);
             if (((IList)value)[0].GetType() == typeof(Tag))
                 return new ObservableCollection<Tag>(((IList)value).Cast<Tag>());
             if (((IList)value)[0].GetType() == typeof(Service) || ((IList)value)[0].GetType().BaseType == typeof(Service))

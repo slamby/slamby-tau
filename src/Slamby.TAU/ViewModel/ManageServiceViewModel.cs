@@ -48,6 +48,71 @@ namespace Slamby.TAU.ViewModel
             _processManager = processManager;
             _dialogHandler = dialogHandler;
 
+            ModifyAliasCommand = new RelayCommand(async () =>
+             {
+                 if (SelectedServices == null || !SelectedServices.Any()) return;
+
+                 var serviceToModify = SelectedServices.First();
+                 var context = new CommonDialogViewModel
+                 {
+                     Buttons = ButtonsEnum.OkCancel,
+                     Header = "Modify Alias",
+                     Content = new JContent(serviceToModify.Alias)
+                 };
+                 var view = new CommonDialog { DataContext = context };
+                 var canClose = false;
+                 var result = await _dialogHandler.Show(view, "RootDialog",
+                     async (object sender, DialogClosingEventArgs args) =>
+                     {
+                         if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                         {
+                             args.Cancel();
+                             args.Session.UpdateContent(new ProgressDialog());
+                             var isSuccessful = false;
+                             var errorMessage = "";
+                             try
+                             {
+                                 serviceToModify.Alias = ((JContent)context.Content).GetJToken().ToObject<string>();
+                                 var response = await _serviceManager.UpdateServiceAsync(serviceToModify.Id, serviceToModify);
+                                 isSuccessful = response.IsSuccessFul;
+                                 ResponseValidator.Validate(response, false);
+                             }
+                             catch (Exception exception)
+                             {
+                                 isSuccessful = false;
+                                 errorMessage = exception.Message;
+
+                             }
+                             finally
+                             {
+                                 if (!isSuccessful)
+                                 {
+                                     context.ErrorMessage = errorMessage;
+                                     context.ShowError = true;
+                                     args.Session.UpdateContent(view);
+                                 }
+                                 else
+                                 {
+                                     canClose = true;
+                                     args.Session.Close((CommonDialogResult)args.Parameter);
+                                 }
+                             }
+                         }
+                     });
+                 if ((CommonDialogResult)result == CommonDialogResult.Ok)
+                 {
+                     var aliasMatches = Services.Where(s => s.Id != serviceToModify.Id && s.Alias == serviceToModify.Alias);
+                     if (aliasMatches.Any())
+                     {
+                         foreach (var aliasMatch in aliasMatches)
+                         {
+                             aliasMatch.Alias = "";
+                         }
+                     }
+                 }
+
+             });
+
             LoadedCommand = new RelayCommand(async () =>
                 {
                     Mouse.SetCursor(Cursors.Arrow);
@@ -126,6 +191,8 @@ namespace Slamby.TAU.ViewModel
         private DialogHandler _dialogHandler;
 
         public RelayCommand LoadedCommand { get; private set; }
+
+        public RelayCommand ModifyAliasCommand { get; private set; }
 
         public RelayCommand<ServiceTypeEnum> CreateCommand { get; private set; }
 
@@ -343,7 +410,7 @@ namespace Slamby.TAU.ViewModel
                 {
                     var selectedServices = SelectedServices.ToList();
                     var cancellationToken = new CancellationTokenSource();
-                    var status = new StatusDialogViewModel { Title = "Clear Tags", CancellationTokenSource = cancellationToken };
+                    var status = new StatusDialogViewModel { Title = "Delete services", CancellationTokenSource = cancellationToken };
                     var deletedServices = new List<Service>();
                     await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
                     {
@@ -568,7 +635,7 @@ namespace Slamby.TAU.ViewModel
 
             var view = new CommonDialog { DataContext = context };
             var canClose = false;
-            ClientResponse clientResponse = null;
+            ClientResponseWithObject<Process> clientResponse = null;
             var result = await _dialogHandler.Show(view, "RootDialog",
                 async (object sender, DialogClosingEventArgs args) =>
                 {
@@ -624,7 +691,10 @@ namespace Slamby.TAU.ViewModel
             {
                 DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
-                    selected.Status = ServiceStatusEnum.Active;
+                    selected.Status = ServiceStatusEnum.Busy;
+                    selected.ActualProcessId = clientResponse.ResponseObject.Id;
+                    _busyServiceIds.Add(selected.Id);
+                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
                     Services = new ObservableCollection<Service>(Services);
                 });
             }
@@ -717,9 +787,8 @@ namespace Slamby.TAU.ViewModel
                 {
                     DispatcherHelper.CheckBeginInvokeOnUI(() =>
                     {
-                        selected.Status = ServiceStatusEnum.New;
+                        selected.Status = null;
                         var removed = selected.Id;
-                        _busyServiceIds.TryTake(out removed);
                         Services = new ObservableCollection<Service>(Services);
                     });
                 }
@@ -796,13 +865,13 @@ namespace Slamby.TAU.ViewModel
                             switch (selected.Type)
                             {
                                 case ServiceTypeEnum.Classifier:
-                                    var classifierClientResponse = await _classifierServiceManager.RecommendServiceAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<ClassifierRecommendationRequest>());
+                                    var classifierClientResponse = await _classifierServiceManager.RecommendAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<ClassifierRecommendationRequest>());
                                     isSuccessful = classifierClientResponse.IsSuccessFul;
                                     ResponseValidator.Validate(classifierClientResponse, false);
                                     resultContext.Content = new JContent(classifierClientResponse.ResponseObject);
                                     break;
                                 case ServiceTypeEnum.Prc:
-                                    var prcClientResponse = await _prcServiceManager.RecommendServiceAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcRecommendationRequest>());
+                                    var prcClientResponse = await _prcServiceManager.RecommendAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcRecommendationRequest>());
                                     isSuccessful = prcClientResponse.IsSuccessFul;
                                     ResponseValidator.Validate(prcClientResponse, false);
                                     resultContext.Content = new JContent(prcClientResponse.ResponseObject);

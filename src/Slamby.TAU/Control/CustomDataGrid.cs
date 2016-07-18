@@ -125,7 +125,7 @@ namespace Slamby.TAU.Control
                 this.SelectedItemsList = new ObservableCollection<object>(this.SelectedItems.Cast<object>());
             else
             {
-                this.SelectedItemsList?.Clear();
+                this.SelectedItemsList = new ObservableCollection<object>();
             }
         }
 
