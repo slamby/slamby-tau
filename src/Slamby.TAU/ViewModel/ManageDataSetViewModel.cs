@@ -133,7 +133,7 @@ namespace Slamby.TAU.ViewModel
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
                 },
-                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tag\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
+                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tags\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
             } : new DataSet
             {
                 NGramCount = SelectedDataSet.NGramCount,
