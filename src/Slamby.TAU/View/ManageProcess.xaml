@@ -26,6 +26,11 @@
     </i:Interaction.Triggers>
     <Grid>
         <control:CustomDataGrid ItemsSource="{Binding Processes}" AutoGenerateColumns="False" IsReadOnly="True" GridSettings="{Binding ProcessesGridSettings, Mode=TwoWay}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction Command="{Binding ShowProcessDetailsCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type control:CustomDataGrid}}, Path=SelectedItem}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Refresh">
                     <DataGridTemplateColumn.CellTemplate>
