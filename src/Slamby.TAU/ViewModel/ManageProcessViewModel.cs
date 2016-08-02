@@ -217,5 +217,10 @@ namespace Slamby.TAU.ViewModel
                 ProcessesGridSettings = null;
             }
         }
+
+        public void Reload()
+        {
+            _loadedFirst = true;
+        }
     }
 }

@@ -61,30 +61,33 @@ namespace Slamby.TAU.ViewModel
                 });
             DeleteCommand = new RelayCommand(Delete);
             RenameCommand = new RelayCommand(Rename);
-            if (_loadedFirst)
+            LoadedCommand = new RelayCommand(async () =>
             {
-                DataSets.Clear();
                 try
                 {
-                    Task.Run(async () =>
-                                    {
-                                        var response = await _dataSetManager.GetDataSetsAsync();
-                                        if (ResponseValidator.Validate(response))
-                                        {
-                                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                            {
-                                                response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
-                                            });
-                                        }
-                                        _loadedFirst = false;
-                                    }).Wait();
+                    Mouse.SetCursor(Cursors.Arrow);
+                    if (_loadedFirst)
+                    {
+                        _loadedFirst = false;
+                        await _dialogHandler.ShowProgress(null, async () =>
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Clear());
+                            var response = await _dataSetManager.GetDataSetsAsync();
+                            if (ResponseValidator.Validate(response))
+                            {
+                                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                {
+                                    response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
+                                });
+                            }
+                        });
+                    }
                 }
                 catch (Exception exception)
                 {
                     Messenger.Default.Send(exception);
                 }
-
-            }
+            });
         }
 
         private bool _loadedFirst = true;
@@ -563,6 +566,11 @@ namespace Slamby.TAU.ViewModel
             {
                 DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Remove(SelectedDataSet));
             }
+        }
+
+        public void Reload()
+        {
+            _loadedFirst = true;
         }
 
     }

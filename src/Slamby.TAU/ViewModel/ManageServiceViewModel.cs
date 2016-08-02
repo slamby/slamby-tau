@@ -493,7 +493,7 @@ namespace Slamby.TAU.ViewModel
                                     var getServiceResponse = await _classifierServiceManager.GetServiceAsync(selected.Id);
                                     ResponseValidator.Validate(getServiceResponse, false);
                                     var classifierService = getServiceResponse.ResponseObject;
-                                    context.Content = new JContent(classifierService.PrepareSettings ?? new ClassifierPrepareSettings());
+                                    context.Content = new JContent(classifierService.PrepareSettings ?? new ClassifierPrepareSettings { NGramList = new List<int> { 1, 2, 3 } });
                                     break;
                                 }
                             case ServiceTypeEnum.Prc:
@@ -607,7 +607,7 @@ namespace Slamby.TAU.ViewModel
                                 var getServiceResponse = await _classifierServiceManager.GetServiceAsync(selected.Id);
                                 ResponseValidator.Validate(getServiceResponse, false);
                                 var classifierService = getServiceResponse.ResponseObject;
-                                context.Content = new JContent(classifierService.ActivateSettings ?? new ClassifierActivateSettings());
+                                context.Content = new JContent(classifierService.ActivateSettings ?? new ClassifierActivateSettings { NGramList = new List<int> { 1, 2, 3 } });
                                 break;
                             }
                         case ServiceTypeEnum.Prc:
@@ -911,6 +911,11 @@ namespace Slamby.TAU.ViewModel
         public void Dispose()
         {
             _timer?.Dispose();
+        }
+
+        public void Reload()
+        {
+            _loadedFirst = true;
         }
     }
 }

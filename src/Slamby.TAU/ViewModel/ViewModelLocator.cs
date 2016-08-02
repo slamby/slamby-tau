@@ -102,10 +102,34 @@ namespace Slamby.TAU.ViewModel
 
         public MainViewModel Main => ServiceLocator.Current.GetInstance<MainViewModel>();
 
-        public ManageDataSetViewModel ManageDataSet => ServiceLocator.Current.GetInstance<ManageDataSetViewModel>();
+        public ManageDataSetViewModel ManageDataSet
+        {
+            get
+            {
+                var instance = ServiceLocator.Current.GetInstance<ManageDataSetViewModel>();
+                instance.Reload();
+                return instance;
+            }
+        }
 
-        public ManageServiceViewModel ManageService => ServiceLocator.Current.GetInstance<ManageServiceViewModel>();
-        public ManageProcessViewModel ManageProcess => ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
+        public ManageServiceViewModel ManageService
+        {
+            get
+            {
+                var instance = ServiceLocator.Current.GetInstance<ManageServiceViewModel>();
+                instance.Reload();
+                return instance;
+            }
+        }
+        public ManageProcessViewModel ManageProcess
+        {
+            get
+            {
+                var instance = ServiceLocator.Current.GetInstance<ManageProcessViewModel>();
+                instance.Reload();
+                return instance;
+            }
+        }
         public ResourcesMonitorViewModel ResourcesMonitor => ServiceLocator.Current.GetInstance<ResourcesMonitorViewModel>();
 
         public static void Cleanup()

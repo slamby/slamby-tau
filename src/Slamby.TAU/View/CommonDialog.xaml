@@ -93,10 +93,10 @@
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type services:Service}">
                             <StackPanel>
-                                <TextBox wpf:TextFieldAssist.Hint="Alias" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
-                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Alias}"/>
                                 <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                                         Margin="0,6,0,0" FontSize="14" Text="{Binding Name}"/>
+                                <TextBox wpf:TextFieldAssist.Hint="Alias" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
+                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Alias}"/>
                                 <TextBox wpf:TextFieldAssist.Hint="Description" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                                         Margin="0,10,0,0" FontSize="14" Text="{Binding Description}" MaxHeight="100" TextWrapping="Wrap"/>
                                 <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type}"/>
