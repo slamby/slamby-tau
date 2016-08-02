@@ -237,6 +237,9 @@
     <Compile Include="Enum\ButtonsEnum.cs" />
     <Compile Include="Enum\CommonDialogResult.cs" />
     <Compile Include="Enum\UpdateType.cs" />
+    <Compile Include="View\ErrorDetailsWindow.xaml.cs">
+      <DependentUpon>ErrorDetailsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\ErrorDialog.xaml.cs">
       <DependentUpon>ErrorDialog.xaml</DependentUpon>
     </Compile>
@@ -322,6 +325,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\EmptyTabClient.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ErrorDetailsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

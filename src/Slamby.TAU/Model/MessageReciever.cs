@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace Slamby.TAU.Model
     {
         public MessageReciever()
         {
-            Messenger.Default.Register<StatusMessage>(this, m => { Messages += string.Format("{0}{1} - {2}", Environment.NewLine, m.Timestamp.ToString("yyyy-MM-dd hh:mm:ss"), m.Message);; });
+            //Messenger.Default.Register<StatusMessage>(this, m => { Messages += string.Format("{0}{1} - {2}", Environment.NewLine, m.Timestamp.ToString("yyyy-MM-dd hh:mm:ss"), m.Message); });
+            Messenger.Default.Register<StatusMessage>(this, m => { ErrorMessages.Add(new ErrorMessage(string.Format("{0}{1} - {2}", Environment.NewLine, m.Timestamp.ToString("yyyy-MM-dd hh:mm:ss"), m.Message))); });
         }
 
 
@@ -23,5 +25,20 @@ namespace Slamby.TAU.Model
             get { return _messages; }
             set { Set(() => Messages, ref _messages, value); }
         }
+
+        public ObservableCollection<ErrorMessage> ErrorMessages { get; set; }
+    }
+
+    public class ErrorMessage
+    {
+        public ErrorMessage(string message)
+        {
+            Text = message;
+            Header = message.Length > 200 ? message.Substring(0, 200) + "..." : message;
+        }
+
+        public string Header { get; set; }
+
+        public string Text { get; set; }
     }
 }

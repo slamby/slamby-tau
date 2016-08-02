@@ -33,7 +33,7 @@ namespace Slamby.TAU.ViewModel
             _dialogHandler = dialogHandler;
             _statusManager = statusManager;
 
-            Messenger.Default.Register<ClientResponse>(this, response => DispatcherHelper.CheckBeginInvokeOnUI(()=>ErrorHandler(response)));
+            Messenger.Default.Register<ClientResponse>(this, response => DispatcherHelper.CheckBeginInvokeOnUI(() => ErrorHandler(response)));
             Messenger.Default.Register<Exception>(this, exception => DispatcherHelper.CheckBeginInvokeOnUI(() => ErrorHandler(exception)));
             ApplyIntervalSettingsCommand = new RelayCommand(() => _timer.Change(500, RefreshInterval * 1000));
             ErrorCountResetCommand = new RelayCommand(() => ErrorCount = 0);
@@ -56,6 +56,13 @@ namespace Slamby.TAU.ViewModel
                     }
                 });
             }, null, 500, RefreshInterval * 1000);
+
+            ShowErrorDetailsCommand = new RelayCommand<Error>((error) =>
+            {
+                if (error == null) return;
+                var edw = new ErrorDetailsWindow(error.Message + Environment.NewLine + error.Details);
+                edw.Show();
+            });
 
         }
 
@@ -80,6 +87,8 @@ namespace Slamby.TAU.ViewModel
         }
 
         public RelayCommand ApplyIntervalSettingsCommand { get; private set; }
+
+        public RelayCommand<Error> ShowErrorDetailsCommand { get; private set; }
 
         public void Dispose()
         {
