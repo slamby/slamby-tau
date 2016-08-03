@@ -128,6 +128,7 @@
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Active}"/>
                                                 <Condition Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceTypeEnum.Prc}"/>
+                                                <Condition Binding="{Binding IsIndexed, UpdateSourceTrigger=PropertyChanged}" Value="True"/>
                                             </MultiDataTrigger.Conditions>
                                             <Setter Property="Template">
                                                 <Setter.Value>
@@ -136,6 +137,29 @@
                                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                                 <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
                                                                 <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                                <Button Margin="2,0" Content="PartialIndex" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.IndexPartialCommand}"/>
+                                                                <Button Margin="2,0" Content="RecommendById" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendByIdCommand}"/>
+                                                                <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceStatusEnum.Active}"/>
+                                                <Condition Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Value="{x:Static sdk:ServiceTypeEnum.Prc}"/>
+                                                <Condition Binding="{Binding IsIndexed, UpdateSourceTrigger=PropertyChanged}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <Grid Background="Transparent">
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                <Button Margin="2,0" Content="Deactivate" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.DeactivateCommand}"/>
+                                                                <Button Margin="2,0" Content="Recommend" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.RecommendCommand}"/>
+                                                                <Button Margin="2,0" Content="Index" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.IndexCommand}"/>
                                                                 <Button Margin="2,0" Content="Export" Command="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext.ExportCommand}"/>
                                                             </StackPanel>
                                                         </Grid>

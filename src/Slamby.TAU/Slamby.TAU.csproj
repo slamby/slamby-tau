@@ -145,8 +145,8 @@
       <HintPath>..\packages\squirrel.windows.1.4.0\lib\Net45\NuGet.Squirrel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Slamby.SDK.Net, Version=0.19.16211.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Slamby.SDK.Net.0.19.16211.2\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
+    <Reference Include="Slamby.SDK.Net, Version=0.19.16215.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Slamby.SDK.Net.0.19.16215.1\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
@@ -198,6 +198,7 @@
     <Compile Include="Model\DataGridSettings.cs" />
     <Compile Include="Model\EndPointStatus.cs" />
     <Compile Include="Model\Error.cs" />
+    <Compile Include="Model\ExtendedService.cs" />
     <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />

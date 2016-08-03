@@ -41,7 +41,7 @@ namespace Slamby.TAU.ViewModel
         /// </summary>
         public ManageServiceViewModel(IServiceManager serviceManager, IClassifierServiceManager classifierServiceManager, IPrcServiceManager prcServiceManager, IProcessManager processManager, DialogHandler dialogHandler)
         {
-            Services = new ObservableCollection<Service>();
+            Services = new ObservableCollection<ExtendedService>();
             _serviceManager = serviceManager;
             _classifierServiceManager = classifierServiceManager;
             _prcServiceManager = prcServiceManager;
@@ -126,8 +126,19 @@ namespace Slamby.TAU.ViewModel
                             Log.Info(LogMessages.ManageDataLoadTags);
                             var response = await _serviceManager.GetServicesAsync();
                             ResponseValidator.Validate(response, false);
-                            Services = new ObservableCollection<Service>(response.ResponseObject);
+                            var tempServices = new ObservableCollection<ExtendedService>(response.ResponseObject.Select(s => new ExtendedService(s)));
                             response.ResponseObject.Where(s => s.Status == ServiceStatusEnum.Busy).ToList().ForEach(s => _busyServiceIds.Add(s.Id));
+                            var activePrcServices = response.ResponseObject.Where(s => s.Status == ServiceStatusEnum.Active && s.Type == ServiceTypeEnum.Prc).ToList();
+                            foreach (var service in activePrcServices)
+                            {
+                                var prcResponse = await _prcServiceManager.GetServiceAsync(service.Id);
+                                ResponseValidator.Validate(prcResponse, false);
+                                if (prcResponse.ResponseObject.IndexSettings != null)
+                                {
+                                    tempServices.First(s => s.Id == service.Id).IsIndexed = true;
+                                }
+                            }
+                            Services = tempServices;
                         });
                         _timer = new System.Threading.Timer(par =>
                         {
@@ -140,17 +151,28 @@ namespace Slamby.TAU.ViewModel
                                         var response = await _serviceManager.GetServiceAsync(serviceId);
                                         if (ResponseValidator.Validate(response))
                                         {
-                                            if (response.ResponseObject.Status != ServiceStatusEnum.Busy)
+                                            if (response.ResponseObject.Status != ServiceStatusEnum.Busy && string.IsNullOrEmpty(response.ResponseObject.ActualProcessId))
                                             {
                                                 var removed = serviceId;
-                                                _busyServiceIds.TryTake(out removed);
-                                                DispatcherHelper.CheckBeginInvokeOnUI(() => Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = response.ResponseObject);
+                                                if (_busyServiceIds.TryTake(out removed))
+                                                {
+                                                    var updatedService = new ExtendedService(response.ResponseObject);
+                                                    if (updatedService.Status == ServiceStatusEnum.Active &&
+                                                        updatedService.Type == ServiceTypeEnum.Prc)
+                                                    {
+                                                        var prcResponse = await _prcServiceManager.GetServiceAsync(updatedService.Id);
+                                                        ResponseValidator.Validate(prcResponse);
+                                                        updatedService.IsIndexed = prcResponse.ResponseObject.IndexSettings != null;
+                                                    }
+                                                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                                            Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService);
+                                                }
                                             }
                                         }
                                     }
-                                    var selectedServices = SelectedServices?.ToList() ?? new List<Service>();
-                                    Services = new ObservableCollection<Service>(Services);
-                                    SelectedServices = new ObservableCollection<Service>(selectedServices);
+                                    var selectedServices = SelectedServices?.ToList() ?? new List<ExtendedService>();
+                                    Services = new ObservableCollection<ExtendedService>(Services);
+                                    SelectedServices = new ObservableCollection<ExtendedService>(selectedServices);
 
                                 }
                                 catch (Exception exception)
@@ -166,12 +188,16 @@ namespace Slamby.TAU.ViewModel
             ActivateCommand = new RelayCommand(Activate);
             ExportCommand = new RelayCommand(Export);
             RecommendCommand = new RelayCommand(Recommend);
+            RecommendByIdCommand = new RelayCommand(RecommendById);
             CancelCommand = new RelayCommand(Cancel);
             DeactivateCommand = new RelayCommand(Deactivate);
             CreateCommand = new RelayCommand<ServiceTypeEnum>(Create);
             ModifyCommand = new RelayCommand(ShowDetails);
             ShowDetailsCommand = new RelayCommand(ShowDetails);
             DeleteCommand = new RelayCommand(Delete);
+            IndexCommand = new RelayCommand(Index);
+            IndexPartialCommand = new RelayCommand(IndexPartial);
+
         }
 
         private System.Threading.Timer _timer;
@@ -205,23 +231,26 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand PrepareCommand { get; private set; }
         public RelayCommand ActivateCommand { get; private set; }
         public RelayCommand RecommendCommand { get; private set; }
+        public RelayCommand RecommendByIdCommand { get; private set; }
+        public RelayCommand IndexCommand { get; private set; }
+        public RelayCommand IndexPartialCommand { get; private set; }
         public RelayCommand CancelCommand { get; private set; }
         public RelayCommand DeactivateCommand { get; private set; }
         public RelayCommand ExportCommand { get; private set; }
 
 
-        private ObservableCollection<Service> _services;
+        private ObservableCollection<ExtendedService> _services;
 
-        public ObservableCollection<Service> Services
+        public ObservableCollection<ExtendedService> Services
         {
             get { return _services; }
             set { Set(() => Services, ref _services, value); }
         }
 
 
-        private ObservableCollection<Service> _selectedServices;
+        private ObservableCollection<ExtendedService> _selectedServices;
 
-        public ObservableCollection<Service> SelectedServices
+        public ObservableCollection<ExtendedService> SelectedServices
         {
             get { return _selectedServices; }
             set { Set(() => SelectedServices, ref _selectedServices, value); }
@@ -278,7 +307,7 @@ namespace Slamby.TAU.ViewModel
                 });
             if ((CommonDialogResult)result == CommonDialogResult.Ok)
             {
-                Services.Add(response.ResponseObject);
+                Services.Add(new ExtendedService(response.ResponseObject));
             }
         }
 
@@ -411,7 +440,7 @@ namespace Slamby.TAU.ViewModel
                     var selectedServices = SelectedServices.ToList();
                     var cancellationToken = new CancellationTokenSource();
                     var status = new StatusDialogViewModel { Title = "Delete services", CancellationTokenSource = cancellationToken };
-                    var deletedServices = new List<Service>();
+                    var deletedServices = new List<ExtendedService>();
                     await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
                     {
                         try
@@ -577,7 +606,7 @@ namespace Slamby.TAU.ViewModel
             {
                 selected.Status = ServiceStatusEnum.Busy;
                 selected.ActualProcessId = clientResponse.ResponseObject.Id;
-                DispatcherHelper.CheckBeginInvokeOnUI(() => Services = new ObservableCollection<Service>(Services));
+                DispatcherHelper.CheckBeginInvokeOnUI(() => Services = new ObservableCollection<ExtendedService>(Services));
                 _busyServiceIds.Add(selected.Id);
                 Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
             }
@@ -695,7 +724,7 @@ namespace Slamby.TAU.ViewModel
                     selected.ActualProcessId = clientResponse.ResponseObject.Id;
                     _busyServiceIds.Add(selected.Id);
                     Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
-                    Services = new ObservableCollection<Service>(Services);
+                    Services = new ObservableCollection<ExtendedService>(Services);
                 });
             }
         }
@@ -789,7 +818,7 @@ namespace Slamby.TAU.ViewModel
                     {
                         selected.Status = null;
                         var removed = selected.Id;
-                        Services = new ObservableCollection<Service>(Services);
+                        Services = new ObservableCollection<ExtendedService>(Services);
                     });
                 }
             });
@@ -818,7 +847,7 @@ namespace Slamby.TAU.ViewModel
                 DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
                     selected.Status = ServiceStatusEnum.Prepared;
-                    Services = new ObservableCollection<Service>(Services);
+                    Services = new ObservableCollection<ExtendedService>(Services);
                 });
             });
         }
@@ -906,6 +935,184 @@ namespace Slamby.TAU.ViewModel
             {
                 await _dialogHandler.Show(new CommonDialog { DataContext = resultContext }, "RootDialog");
             }
+        }
+
+        private async void RecommendById()
+        {
+            if (SelectedServices == null || !SelectedServices.Any())
+                return;
+            var selected = SelectedServices.First();
+            if (selected.Type != ServiceTypeEnum.Prc) return;
+            var context = new CommonDialogViewModel
+            {
+                Buttons = ButtonsEnum.OkCancel,
+                Header = "RecommendById",
+                Content = new JContent(new PrcRecommendationByIdRequest())
+            };
+            var resultContext = new CommonDialogViewModel
+            {
+                Buttons = ButtonsEnum.Ok,
+                Header = "RecommendById"
+            };
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
+                        {
+                            var prcClientResponse = await _prcServiceManager.RecommendByIdAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcRecommendationByIdRequest>());
+                            isSuccessful = prcClientResponse.IsSuccessFul;
+                            ResponseValidator.Validate(prcClientResponse, false);
+                            resultContext.Content = new JContent(prcClientResponse.ResponseObject);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+                });
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                await _dialogHandler.Show(new CommonDialog { DataContext = resultContext }, "RootDialog");
+            }
+        }
+
+        private async void Index()
+        {
+            if (SelectedServices == null || !SelectedServices.Any())
+                return;
+            var selected = SelectedServices.First();
+            if (selected.Type != ServiceTypeEnum.Prc)
+                return;
+            var context = new CommonDialogViewModel
+            {
+                Content = new JContent(new object()),
+                Buttons = ButtonsEnum.OkCancel,
+                Header = "Index Settings"
+            };
+
+            var getServiceIsSuccessful = true;
+            await _dialogHandler.ShowProgress(null, async () =>
+            {
+                try
+                {
+                    var getServiceResponse = await _prcServiceManager.GetServiceAsync(selected.Id);
+                    ResponseValidator.Validate(getServiceResponse, false);
+                    var prcService = getServiceResponse.ResponseObject;
+                    context.Content = new JContent(prcService.IndexSettings ?? new PrcIndexSettings());
+                }
+                catch (Exception exception)
+                {
+                    DispatcherHelper.CheckBeginInvokeOnUI(() => Messenger.Default.Send(exception));
+                    getServiceIsSuccessful = false;
+                }
+
+            });
+
+            if (!getServiceIsSuccessful)
+                return;
+
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            ClientResponseWithObject<Process> clientResponse = null;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
+                        {
+                            clientResponse = await _prcServiceManager.IndexAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcIndexSettings>());
+                            isSuccessful = clientResponse.IsSuccessFul;
+                            ResponseValidator.Validate(clientResponse, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
+                        }
+                    }
+                });
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    selected.Status = ServiceStatusEnum.Busy;
+                    selected.ActualProcessId = clientResponse.ResponseObject.Id;
+                    _busyServiceIds.Add(selected.Id);
+                    Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
+                    Services = new ObservableCollection<ExtendedService>(Services);
+                });
+            }
+        }
+
+        private async void IndexPartial()
+        {
+            if (SelectedServices == null || !SelectedServices.Any())
+                return;
+            var selected = SelectedServices.First();
+            if (selected.Type != ServiceTypeEnum.Prc)
+                return;
+            await _dialogHandler.ShowProgress(null, async () =>
+            {
+                var clientResponse = await _prcServiceManager.IndexPartialAsync(selected.Id);
+                if (ResponseValidator.Validate(clientResponse))
+                {
+                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    {
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            selected.Status = ServiceStatusEnum.Busy;
+                            selected.ActualProcessId = clientResponse.ResponseObject.Id;
+                            _busyServiceIds.Add(selected.Id);
+                            Messenger.Default.Send(new UpdateMessage(UpdateType.NewProcessCreated, clientResponse.ResponseObject));
+                            Services = new ObservableCollection<ExtendedService>(Services);
+                        });
+                    });
+                }
+            });
         }
 
         public void Dispose()
