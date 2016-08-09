@@ -129,13 +129,13 @@ namespace Slamby.TAU.ViewModel
                 IdField = "id",
                 TagField = "tags",
                 InterpretedFields = new List<string> { "title", "desc" },
-                SampleDocument = JObject.FromObject(new
+                SampleDocument = JsonConvert.SerializeObject(new
                 {
                     id = 10,
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
-                }),
+                }, Formatting.Indented),
                 Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tags\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
             } : new DataSet
             {
@@ -168,6 +168,16 @@ namespace Slamby.TAU.ViewModel
                         {
                             var wrapper = (NewDataSetWrapper) (context.Content);
                             newDataSet = wrapper.DataSet;
+                            if (wrapper.SampleDocumentChecked)
+                            {
+                                newDataSet.Schema = null;
+                                newDataSet.SampleDocument = JsonConvert.DeserializeObject(newDataSet.SampleDocument.ToString());
+                            }
+                            else
+                            {
+                                newDataSet.SampleDocument = null;
+                                newDataSet.Schema = JsonConvert.DeserializeObject(((JObject)newDataSet.Schema).ToString());
+                            }
                             var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
                             isSuccessful = response.IsSuccessFul;
                             ResponseValidator.Validate(response, false);
