@@ -124,7 +124,8 @@ namespace Slamby.TAU.Helper
                                 }
                                 finally
                                 {
-                                    oa.Session.Close();
+                                    if (!oa.Session.IsEnded)
+                                        oa.Session.Close();
                                 }
                             });
                 }

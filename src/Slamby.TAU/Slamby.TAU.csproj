@@ -58,8 +58,8 @@
       <HintPath>..\packages\CsvHelper.2.15.0.1\lib\net45\CsvHelper.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DataGridExtensions, Version=1.0.31.0, Culture=neutral, PublicKeyToken=43de855f87de903a, processorArchitecture=MSIL">
-      <HintPath>..\packages\DataGridExtensions.1.0.31.0\lib\net40-Client\DataGridExtensions.dll</HintPath>
+    <Reference Include="DataGridExtensions, Version=1.0.33.0, Culture=neutral, PublicKeyToken=43de855f87de903a, processorArchitecture=MSIL">
+      <HintPath>..\packages\DataGridExtensions.1.0.33.0\lib\net40-Client\DataGridExtensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="DeltaCompressionDotNet, Version=1.1.0.0, Culture=neutral, PublicKeyToken=1d14d6e5194e7f4a, processorArchitecture=MSIL">
@@ -199,6 +199,7 @@
     <Compile Include="Model\EndPointStatus.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\ExtendedService.cs" />
+    <Compile Include="Model\NewDataSetWrapper.cs" />
     <Compile Include="SlambySettingsProvider.cs" />
     <Compile Include="Helper\TestDialogHandler.cs" />
     <Compile Include="Model\JContent.cs" />

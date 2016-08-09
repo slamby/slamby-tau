@@ -129,13 +129,13 @@ namespace Slamby.TAU.ViewModel
                 IdField = "id",
                 TagField = "tags",
                 InterpretedFields = new List<string> { "title", "desc" },
-                SampleDocument = new
+                SampleDocument = JObject.FromObject(new
                 {
                     id = 10,
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
-                },
+                }),
                 Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tags\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
             } : new DataSet
             {
@@ -146,23 +146,57 @@ namespace Slamby.TAU.ViewModel
                 SampleDocument = SelectedDataSet.SampleDocument,
                 Schema = selectedDataSet.Schema
             };
-            var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
-            var isAccepted = await _dialogHandler.Show(view, "RootDialog");
-            if ((bool)isAccepted)
-            {
-                await _dialogHandler.ShowProgress(null, async () =>
-                {
 
-                    var response = newDataSet.Schema == null ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
-                    if (ResponseValidator.Validate(response))
+            var context = new CommonDialogViewModel
+            {
+                Header = "Add Dataset",
+                Buttons = ButtonsEnum.OkCancel,
+                Content = new NewDataSetWrapper { DataSet = newDataSet, SampleDocumentChecked = true}
+            };
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
                     {
-                        var createdResponse = await _dataSetManager.GetDataSetAsync(newDataSet.Name);
-                        if (ResponseValidator.Validate(createdResponse))
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
                         {
-                            DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Add(createdResponse.ResponseObject));
+                            var wrapper = (NewDataSetWrapper) (context.Content);
+                            newDataSet = wrapper.DataSet;
+                            var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
+                            isSuccessful = response.IsSuccessFul;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
                         }
                     }
                 });
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                DataSets.Add(newDataSet);
             }
         }
 

@@ -8,10 +8,14 @@
              xmlns:helper="clr-namespace:Slamby.TAU.Helper"
              xmlns:models="clr-namespace:Slamby.TAU.Model"
              xmlns:services="clr-namespace:Slamby.SDK.Net.Models.Services;assembly=Slamby.SDK.Net"
+             xmlns:sdk="clr-namespace:Slamby.SDK.Net.Models;assembly=Slamby.SDK.Net"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             xmlns:converter="clr-namespace:Slamby.TAU.Converter"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converter:StringListToStringConverter x:Key="StringListToStringConverter"/>
     </UserControl.Resources>
     <DockPanel LastChildFill="True">
 
@@ -62,6 +66,65 @@
             <ContentControl Content="{Binding Content, Mode=TwoWay}" Margin="20,10" TabIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <ContentControl.Resources>
                     <ResourceDictionary>
+                        <DataTemplate DataType="{x:Type models:NewDataSetWrapper}">
+                            <ScrollViewer MaxHeight="800" MaxWidth="1200" VerticalScrollBarVisibility="Auto">
+                                <Grid Margin="16" MinWidth="400">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="60" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock>New data set:</TextBlock>
+                                    <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                                             Text="{Binding DataSet.Name}" Margin="0 6 0 0" FontSize="18" Grid.Row="1"/>
+                                    <TextBox wpf:TextFieldAssist.Hint="NgramCount" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Text="{Binding DataSet.NGramCount}" Margin="0 8 0 0" FontSize="16" Grid.Row="2"/>
+                                    <TextBox Grid.Row="3" wpf:TextFieldAssist.Hint="IdField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.IdField}"
+                 FontSize="16" />
+                                    <TextBox Grid.Row="4" wpf:TextFieldAssist.Hint="TagField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.TagField}"
+                 FontSize="16" />
+                                    <TextBox wpf:TextFieldAssist.Hint="InterpretedFields" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.InterpretedFields, Converter={StaticResource StringListToStringConverter}}"
+                 FontSize="16" Grid.Row="5"/>
+                                    <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0 8 0 0">
+                                        <RadioButton IsChecked="{Binding SampleDocumentChecked}" Content="SampleDocument" GroupName="SampleOrSchema" x:Name="SampleRadioButton"/>
+                                        <RadioButton Content="DocumentSchema" GroupName="SampleOrSchema" x:Name="SchemaRadioButton"/>
+                                    </StackPanel>
+                                    <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}, Path=DataContext.HelpCommand}" Grid.Row="7" HorizontalAlignment="Left"  ToolTip="How can I create my own schema?" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <fa:ImageAwesome Icon="Question" Height="15" Width="15" Margin="10,0"/>
+                                    </Button>
+                                    <TextBox Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SampleRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
+                                        <TextBox.Text>
+                                            <Binding Path="DataSet.SampleDocument" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                    <TextBox Margin="0 8 0 0" TextWrapping="Wrap" AcceptsReturn="True" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 FontSize="12" Grid.Row="8">
+                                        <TextBox.Text>
+                                            <Binding Path="DataSet.Schema" UpdateSourceTrigger="PropertyChanged">
+                                                <Binding.ValidationRules>
+                                                    <helper:JsonValidationRule ValidatesOnTargetUpdated="True" ValidationStep="UpdatedValue"/>
+                                                </Binding.ValidationRules>
+                                            </Binding>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                            </ScrollViewer>
+                        </DataTemplate>
                         <DataTemplate DataType="{x:Type models:JContent}">
                             <TextBox TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" VerticalScrollBarVisibility="Auto"  MaxHeight="350" MaxWidth="700">
                                 <TextBox.Text>
