@@ -127,14 +127,14 @@ namespace Slamby.TAU.ViewModel
             {
                 NGramCount = 3,
                 IdField = "id",
-                TagField = "tags",
+                TagField = "tag",
                 InterpretedFields = new List<string> { "title", "desc" },
                 SampleDocument = JsonConvert.SerializeObject(new
                 {
                     id = 10,
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
-                    tags = new[] { "tag1" }
+                    tag = "tag1"
                 }, Formatting.Indented),
                 Schema = JsonConvert.SerializeObject(new
                 {
@@ -144,7 +144,7 @@ namespace Slamby.TAU.ViewModel
                         id = new { type = "integer" },
                         title = new { type = "string" },
                         desc = new { type = "string" },
-                        tags = new { type = "array", items = new { type = "string" } }
+                        tag = new { type = "string" }
                     }
                 }, Formatting.Indented)
             } : new DataSet

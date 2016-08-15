@@ -165,7 +165,13 @@ namespace Slamby.TAU.ViewModel
                                                         updatedService.IsIndexed = prcResponse.ResponseObject.IndexSettings != null;
                                                     }
                                                     DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                                            Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService);
+                                                    {
+                                                        Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService;
+                                                        if (SelectedServices.Count <= 0)
+                                                        {
+                                                            SelectedServices.Add(updatedService);
+                                                        }
+                                                    });
                                                 }
                                             }
                                         }
