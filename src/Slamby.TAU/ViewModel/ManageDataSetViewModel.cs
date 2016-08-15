@@ -136,7 +136,17 @@ namespace Slamby.TAU.ViewModel
                     desc = "thisisthedesc",
                     tags = new[] { "tag1" }
                 }, Formatting.Indented),
-                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tags\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
+                Schema = JsonConvert.SerializeObject(new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        id = new { type = "integer" },
+                        title = new { type = "string" },
+                        desc = new { type = "string" },
+                        tags = new { type = "array", items = new { type = "string" } }
+                    }
+                }, Formatting.Indented)
             } : new DataSet
             {
                 NGramCount = SelectedDataSet.NGramCount,
@@ -151,7 +161,7 @@ namespace Slamby.TAU.ViewModel
             {
                 Header = "Add Dataset",
                 Buttons = ButtonsEnum.OkCancel,
-                Content = new NewDataSetWrapper { DataSet = newDataSet, SampleDocumentChecked = true}
+                Content = new NewDataSetWrapper { DataSet = newDataSet, SampleDocumentChecked = true }
             };
             var view = new CommonDialog { DataContext = context };
             var canClose = false;
@@ -166,7 +176,7 @@ namespace Slamby.TAU.ViewModel
                         var errorMessage = "";
                         try
                         {
-                            var wrapper = (NewDataSetWrapper) (context.Content);
+                            var wrapper = (NewDataSetWrapper)(context.Content);
                             newDataSet = wrapper.DataSet;
                             if (wrapper.SampleDocumentChecked)
                             {
@@ -176,7 +186,7 @@ namespace Slamby.TAU.ViewModel
                             else
                             {
                                 newDataSet.SampleDocument = null;
-                                newDataSet.Schema = JsonConvert.DeserializeObject(((JObject)newDataSet.Schema).ToString());
+                                newDataSet.Schema = JsonConvert.DeserializeObject((newDataSet.Schema).ToString());
                             }
                             var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
                             isSuccessful = response.IsSuccessFul;
