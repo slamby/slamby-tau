@@ -166,19 +166,16 @@ namespace Slamby.TAU.ViewModel
                                                     }
                                                     DispatcherHelper.CheckBeginInvokeOnUI(() =>
                                                     {
-                                                        Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService;
                                                         if (SelectedServices.Count <= 0)
                                                         {
                                                             SelectedServices.Add(updatedService);
                                                         }
+                                                        Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService;
                                                     });
                                                 }
                                             }
                                         }
                                     }
-                                    var selectedServices = SelectedServices?.ToList() ?? new List<ExtendedService>();
-                                    Services = new ObservableCollection<ExtendedService>(Services);
-                                    SelectedServices = new ObservableCollection<ExtendedService>(selectedServices);
 
                                 }
                                 catch (Exception exception)

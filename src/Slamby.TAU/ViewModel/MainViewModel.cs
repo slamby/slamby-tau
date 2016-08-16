@@ -149,31 +149,40 @@ namespace Slamby.TAU.ViewModel
             ExpandStatusCommand = new RelayCommand(() => Messenger.Default.Send(new UpdateMessage(UpdateType.OpenNewTab,
                       new HeaderedItemViewModel("ResourcesMonitor", new ResourcesMonitor(), true))));
             RefreshProcessCommand = new RelayCommand<string>(async id =>
-              {
-                  var processResponse = await _processManager.GetProcessAsync(id);
-                  if (ResponseValidator.Validate(processResponse))
-                  {
-                      var selectedItem = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
-                      if (selectedItem != null)
-                      {
-                          ActiveProcessesList[ActiveProcessesList.IndexOf(selectedItem)] = processResponse.ResponseObject;
-                          ActiveProcessesList = new ObservableCollection<Process>(ActiveProcessesList);
-                          if (processResponse.ResponseObject.Status != ProcessStatusEnum.InProgress)
-                          {
-                              Task.Run(async () =>
-                              {
-                                  await Task.Delay(20000);
-                                  DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                  {
-                                      var itemToRemove = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
-                                      if (itemToRemove != null)
-                                          ActiveProcessesList.Remove(itemToRemove);
-                                  });
-                              });
-                          }
-                      }
-                  }
-              });
+            {
+                if (string.IsNullOrEmpty(id)) return;
+                try
+                {
+                    var processResponse = await _processManager.GetProcessAsync(id);
+                    if (ResponseValidator.Validate(processResponse))
+                    {
+                        var selectedItem = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
+                        if (selectedItem != null)
+                        {
+                            ActiveProcessesList[ActiveProcessesList.IndexOf(selectedItem)] = processResponse.ResponseObject;
+                            ActiveProcessesList = new ObservableCollection<Process>(ActiveProcessesList);
+                            if (processResponse.ResponseObject.Status != ProcessStatusEnum.InProgress)
+                            {
+                                Task.Run(async () =>
+                                {
+                                    await Task.Delay(20000);
+                                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                    {
+                                        var itemToRemove = ActiveProcessesList.FirstOrDefault(p => p.Id == id);
+                                        if (itemToRemove != null)
+                                            ActiveProcessesList.Remove(itemToRemove);
+                                    });
+                                });
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Messenger.Default.Send(exception);
+                }
+
+            });
 
             CancelProcessCommand = new RelayCommand<Process>(async process =>
             {
