@@ -83,20 +83,20 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock>New data set:</TextBlock>
                                     <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                                             Text="{Binding DataSet.Name}" Margin="0 6 0 0" FontSize="18" Grid.Row="1"/>
+                                             Text="{Binding DataSet.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0 6 0 0" FontSize="18" Grid.Row="1"/>
                                     <TextBox wpf:TextFieldAssist.Hint="NgramCount" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                 Text="{Binding DataSet.NGramCount}" Margin="0 8 0 0" FontSize="16" Grid.Row="2"/>
+                 Text="{Binding DataSet.NGramCount, UpdateSourceTrigger=PropertyChanged}" Margin="0 8 0 0" FontSize="16" Grid.Row="2"/>
                                     <TextBox Grid.Row="3" wpf:TextFieldAssist.Hint="IdField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                 Margin="0 8 0 0" Text="{Binding Path=DataSet.IdField}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.IdField, UpdateSourceTrigger=PropertyChanged}"
                  FontSize="16" />
                                     <TextBox Grid.Row="4" wpf:TextFieldAssist.Hint="TagField" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                 Margin="0 8 0 0" Text="{Binding Path=DataSet.TagField}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.TagField, UpdateSourceTrigger=PropertyChanged}"
                  FontSize="16" />
                                     <TextBox wpf:TextFieldAssist.Hint="InterpretedFields" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
-                 Margin="0 8 0 0" Text="{Binding Path=DataSet.InterpretedFields, Converter={StaticResource StringListToStringConverter}}"
+                 Margin="0 8 0 0" Text="{Binding Path=DataSet.InterpretedFields, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringListToStringConverter}}"
                  FontSize="16" Grid.Row="5"/>
                                     <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0 8 0 0">
-                                        <RadioButton IsChecked="{Binding SampleDocumentChecked}" Content="SampleDocument" GroupName="SampleOrSchema" x:Name="SampleRadioButton"/>
+                                        <RadioButton IsChecked="{Binding SampleDocumentChecked, UpdateSourceTrigger=PropertyChanged}" Content="SampleDocument" GroupName="SampleOrSchema" x:Name="SampleRadioButton"/>
                                         <RadioButton Content="DocumentSchema" GroupName="SampleOrSchema" x:Name="SchemaRadioButton"/>
                                     </StackPanel>
                                     <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}, Path=DataContext.HelpCommand}" Grid.Row="7" HorizontalAlignment="Left"  ToolTip="How can I create my own schema?" Visibility="{Binding ElementName=SchemaRadioButton, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -147,22 +147,22 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="Delimiter: " VerticalAlignment="Center"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Delimiter}" MinWidth="20" MaxWidth="50" VerticalAlignment="Center"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Delimiter, UpdateSourceTrigger=PropertyChanged}" MinWidth="20" MaxWidth="50" VerticalAlignment="Center"/>
                                 <CheckBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Content="Force" IsChecked="{Binding Force}" Style="{StaticResource MaterialDesignCheckBox}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type models:Message}">
-                            <TextBox Text="{Binding Text}" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="20" MaxWidth="400" MaxHeight="500"/>
+                            <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="20" MaxWidth="400" MaxHeight="500"/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type services:Service}">
                             <StackPanel>
                                 <TextBox wpf:TextFieldAssist.Hint="Name" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
-                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Name}"/>
+                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBox wpf:TextFieldAssist.Hint="Alias" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
-                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Alias}"/>
+                                        Margin="0,6,0,0" FontSize="14" Text="{Binding Alias, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBox wpf:TextFieldAssist.Hint="Description" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
-                                        Margin="0,10,0,0" FontSize="14" Text="{Binding Description}" MaxHeight="100" TextWrapping="Wrap"/>
-                                <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type}"/>
+                                        Margin="0,10,0,0" FontSize="14" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MaxHeight="100" TextWrapping="Wrap"/>
+                                <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ResourceDictionary>
