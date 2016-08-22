@@ -1384,6 +1384,14 @@ namespace Slamby.TAU.ViewModel
                     Fields = new List<string> { _currentDataSet.IdField }
                 };
                 response = await _documentManager.GetFilteredDocumentsAsync(filterSettings, null);
+                ResponseValidator.Validate(response, false);
+                documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
+                while (response.ResponseObject.Count != 0)
+                {
+                    response = await _documentManager.GetFilteredDocumentsAsync(null, response.ResponseObject.ScrollId);
+                    ResponseValidator.Validate(response, false);
+                    documentIds.AddRange(response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()));
+                }
             }
             else if (_activeSource == ActiveSourceEnum.Sample)
             {
@@ -1397,9 +1405,9 @@ namespace Slamby.TAU.ViewModel
                     Fields = new List<string> { _currentDataSet.IdField }
                 };
                 response = await _documentManager.GetSampleDocumentsAsync(sampleSettings);
+                ResponseValidator.Validate(response, false);
+                documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
             }
-            ResponseValidator.Validate(response, false);
-            documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
             return documentIds;
         }
 
