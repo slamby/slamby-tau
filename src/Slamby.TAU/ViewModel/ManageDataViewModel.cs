@@ -329,16 +329,6 @@ namespace Slamby.TAU.ViewModel
         }
 
 
-        private bool _stratified;
-
-        public bool Stratified
-        {
-            get { return _stratified; }
-            set { Set(() => Stratified, ref _stratified, value); }
-        }
-
-
-
         private bool _isFixSizeSample = true;
 
         public bool IsFixSizeSample
@@ -426,8 +416,7 @@ namespace Slamby.TAU.ViewModel
                     Id = _sampleSettingsId,
                     TagIds = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
                     Percent = IsFixSizeSample ? 0 : SizeText,
-                    Size = IsFixSizeSample ? SizeText : 0,
-                    IsStratified = Stratified
+                    Size = IsFixSizeSample ? SizeText : 0
                 };
                 sampleSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
@@ -1401,7 +1390,6 @@ namespace Slamby.TAU.ViewModel
                     TagIds = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
                     Percent = IsFixSizeSample ? 0 : SizeText,
                     Size = IsFixSizeSample ? SizeText : 0,
-                    IsStratified = Stratified,
                     Fields = new List<string> { _currentDataSet.IdField }
                 };
                 response = await _documentManager.GetSampleDocumentsAsync(sampleSettings);
