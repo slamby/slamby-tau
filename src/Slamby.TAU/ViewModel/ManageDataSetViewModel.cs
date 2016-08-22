@@ -153,8 +153,24 @@ namespace Slamby.TAU.ViewModel
                 IdField = SelectedDataSet.IdField,
                 TagField = SelectedDataSet.TagField,
                 InterpretedFields = SelectedDataSet.InterpretedFields,
-                SampleDocument = SelectedDataSet.SampleDocument,
-                Schema = selectedDataSet.Schema
+                SampleDocument = SelectedDataSet.SampleDocument ?? JsonConvert.SerializeObject(new
+                {
+                    id = 10,
+                    title = "thisisthetitle",
+                    desc = "thisisthedesc",
+                    tag = "tag1"
+                }, Formatting.Indented),
+                Schema = selectedDataSet.Schema ?? JsonConvert.SerializeObject(new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        id = new { type = "integer" },
+                        title = new { type = "string" },
+                        desc = new { type = "string" },
+                        tag = new { type = "string" }
+                    }
+                }, Formatting.Indented)
             };
 
             var context = new CommonDialogViewModel
@@ -475,8 +491,8 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        var bulkErrors = response.ResponseObject.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
-                                        if (bulkErrors.Any())
+                                        var bulkErrors = response.ResponseObject?.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
+                                        if (bulkErrors != null && bulkErrors.Any())
                                         {
                                             foreach (var error in bulkErrors)
                                             {
