@@ -161,7 +161,7 @@
                                 <TextBox wpf:TextFieldAssist.Hint="Alias" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
                                         Margin="0,6,0,0" FontSize="14" Text="{Binding Alias, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBox wpf:TextFieldAssist.Hint="Description" Style="{DynamicResource MaterialDesignFloatingHintTextBox}"                 
-                                        Margin="0,10,0,0" FontSize="14" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MaxHeight="100" TextWrapping="Wrap"/>
+                                        Margin="0,10,0,0" FontSize="14" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MaxHeight="100" TextWrapping="Wrap" AcceptsReturn="True"/>
                                 <ComboBox Margin="0,10,0,0" ItemsSource="{Binding Source={StaticResource ServiceTypes}}" SelectedItem="{Binding Type, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                         </DataTemplate>
