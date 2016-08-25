@@ -326,10 +326,7 @@ namespace Slamby.TAU.ViewModel
                                         var settings = new DocumentBulkSettings();
                                         settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
                                         response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
-                                        if (!ResponseValidator.Validate(response))
-                                        {
-                                            return;
-                                        }
+                                        ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
@@ -338,15 +335,21 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        var bulkErrors = response.ResponseObject.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
-                                        if (bulkErrors.Any())
+                                        if (response.IsSuccessFul)
                                         {
-                                            foreach (var error in bulkErrors)
+                                            var bulkErrors =
+                                                response.ResponseObject.Results.Where(
+                                                    br => br.StatusCode != (int) HttpStatusCode.OK).ToList();
+                                            if (bulkErrors.Any())
                                             {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
-                                                status.ErrorCount++;
-                                            }
+                                                foreach (var error in bulkErrors)
+                                                {
+                                                    errors.Add(string.Format("Id: {0}, error: {1}", error.Id,
+                                                        error.Error));
+                                                    status.ErrorCount++;
+                                                }
 
+                                            }
                                         }
                                         status.DoneCount += (importResult.Tokens.Count + importResult.InvalidRows.Count);
                                         status.ProgressValue = (stream.Position / (double)stream.Length) * 100;

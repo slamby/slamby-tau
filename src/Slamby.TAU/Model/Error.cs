@@ -20,7 +20,7 @@ namespace Slamby.TAU.Model
                 var error = (ClientResponse)errorObject;
                 var header = error.ServerMessage.Length > 50 ? error.ServerMessage.Substring(0, 50) + "..." : error.ServerMessage;
                 header = header.Replace(Environment.NewLine, " ");
-                var details = string.Join(Environment.NewLine, error.Errors);
+                var details = string.Join(Environment.NewLine, error.Errors.Errors);
                 return new Error { Header = header, Message = error.ServerMessage, Details = details, Date = DateTime.UtcNow };
             }
             if (errorObject is Exception)

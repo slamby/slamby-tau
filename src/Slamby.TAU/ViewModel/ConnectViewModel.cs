@@ -218,6 +218,11 @@ namespace Slamby.TAU.ViewModel
                     {
                         GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
                         await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
+                        var mainVindow = new MainWindow();
+                        var connectWindow = App.Current.MainWindow;
+                        App.Current.MainWindow = mainVindow;
+                        mainVindow.Show();
+                        connectWindow.Close();
                     }
                 }
             });

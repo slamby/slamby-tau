@@ -166,7 +166,7 @@ namespace Slamby.TAU.ViewModel
                                                     }
                                                     DispatcherHelper.CheckBeginInvokeOnUI(() =>
                                                     {
-                                                        if (SelectedServices.Count <= 0)
+                                                        if (SelectedServices?.Count <= 0)
                                                         {
                                                             SelectedServices.Add(updatedService);
                                                         }
