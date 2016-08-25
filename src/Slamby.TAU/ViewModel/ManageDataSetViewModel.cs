@@ -324,7 +324,29 @@ namespace Slamby.TAU.ViewModel
                                     try
                                     {
                                         var settings = new DocumentBulkSettings();
-                                        settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
+                                        var idFieldIsArray = false;
+                                        if (SelectedDataSet.SampleDocument != null)
+                                        {
+                                            var docObject = JObject.FromObject(SelectedDataSet.SampleDocument);
+                                            idFieldIsArray = docObject?[SelectedDataSet.TagField] is JArray;
+                                        }
+                                        else
+                                        {
+                                            var docObject = JObject.FromObject(SelectedDataSet.Schema);
+                                            idFieldIsArray = docObject?["properties"][SelectedDataSet.TagField]["type"].ToString().ToLower() == "array";
+                                        }
+                                        if (idFieldIsArray)
+                                        {
+                                            settings.Documents = importResult.Tokens.Select(t =>
+                                            {
+                                                t[SelectedDataSet.TagField] = new JArray(t[SelectedDataSet.TagField]);
+                                                return t;
+                                            }).Select(t => t.ToObject<object>()).ToList();
+                                        }
+                                        else
+                                        {
+                                            settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
+                                        }
                                         response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
                                         ResponseValidator.Validate(response, false);
                                     }
@@ -339,7 +361,7 @@ namespace Slamby.TAU.ViewModel
                                         {
                                             var bulkErrors =
                                                 response.ResponseObject.Results.Where(
-                                                    br => br.StatusCode != (int) HttpStatusCode.OK).ToList();
+                                                    br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
                                             if (bulkErrors.Any())
                                             {
                                                 foreach (var error in bulkErrors)
