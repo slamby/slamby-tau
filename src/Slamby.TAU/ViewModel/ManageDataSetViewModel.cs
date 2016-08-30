@@ -205,7 +205,7 @@ namespace Slamby.TAU.ViewModel
                                 newDataSet.Schema = JsonConvert.DeserializeObject((newDataSet.Schema).ToString());
                             }
                             var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -296,7 +296,7 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        if (response.IsSuccessFul)
+                                        if (response.IsSuccessful)
                                         {
                                             var bulkErrors =
                                                 response.ResponseObject.Results.Where(
@@ -357,7 +357,7 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        if (response.IsSuccessFul)
+                                        if (response.IsSuccessful)
                                         {
                                             var bulkErrors =
                                                 response.ResponseObject.Results.Where(
@@ -633,7 +633,7 @@ namespace Slamby.TAU.ViewModel
                         try
                         {
                             var response = await _dataSetManager.DeleteDataSetAsync(SelectedDataSet.Name);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)

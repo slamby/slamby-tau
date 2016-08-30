@@ -48,7 +48,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 var statusManager = new StatusManager(Endpoints[SelectedIndex]);
                                 response = await statusManager.GetStatusAsync();
-                                IsSuccessFul = response.IsSuccessFul;
+                                IsSuccessFul = response.IsSuccessful;
                             }
                             catch (Exception exception)
                             {
@@ -130,7 +130,7 @@ namespace Slamby.TAU.ViewModel
                               {
                                   var statusManager = new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
                                   var response = await statusManager.GetStatusAsync();
-                                  IsSuccessFul = response.IsSuccessFul;
+                                  IsSuccessFul = response.IsSuccessful;
                               }
                               catch (Exception exception)
                               {
@@ -184,7 +184,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 var statusManager = new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
                                 var response = await statusManager.GetStatusAsync();
-                                IsSuccessFul = response.IsSuccessFul;
+                                IsSuccessFul = response.IsSuccessful;
                             }
                             catch (Exception)
                             {

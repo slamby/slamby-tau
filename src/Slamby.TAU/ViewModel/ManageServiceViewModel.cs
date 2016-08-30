@@ -74,7 +74,7 @@ namespace Slamby.TAU.ViewModel
                              {
                                  serviceToModify.Alias = ((JContent)context.Content).GetJToken().ToObject<string>();
                                  var response = await _serviceManager.UpdateServiceAsync(serviceToModify.Id, serviceToModify);
-                                 isSuccessful = response.IsSuccessFul;
+                                 isSuccessful = response.IsSuccessful;
                                  ResponseValidator.Validate(response, false);
                              }
                              catch (Exception exception)
@@ -149,31 +149,38 @@ namespace Slamby.TAU.ViewModel
                                     foreach (var serviceId in _busyServiceIds.ToList())
                                     {
                                         var response = await _serviceManager.GetServiceAsync(serviceId);
-                                        if (ResponseValidator.Validate(response))
+                                        try
                                         {
-                                            if (response.ResponseObject.Status != ServiceStatusEnum.Busy && string.IsNullOrEmpty(response.ResponseObject.ActualProcessId))
+                                            if (ResponseValidator.Validate(response, false))
                                             {
-                                                var removed = serviceId;
-                                                if (_busyServiceIds.TryTake(out removed))
+                                                if (response.ResponseObject.Status != ServiceStatusEnum.Busy && string.IsNullOrEmpty(response.ResponseObject.ActualProcessId))
                                                 {
-                                                    var updatedService = new ExtendedService(response.ResponseObject);
-                                                    if (updatedService.Status == ServiceStatusEnum.Active &&
-                                                        updatedService.Type == ServiceTypeEnum.Prc)
+                                                    var removed = serviceId;
+                                                    if (_busyServiceIds.TryTake(out removed))
                                                     {
-                                                        var prcResponse = await _prcServiceManager.GetServiceAsync(updatedService.Id);
-                                                        ResponseValidator.Validate(prcResponse);
-                                                        updatedService.IsIndexed = prcResponse.ResponseObject.IndexSettings != null;
-                                                    }
-                                                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                                    {
-                                                        if (SelectedServices?.Count <= 0)
+                                                        var updatedService = new ExtendedService(response.ResponseObject);
+                                                        if (updatedService.Status == ServiceStatusEnum.Active &&
+                                                            updatedService.Type == ServiceTypeEnum.Prc)
                                                         {
-                                                            SelectedServices.Add(updatedService);
+                                                            var prcResponse = await _prcServiceManager.GetServiceAsync(updatedService.Id);
+                                                            ResponseValidator.Validate(prcResponse);
+                                                            updatedService.IsIndexed = prcResponse.ResponseObject.IndexSettings != null;
                                                         }
-                                                        Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService;
-                                                    });
+                                                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                                        {
+                                                            if (SelectedServices?.Count <= 0)
+                                                            {
+                                                                SelectedServices.Add(updatedService);
+                                                            }
+                                                            Services[Services.IndexOf(Services.First(se => se.Id == serviceId))] = updatedService;
+                                                        });
+                                                    }
                                                 }
                                             }
+                                        }
+                                        catch (Exception)
+                                        {
+                                            //we hide this exception
                                         }
                                     }
 
@@ -283,7 +290,7 @@ namespace Slamby.TAU.ViewModel
                         try
                         {
                             response = await _serviceManager.CreateServiceAsync((Service)context.Content);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -580,7 +587,7 @@ namespace Slamby.TAU.ViewModel
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
-                            isSuccessful = clientResponse.IsSuccessFul;
+                            isSuccessful = clientResponse.IsSuccessful;
                             ResponseValidator.Validate(clientResponse, false);
                         }
                         catch (Exception exception)
@@ -694,7 +701,7 @@ namespace Slamby.TAU.ViewModel
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
-                            isSuccessful = clientResponse.IsSuccessFul;
+                            isSuccessful = clientResponse.IsSuccessful;
                             ResponseValidator.Validate(clientResponse, false);
                         }
                         catch (Exception exception)
@@ -774,7 +781,7 @@ namespace Slamby.TAU.ViewModel
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -898,13 +905,13 @@ namespace Slamby.TAU.ViewModel
                             {
                                 case ServiceTypeEnum.Classifier:
                                     var classifierClientResponse = await _classifierServiceManager.RecommendAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<ClassifierRecommendationRequest>());
-                                    isSuccessful = classifierClientResponse.IsSuccessFul;
+                                    isSuccessful = classifierClientResponse.IsSuccessful;
                                     ResponseValidator.Validate(classifierClientResponse, false);
                                     resultContext.Content = new JContent(classifierClientResponse.ResponseObject);
                                     break;
                                 case ServiceTypeEnum.Prc:
                                     var prcClientResponse = await _prcServiceManager.RecommendAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcRecommendationRequest>());
-                                    isSuccessful = prcClientResponse.IsSuccessFul;
+                                    isSuccessful = prcClientResponse.IsSuccessful;
                                     ResponseValidator.Validate(prcClientResponse, false);
                                     resultContext.Content = new JContent(prcClientResponse.ResponseObject);
                                     break;
@@ -971,7 +978,7 @@ namespace Slamby.TAU.ViewModel
                         try
                         {
                             var prcClientResponse = await _prcServiceManager.RecommendByIdAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcRecommendationByIdRequest>());
-                            isSuccessful = prcClientResponse.IsSuccessFul;
+                            isSuccessful = prcClientResponse.IsSuccessful;
                             ResponseValidator.Validate(prcClientResponse, false);
                             resultContext.Content = new JContent(prcClientResponse.ResponseObject);
                         }
@@ -1053,7 +1060,7 @@ namespace Slamby.TAU.ViewModel
                         try
                         {
                             clientResponse = await _prcServiceManager.IndexAsync(selected.Id, ((JContent)context.Content).GetJToken().ToObject<PrcIndexSettings>());
-                            isSuccessful = clientResponse.IsSuccessFul;
+                            isSuccessful = clientResponse.IsSuccessful;
                             ResponseValidator.Validate(clientResponse, false);
                         }
                         catch (Exception exception)

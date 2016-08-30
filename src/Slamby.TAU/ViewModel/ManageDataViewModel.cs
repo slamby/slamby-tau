@@ -389,13 +389,13 @@ namespace Slamby.TAU.ViewModel
                 {
                     Filter = new Filter
                     {
-                        TagIds = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
+                        TagIdList = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
                         Query = Filter
                     },
                     Pagination = new Pagination { Limit = ScrollSize },
                     Order = new Order { OrderByField = _currentDataSet.IdField, OrderDirection = OrderDirectionEnum.Asc }
                 };
-                filterSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
+                filterSettings.FieldList = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
                     : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).Union(new List<string> { _currentDataSet.IdField }).Distinct().ToList();
                 await LoadDocuments(filterSettings);
@@ -414,11 +414,11 @@ namespace Slamby.TAU.ViewModel
                 var sampleSettings = new DocumentSampleSettings
                 {
                     Id = _sampleSettingsId,
-                    TagIds = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
+                    TagIdList = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
                     Percent = IsFixSizeSample ? 0 : SizeText,
                     Size = IsFixSizeSample ? SizeText : 0
                 };
-                sampleSettings.Fields = SelectedDocumentProperties.Count == DocumentProperties.Count
+                sampleSettings.FieldList = SelectedDocumentProperties.Count == DocumentProperties.Count
                     ? new List<string> { "*" }
                     : SelectedDocumentProperties.Count == 0 ? null : SelectedDocumentProperties.Select(o => o.ToString()).Union(new List<string> { _currentDataSet.IdField }).Distinct().ToList();
                 await LoadDocuments(sampleSettings);
@@ -432,7 +432,7 @@ namespace Slamby.TAU.ViewModel
             try
             {
                 ResponseValidator.Validate(response, false);
-                _filterScrollId = response.ResponseObject.Count == 0 ? null : response.ResponseObject.ScrollId;
+                _filterScrollId = (response.ResponseObject.Count == 0 || response.ResponseObject.ScrollId == null) ? null : response.ResponseObject.ScrollId;
                 DispatcherHelper.CheckBeginInvokeOnUI(() => LoadMoreCommand.RaiseCanExecuteChanged());
                 DispatcherHelper.CheckBeginInvokeOnUI(() => Documents.AddRange(response.ResponseObject.Items));
             }
@@ -515,7 +515,7 @@ namespace Slamby.TAU.ViewModel
                         {
                             var newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
                             response = await _tagManager.CreateTagAsync(newTag);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -576,7 +576,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 newTag = ((JContent)context.Content).GetJToken().ToObject<Tag>();
                                 response = await _tagManager.UpdateTagAsync(id, newTag);
-                                isSuccessful = response.IsSuccessFul;
+                                isSuccessful = response.IsSuccessful;
                                 ResponseValidator.Validate(response, false);
                             }
                             catch (Exception exception)
@@ -708,7 +708,7 @@ namespace Slamby.TAU.ViewModel
                         {
                             var settings = ((JContent)context.Content).GetJToken().ToObject<TagsExportWordsSettings>();
                             response = await _tagManager.WordsExportAsync(settings);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -780,7 +780,7 @@ namespace Slamby.TAU.ViewModel
                         {
                             newDocument = ((JContent)context.Content).GetJToken().ToObject<object>();
                             var response = await _documentManager.CreateDocumentAsync(newDocument);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -851,7 +851,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 var modified = ((JContent)context.Content).GetJToken().ToObject<object>();
                                 response = await _documentManager.UpdateDocumentAsync(docId, modified);
-                                isSuccessful = response.IsSuccessFul;
+                                isSuccessful = response.IsSuccessful;
                                 ResponseValidator.Validate(response, false);
                             }
                             catch (Exception exception)
@@ -1012,7 +1012,7 @@ namespace Slamby.TAU.ViewModel
                                                 modifiedTags.Add(_currentDataSet.TagField, tags);
                                                 var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
-                                                if (!response.IsSuccessFul)
+                                                if (!response.IsSuccessful)
                                                 {
                                                     tags = originalTags;
                                                     ResponseValidator.Validate(response, false);
@@ -1139,7 +1139,7 @@ namespace Slamby.TAU.ViewModel
                                                 modifiedTags.Add(_currentDataSet.TagField, tags);
                                                 var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
-                                                if (!response.IsSuccessFul)
+                                                if (!response.IsSuccessful)
                                                 {
                                                     tags = originalTags;
                                                     ResponseValidator.Validate(response, false);
@@ -1231,7 +1231,7 @@ namespace Slamby.TAU.ViewModel
                                                 modifiedTags.Add(_currentDataSet.TagField, tags);
                                                 var modified = modifiedTags.ToObject<object>();
                                                 var response = _documentManager.UpdateDocumentAsync(docId, modified).Result;
-                                                if (!response.IsSuccessFul)
+                                                if (!response.IsSuccessful)
                                                 {
                                                     tags = originalTags;
                                                     ResponseValidator.Validate(response, false);
@@ -1366,16 +1366,16 @@ namespace Slamby.TAU.ViewModel
                 {
                     Filter = new Filter
                     {
-                        TagIds = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
+                        TagIdList = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
                         Query = Filter
                     },
                     Pagination = new Pagination { Limit = -1 },
-                    Fields = new List<string> { _currentDataSet.IdField }
+                    FieldList = new List<string> { _currentDataSet.IdField }
                 };
                 response = await _documentManager.GetFilteredDocumentsAsync(filterSettings, null);
                 ResponseValidator.Validate(response, false);
                 documentIds = response.ResponseObject.Items.Select(d => ((JObject)d)[_currentDataSet.IdField].ToString()).ToList();
-                while (response.ResponseObject.Count != 0)
+                while (!(response.ResponseObject.Count == 0 || response.ResponseObject.ScrollId == null))
                 {
                     response = await _documentManager.GetFilteredDocumentsAsync(null, response.ResponseObject.ScrollId);
                     ResponseValidator.Validate(response, false);
@@ -1387,10 +1387,10 @@ namespace Slamby.TAU.ViewModel
                 var sampleSettings = new DocumentSampleSettings
                 {
                     Id = _sampleSettingsId,
-                    TagIds = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
+                    TagIdList = _selectedTagsForSample?.Select(t => t.Id).ToList() ?? new List<string>(),
                     Percent = IsFixSizeSample ? 0 : SizeText,
                     Size = IsFixSizeSample ? SizeText : 0,
-                    Fields = new List<string> { _currentDataSet.IdField }
+                    FieldList = new List<string> { _currentDataSet.IdField }
                 };
                 response = await _documentManager.GetSampleDocumentsAsync(sampleSettings);
                 ResponseValidator.Validate(response, false);
@@ -1403,7 +1403,7 @@ namespace Slamby.TAU.ViewModel
         {
             var response = await _documentManager.CopyDocumentsToAsync(new DocumentCopySettings
             {
-                Ids = docIdList,
+                IdList = docIdList,
                 TargetDataSetName = targetDataSetName
             });
             ResponseValidator.Validate(response, false);
@@ -1413,7 +1413,7 @@ namespace Slamby.TAU.ViewModel
         {
             var response = await _documentManager.MoveDocumentsToAsync(new DocumentMoveSettings
             {
-                Ids = docIdList,
+                DocumentIdList = docIdList,
                 TargetDataSetName = targetDataSetName
             });
             ResponseValidator.Validate(response, false);
@@ -1423,7 +1423,7 @@ namespace Slamby.TAU.ViewModel
                 {
                     Filter = new Filter
                     {
-                        TagIds = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
+                        TagIdList = _selectedTagsForFilter?.Select(t => t.Id).ToList() ?? new List<string>(),
                         Query = Filter
                     },
                     Pagination = new Pagination { Limit = ScrollSize },

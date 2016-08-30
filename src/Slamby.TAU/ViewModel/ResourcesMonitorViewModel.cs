@@ -42,7 +42,7 @@ namespace Slamby.TAU.ViewModel
                 Task.Run(async () =>
                 {
                     var statusResponse = await _statusManager.GetStatusAsync();
-                    if (statusResponse.IsSuccessFul)
+                    if (statusResponse.IsSuccessful)
                     {
                         GlobalStore.EndPointIsAlive = true;
                         EndPointStatus.IsAlive = true;
