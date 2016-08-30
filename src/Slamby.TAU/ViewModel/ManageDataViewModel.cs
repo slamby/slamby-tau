@@ -1403,7 +1403,7 @@ namespace Slamby.TAU.ViewModel
         {
             var response = await _documentManager.CopyDocumentsToAsync(new DocumentCopySettings
             {
-                IdList = docIdList,
+                DocumentIdList = docIdList,
                 TargetDataSetName = targetDataSetName
             });
             ResponseValidator.Validate(response, false);
