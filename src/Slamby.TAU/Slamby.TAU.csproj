@@ -145,8 +145,8 @@
       <HintPath>..\packages\squirrel.windows.1.4.0\lib\Net45\NuGet.Squirrel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Slamby.SDK.Net, Version=0.19.16243.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Slamby.SDK.Net.0.19.16243.4\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
+    <Reference Include="Slamby.SDK.Net, Version=0.19.16245.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Slamby.SDK.Net.0.19.16245.1\lib\portable-net45+win\Slamby.SDK.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
