@@ -204,6 +204,7 @@ namespace Slamby.TAU.ViewModel
                                 newDataSet.SampleDocument = null;
                                 newDataSet.Schema = JsonConvert.DeserializeObject((newDataSet.Schema).ToString());
                             }
+                            newDataSet.InterpretedFields = newDataSet.InterpretedFields.Where(f => !string.IsNullOrEmpty(f.Trim())).ToList();
                             var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
                             isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);

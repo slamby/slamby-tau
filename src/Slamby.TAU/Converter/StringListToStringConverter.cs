@@ -18,7 +18,7 @@ namespace Slamby.TAU.Converter
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((string)value).Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+            return ((string)value).Split(',').Select(s => s.Trim()).ToList();
         }
     }
 }
