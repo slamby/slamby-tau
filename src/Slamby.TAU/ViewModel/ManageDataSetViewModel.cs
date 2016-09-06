@@ -263,7 +263,7 @@ namespace Slamby.TAU.ViewModel
                 var invalidRows = new List<int>();
                 var errors = new ConcurrentBag<string>();
                 var cancellationToken = new CancellationTokenSource();
-                var status = new StatusDialogViewModel { ProgressValue = 0, Title = "Importing documents", CancellationTokenSource = cancellationToken };
+                var status = new StatusDialogViewModel { ProgressValue = 0, Title = typeof(T) == typeof(Tag) ? "Importing Tags" : "Importing documents", CancellationTokenSource = cancellationToken };
                 await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog",
                     async (object sender, DialogOpenedEventArgs oa) =>
                     {
@@ -421,7 +421,7 @@ namespace Slamby.TAU.ViewModel
         private async Task Import<T>(List<JToken> tokens)
         {
             var cancellationToken = new CancellationTokenSource();
-            var status = new StatusDialogViewModel { Title = "Importing documents", CancellationTokenSource = cancellationToken };
+            var status = new StatusDialogViewModel { Title = typeof(T) == typeof(Tag) ? "Importing Tags" : "Importing documents", CancellationTokenSource = cancellationToken };
             await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
             {
                 try
