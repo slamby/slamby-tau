@@ -24,8 +24,11 @@ namespace Slamby.TAU.Helper
                     {
                         result.CanContinue = importSettings.CsvReader.Read();
                     }
-                    catch (Exception)
+                    catch (Exception exception)
                     {
+                        result.InvalidRows.Add(((CsvParser)importSettings.CsvReader.Parser).RawRow);
+                        if (!importSettings.Force)
+                            result.CanContinue = false;
                         continue;
                     }
                     if (!result.CanContinue)

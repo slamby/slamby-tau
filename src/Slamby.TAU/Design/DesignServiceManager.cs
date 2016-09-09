@@ -17,13 +17,13 @@ namespace Slamby.TAU.Design
         {
             await Task.Delay(500);
             service.Id = Guid.NewGuid().ToString();
-            return new ClientResponseWithObject<Service> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessFul = true, ResponseObject = service };
+            return new ClientResponseWithObject<Service> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessful = true, ResponseObject = service };
         }
 
         public async Task<ClientResponse> DeleteServiceAsync(string serviceId)
         {
             await Task.Delay(500);
-            return new ClientResponse { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessFul = true };
+            return new ClientResponse { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessful = true };
         }
 
         public async Task<ClientResponseWithObject<Service>> GetServiceAsync(string serviceId)
@@ -40,13 +40,13 @@ namespace Slamby.TAU.Design
             {
                 services.Add(new ClassifierService { Description = "This is a description for Service" + i, Name = "Service" + i, Id = Guid.NewGuid().ToString(), Status = (ServiceStatusEnum)rand.Next(4), Type = (ServiceTypeEnum)rand.Next(0) });
             }
-            return new ClientResponseWithObject<IEnumerable<Service>> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessFul = true, ResponseObject = services };
+            return new ClientResponseWithObject<IEnumerable<Service>> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessful = true, ResponseObject = services };
         }
 
         public async Task<ClientResponse> UpdateServiceAsync(string serviceId, Service service)
         {
             await Task.Delay(500);
-            return new ClientResponseWithObject<Service> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessFul = true, ResponseObject = service };
+            return new ClientResponseWithObject<Service> { Errors = null, HttpStatusCode = HttpStatusCode.OK, IsSuccessful = true, ResponseObject = service };
         }
     }
 }

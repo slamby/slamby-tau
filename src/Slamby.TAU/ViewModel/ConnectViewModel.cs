@@ -48,7 +48,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 var statusManager = new StatusManager(Endpoints[SelectedIndex]);
                                 response = await statusManager.GetStatusAsync();
-                                IsSuccessFul = response.IsSuccessFul;
+                                IsSuccessFul = response.IsSuccessful;
                             }
                             catch (Exception exception)
                             {
@@ -101,7 +101,7 @@ namespace Slamby.TAU.ViewModel
                                     new CommonDialogViewModel
                                     {
                                         Header = "Warning!",
-                                        Content = new Message("Faild to connect to selected endpoint."),
+                                        Content = new Message($"Faild to connect to selected endpoint.{Environment.NewLine}{string.Join(Environment.NewLine, response.Errors.Errors)}"),
                                         Buttons = ButtonsEnum.Ok
                                     }
                             }, "ConnectDialog");
@@ -130,7 +130,7 @@ namespace Slamby.TAU.ViewModel
                               {
                                   var statusManager = new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
                                   var response = await statusManager.GetStatusAsync();
-                                  IsSuccessFul = response.IsSuccessFul;
+                                  IsSuccessFul = response.IsSuccessful;
                               }
                               catch (Exception exception)
                               {
@@ -184,7 +184,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 var statusManager = new StatusManager(((JContent)context.Content).GetJToken().ToObject<Configuration>());
                                 var response = await statusManager.GetStatusAsync();
-                                IsSuccessFul = response.IsSuccessFul;
+                                IsSuccessFul = response.IsSuccessful;
                             }
                             catch (Exception)
                             {
@@ -218,6 +218,11 @@ namespace Slamby.TAU.ViewModel
                     {
                         GlobalStore.SelectedEndpoint = Endpoints[SelectedIndex];
                         await ((ViewModelLocator)App.Current.Resources["Locator"]).EndpointUpdate();
+                        var mainVindow = new MainWindow();
+                        var connectWindow = App.Current.MainWindow;
+                        App.Current.MainWindow = mainVindow;
+                        mainVindow.Show();
+                        connectWindow.Close();
                     }
                 }
             });

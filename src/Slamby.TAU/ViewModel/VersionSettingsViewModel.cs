@@ -65,7 +65,7 @@ namespace Slamby.TAU.ViewModel
 
                     AvailableReleases =
                         new ObservableCollection<string>(content.Split(new string[] { "\r\n", "\n" },
-                            StringSplitOptions.RemoveEmptyEntries));
+                            StringSplitOptions.RemoveEmptyEntries).Reverse());
                 }
                 catch (Exception exception)
                 {

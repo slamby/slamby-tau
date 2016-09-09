@@ -1,5 +1,6 @@
 ﻿using System;
 using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
 using Slamby.TAU.Enum;
 
 namespace Slamby.TAU.ViewModel
@@ -90,6 +91,11 @@ namespace Slamby.TAU.ViewModel
             get { return _header; }
             set { Set(() => Header, ref _header, value); }
         }
+
+        public RelayCommand HelpCommand { get; private set; } = new RelayCommand(() =>
+        {
+            System.Diagnostics.Process.Start("http://developers.slamby.com");
+        });
 
         private ButtonsEnum _buttons;
         public ButtonsEnum Buttons

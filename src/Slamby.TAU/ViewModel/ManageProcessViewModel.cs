@@ -15,6 +15,7 @@ using Slamby.TAU.Helper;
 using Slamby.TAU.Logger;
 using Slamby.TAU.Model;
 using Slamby.TAU.Resources;
+using Slamby.TAU.View;
 
 namespace Slamby.TAU.ViewModel
 {
@@ -134,6 +135,19 @@ namespace Slamby.TAU.ViewModel
 
             });
 
+            ShowProcessDetailsCommand= new RelayCommand<Process>(async process =>
+            {
+                if(process==null) return;
+                var context = new CommonDialogViewModel
+                {
+                    Header = "Process details",
+                    Buttons = ButtonsEnum.Ok,
+                    Content = new JContent(process)
+                };
+                var view = new CommonDialog { DataContext = context };
+                await _dialogHandler.Show(view);
+            });
+
         }
 
         private bool _loadedFirst = true;
@@ -153,6 +167,8 @@ namespace Slamby.TAU.ViewModel
         public RelayCommand<string> RefreshProcessCommand { get; private set; }
 
         public RelayCommand<Process> CancelProcessCommand { get; private set; }
+
+        public RelayCommand<Process> ShowProcessDetailsCommand { get; private set; }
 
         private bool _processesGridSettingsLadedFromFile = false;
         private DataGridSettings _processesGridSettings;
@@ -200,6 +216,11 @@ namespace Slamby.TAU.ViewModel
             {
                 ProcessesGridSettings = null;
             }
+        }
+
+        public void Reload()
+        {
+            _loadedFirst = true;
         }
     }
 }

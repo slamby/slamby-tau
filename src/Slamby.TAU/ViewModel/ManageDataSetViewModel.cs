@@ -61,30 +61,33 @@ namespace Slamby.TAU.ViewModel
                 });
             DeleteCommand = new RelayCommand(Delete);
             RenameCommand = new RelayCommand(Rename);
-            if (_loadedFirst)
+            LoadedCommand = new RelayCommand(async () =>
             {
-                DataSets.Clear();
                 try
                 {
-                    Task.Run(async () =>
-                                    {
-                                        var response = await _dataSetManager.GetDataSetsAsync();
-                                        if (ResponseValidator.Validate(response))
-                                        {
-                                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                                            {
-                                                response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
-                                            });
-                                        }
-                                        _loadedFirst = false;
-                                    }).Wait();
+                    Mouse.SetCursor(Cursors.Arrow);
+                    if (_loadedFirst)
+                    {
+                        _loadedFirst = false;
+                        await _dialogHandler.ShowProgress(null, async () =>
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Clear());
+                            var response = await _dataSetManager.GetDataSetsAsync();
+                            if (ResponseValidator.Validate(response))
+                            {
+                                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                                {
+                                    response.ResponseObject.ToList().ForEach(ds => DataSets.Add(ds));
+                                });
+                            }
+                        });
+                    }
                 }
                 catch (Exception exception)
                 {
                     Messenger.Default.Send(exception);
                 }
-
-            }
+            });
         }
 
         private bool _loadedFirst = true;
@@ -124,42 +127,113 @@ namespace Slamby.TAU.ViewModel
             {
                 NGramCount = 3,
                 IdField = "id",
-                TagField = "tags",
+                TagField = "tag",
                 InterpretedFields = new List<string> { "title", "desc" },
-                SampleDocument = new
+                SampleDocument = JsonConvert.SerializeObject(new
                 {
                     id = 10,
                     title = "thisisthetitle",
                     desc = "thisisthedesc",
-                    tags = new[] { "tag1" }
-                },
-                Schema = JsonConvert.DeserializeObject("{\"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"title\": { \"type\": \"string\" }, \"desc\": { \"type\": \"string\" }, \"tag\": { \"type\": \"array\", \"items\": { \"type\": \"string\"}}}}")
+                    tag = "tag1"
+                }, Formatting.Indented),
+                Schema = JsonConvert.SerializeObject(new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        id = new { type = "integer" },
+                        title = new { type = "string" },
+                        desc = new { type = "string" },
+                        tag = new { type = "string" }
+                    }
+                }, Formatting.Indented)
             } : new DataSet
             {
                 NGramCount = SelectedDataSet.NGramCount,
                 IdField = SelectedDataSet.IdField,
                 TagField = SelectedDataSet.TagField,
                 InterpretedFields = SelectedDataSet.InterpretedFields,
-                SampleDocument = SelectedDataSet.SampleDocument,
-                Schema = selectedDataSet.Schema
-            };
-            var view = new AddDataSetDialog { DataContext = new AddDataSetDialogViewModel(newDataSet) };
-            var isAccepted = await _dialogHandler.Show(view, "RootDialog");
-            if ((bool)isAccepted)
-            {
-                await _dialogHandler.ShowProgress(null, async () =>
+                SampleDocument = SelectedDataSet.SampleDocument ?? JsonConvert.SerializeObject(new
                 {
-
-                    var response = newDataSet.Schema == null ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
-                    if (ResponseValidator.Validate(response))
+                    id = 10,
+                    title = "thisisthetitle",
+                    desc = "thisisthedesc",
+                    tag = "tag1"
+                }, Formatting.Indented),
+                Schema = selectedDataSet.Schema ?? JsonConvert.SerializeObject(new
+                {
+                    type = "object",
+                    properties = new
                     {
-                        var createdResponse = await _dataSetManager.GetDataSetAsync(newDataSet.Name);
-                        if (ResponseValidator.Validate(createdResponse))
+                        id = new { type = "integer" },
+                        title = new { type = "string" },
+                        desc = new { type = "string" },
+                        tag = new { type = "string" }
+                    }
+                }, Formatting.Indented)
+            };
+
+            var context = new CommonDialogViewModel
+            {
+                Header = "Add Dataset",
+                Buttons = ButtonsEnum.OkCancel,
+                Content = new NewDataSetWrapper { DataSet = newDataSet, SampleDocumentChecked = true }
+            };
+            var view = new CommonDialog { DataContext = context };
+            var canClose = false;
+            var result = await _dialogHandler.Show(view, "RootDialog",
+                async (object sender, DialogClosingEventArgs args) =>
+                {
+                    if (!canClose && (CommonDialogResult)args.Parameter == CommonDialogResult.Ok)
+                    {
+                        args.Cancel();
+                        args.Session.UpdateContent(new ProgressDialog());
+                        var isSuccessful = false;
+                        var errorMessage = "";
+                        try
                         {
-                            DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Add(createdResponse.ResponseObject));
+                            var wrapper = (NewDataSetWrapper)(context.Content);
+                            newDataSet = wrapper.DataSet;
+                            if (wrapper.SampleDocumentChecked)
+                            {
+                                newDataSet.Schema = null;
+                                newDataSet.SampleDocument = JsonConvert.DeserializeObject(newDataSet.SampleDocument.ToString());
+                            }
+                            else
+                            {
+                                newDataSet.SampleDocument = null;
+                                newDataSet.Schema = JsonConvert.DeserializeObject((newDataSet.Schema).ToString());
+                            }
+                            newDataSet.InterpretedFields = newDataSet.InterpretedFields.Where(f => !string.IsNullOrEmpty(f.Trim())).ToList();
+                            var response = wrapper.SampleDocumentChecked ? await _dataSetManager.CreateDataSetAsync(newDataSet) : await _dataSetManager.CreateDataSetSchemaAsync(newDataSet);
+                            isSuccessful = response.IsSuccessful;
+                            ResponseValidator.Validate(response, false);
+                        }
+                        catch (Exception exception)
+                        {
+                            isSuccessful = false;
+                            errorMessage = exception.Message;
+
+                        }
+                        finally
+                        {
+                            if (!isSuccessful)
+                            {
+                                context.ErrorMessage = errorMessage;
+                                context.ShowError = true;
+                                args.Session.UpdateContent(view);
+                            }
+                            else
+                            {
+                                canClose = true;
+                                args.Session.Close((CommonDialogResult)args.Parameter);
+                            }
                         }
                     }
                 });
+            if ((CommonDialogResult)result == CommonDialogResult.Ok)
+            {
+                DataSets.Add(newDataSet);
             }
         }
 
@@ -189,7 +263,7 @@ namespace Slamby.TAU.ViewModel
                 var invalidRows = new List<int>();
                 var errors = new ConcurrentBag<string>();
                 var cancellationToken = new CancellationTokenSource();
-                var status = new StatusDialogViewModel { ProgressValue = 0, Title = "Importing documents", CancellationTokenSource = cancellationToken };
+                var status = new StatusDialogViewModel { ProgressValue = 0, Title = typeof(T) == typeof(Tag) ? "Importing Tags" : "Importing documents", CancellationTokenSource = cancellationToken };
                 await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog",
                     async (object sender, DialogOpenedEventArgs oa) =>
                     {
@@ -223,7 +297,7 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        if (response.IsSuccessFul)
+                                        if (response.IsSuccessful)
                                         {
                                             var bulkErrors =
                                                 response.ResponseObject.Results.Where(
@@ -251,12 +325,31 @@ namespace Slamby.TAU.ViewModel
                                     try
                                     {
                                         var settings = new DocumentBulkSettings();
-                                        settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
-                                        response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
-                                        if (!ResponseValidator.Validate(response))
+                                        var idFieldIsArray = false;
+                                        if (SelectedDataSet.SampleDocument != null)
                                         {
-                                            return;
+                                            var docObject = JObject.FromObject(SelectedDataSet.SampleDocument);
+                                            idFieldIsArray = docObject?[SelectedDataSet.TagField] is JArray;
                                         }
+                                        else
+                                        {
+                                            var docObject = JObject.FromObject(SelectedDataSet.Schema);
+                                            idFieldIsArray = docObject?["properties"][SelectedDataSet.TagField]["type"].ToString().ToLower() == "array";
+                                        }
+                                        if (idFieldIsArray)
+                                        {
+                                            settings.Documents = importResult.Tokens.Select(t =>
+                                            {
+                                                t[SelectedDataSet.TagField] = new JArray(t[SelectedDataSet.TagField]);
+                                                return t;
+                                            }).Select(t => t.ToObject<object>()).ToList();
+                                        }
+                                        else
+                                        {
+                                            settings.Documents = importResult.Tokens.Select(t => t.ToObject<object>()).ToList();
+                                        }
+                                        response = await new DocumentManager(GlobalStore.SelectedEndpoint, SelectedDataSet.Name).BulkDocumentsAsync(settings);
+                                        ResponseValidator.Validate(response, false);
                                     }
                                     catch (Exception ex)
                                     {
@@ -265,15 +358,21 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        var bulkErrors = response.ResponseObject.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
-                                        if (bulkErrors.Any())
+                                        if (response.IsSuccessful)
                                         {
-                                            foreach (var error in bulkErrors)
+                                            var bulkErrors =
+                                                response.ResponseObject.Results.Where(
+                                                    br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
+                                            if (bulkErrors.Any())
                                             {
-                                                errors.Add(string.Format("Id: {0}, error: {1}", error.Id, error.Error));
-                                                status.ErrorCount++;
-                                            }
+                                                foreach (var error in bulkErrors)
+                                                {
+                                                    errors.Add(string.Format("Id: {0}, error: {1}", error.Id,
+                                                        error.Error));
+                                                    status.ErrorCount++;
+                                                }
 
+                                            }
                                         }
                                         status.DoneCount += (importResult.Tokens.Count + importResult.InvalidRows.Count);
                                         status.ProgressValue = (stream.Position / (double)stream.Length) * 100;
@@ -322,7 +421,7 @@ namespace Slamby.TAU.ViewModel
         private async Task Import<T>(List<JToken> tokens)
         {
             var cancellationToken = new CancellationTokenSource();
-            var status = new StatusDialogViewModel { Title = "Importing documents", CancellationTokenSource = cancellationToken };
+            var status = new StatusDialogViewModel { Title = typeof(T) == typeof(Tag) ? "Importing Tags" : "Importing documents", CancellationTokenSource = cancellationToken };
             await _dialogHandler.Show(new StatusDialog { DataContext = status }, "RootDialog", async (object sender, DialogOpenedEventArgs oa) =>
             {
                 try
@@ -418,8 +517,8 @@ namespace Slamby.TAU.ViewModel
                                     }
                                     finally
                                     {
-                                        var bulkErrors = response.ResponseObject.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
-                                        if (bulkErrors.Any())
+                                        var bulkErrors = response.ResponseObject?.Results.Where(br => br.StatusCode != (int)HttpStatusCode.OK).ToList();
+                                        if (bulkErrors != null && bulkErrors.Any())
                                         {
                                             foreach (var error in bulkErrors)
                                             {
@@ -535,7 +634,7 @@ namespace Slamby.TAU.ViewModel
                         try
                         {
                             var response = await _dataSetManager.DeleteDataSetAsync(SelectedDataSet.Name);
-                            isSuccessful = response.IsSuccessFul;
+                            isSuccessful = response.IsSuccessful;
                             ResponseValidator.Validate(response, false);
                         }
                         catch (Exception exception)
@@ -563,6 +662,11 @@ namespace Slamby.TAU.ViewModel
             {
                 DispatcherHelper.CheckBeginInvokeOnUI(() => DataSets.Remove(SelectedDataSet));
             }
+        }
+
+        public void Reload()
+        {
+            _loadedFirst = true;
         }
 
     }
