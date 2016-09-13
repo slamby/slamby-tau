@@ -101,7 +101,8 @@ namespace Slamby.TAU.ViewModel
                                     new CommonDialogViewModel
                                     {
                                         Header = "Warning!",
-                                        Content = new Message($"Faild to connect to selected endpoint.{Environment.NewLine}{string.Join(Environment.NewLine, response.Errors.Errors)}"),
+                                        Content = new Message(
+                                            $"Faild to connect to selected endpoint.{Environment.NewLine}{(response?.Errors == null ? "" : string.Join(Environment.NewLine, response.Errors.Errors))}"),
                                         Buttons = ButtonsEnum.Ok
                                     }
                             }, "ConnectDialog");
