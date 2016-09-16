@@ -101,7 +101,8 @@ namespace Slamby.TAU.ViewModel
                                     new CommonDialogViewModel
                                     {
                                         Header = "Warning!",
-                                        Content = new Message($"Faild to connect to selected endpoint.{Environment.NewLine}{string.Join(Environment.NewLine, response.Errors.Errors)}"),
+                                        Content = new Message(
+                                            $"Failed to connect to selected endpoint.{Environment.NewLine}{(response?.Errors == null ? "" : string.Join(Environment.NewLine, response.Errors.Errors))}"),
                                         Buttons = ButtonsEnum.Ok
                                     }
                             }, "ConnectDialog");
@@ -135,13 +136,13 @@ namespace Slamby.TAU.ViewModel
                               catch (Exception exception)
                               {
                                   IsSuccessFul = false;
-                                  errorMessage = exception is JsonReaderException ? exception.Message : "Faild to connect to selected endpoint!";
+                                  errorMessage = exception is JsonReaderException ? exception.Message : "Failed to connect to selected endpoint!";
                               }
                               finally
                               {
                                   if (!IsSuccessFul)
                                   {
-                                      context.ErrorMessage = string.IsNullOrEmpty(errorMessage) ? "Faild to connect to selected endpoint!" : errorMessage;
+                                      context.ErrorMessage = string.IsNullOrEmpty(errorMessage) ? "Failed to connect to selected endpoint!" : errorMessage;
                                       context.ShowError = true;
                                       args.Session.UpdateContent(view);
                                   }
@@ -194,7 +195,7 @@ namespace Slamby.TAU.ViewModel
                             {
                                 if (!IsSuccessFul)
                                 {
-                                    context.ErrorMessage = "Faild to connect to selected endpoint!";
+                                    context.ErrorMessage = "Failed to connect to selected endpoint!";
                                     context.ShowError = true;
                                     args.Session.UpdateContent(view);
                                 }
